@@ -68,6 +68,9 @@ flutter:
     - assets/tiles/Model_01/
     - assets/tiles/Model_02/
     - assets/tiles/Model_03/
+    - assets/images/
+
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
