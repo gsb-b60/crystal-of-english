@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +9,8 @@ import 'player.dart';
 import '/components/collisionmap.dart';
 import 'dialog/dialog_manager.dart';
 import 'dialog/dialog_overlay.dart';
-import 'components/npc.dart';            // lớp Npc đã yêu cầu manager
+import 'components/npc.dart';
 import 'package:flame_tiled/flame_tiled.dart' as ft;
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +22,6 @@ void main() async {
   runApp(
     GameWidget(
       game: MyGame(),
-      // LƯU Ý: lấy manager từ chính instance game được truyền vào builder
       overlayBuilderMap: {
         DialogOverlay.id: (context, game) {
           final g = game as MyGame;
@@ -37,14 +33,13 @@ void main() async {
 }
 
 class MyGame extends FlameGame
-    with HasKeyboardHandlerComponents, HasCollisionDetection{
+    with HasKeyboardHandlerComponents, HasCollisionDetection {
   late Player player;
   late ft.TiledComponent map;
   late Rect mapBounds;
-
-  // Dialog service (duy nhất)
   final DialogManager dialogManager = DialogManager();
-
+  JoystickComponent? joystick;
+  CameraComponent? gameCamera;
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -74,58 +69,18 @@ class MyGame extends FlameGame
     player = Player(position: size / 3);
     await world.add(player);
 
-    // Gắn callback để DialogManager tự mở/đóng overlay
-    dialogManager.onRequestOpenOverlay = () => overlays.add(DialogOverlay.id);
-    dialogManager.onRequestCloseOverlay = () {
-      if (overlays.isActive(DialogOverlay.id)) overlays.remove(DialogOverlay.id);
-    };
-
-    // ====== THÊM NPC (NHỚ TRUYỀN manager) ======
-    final npc1 = Npc(
-      position: Vector2(300, 200),
-      manager: dialogManager,               // <<< BẮT BUỘC
-      lines: [
-        'Xin chào!',
-        'Trời hôm nay đẹp ghê.',
-        'Bạn muốn nghe chuyện kho báu không?',
-      ],
-      spriteAsset: 'player.png',
-      srcPosition: Vector2(0, 0),
-      srcSize: Vector2(80, 80),
-      interactLabel: 'Nói',
-      interactRadius: 56,
-      speakEvery: 4,          // đặt lớn nếu không muốn tự “tám”
-      showFor: 2,
-      bubbleOffsetY: -6,
-      zPriority: 20,
-    );
-    await world.add(npc1);
-
-    // Ví dụ thêm NPC thứ 2 -> cũng PHẢI có manager:
-    // final npc2 = Npc(
-    //   position: Vector2(500, 320),
-    //   manager: dialogManager,             // <<< ĐỪNG QUÊN
-    //   lines: ['Ta là thợ rèn.', 'Cần sửa vũ khí không?'],
-    //   spriteAsset: 'player.png',
-    //   srcPosition: Vector2(0, 0),
-    //   srcSize: Vector2(80, 80),
-    //   interactLabel: 'Nói',
-    // );
-    // await world.add(npc2);
-
-    // Camera
-    final camera = CameraComponent(world: world, hudComponents: []);
-    await add(camera);
-    camera.viewfinder.zoom = 2.5;
-    camera.follow(player, maxSpeed: 5000);
-    camera.setBounds(Rectangle.fromLTWH(
+    final cam = CameraComponent(world: world, hudComponents: []);
+    await add(cam);
+    cam.viewfinder.zoom = 2.5;
+    cam.follow(player, maxSpeed: 5000);
+    cam.setBounds(Rectangle.fromLTWH(
       0, 0,
       map.tileMap.map.width * 16.0,
       map.tileMap.map.height * 16.0,
     ));
+    gameCamera = cam; // gán field
 
-    // Joystick
-    final joystick = JoystickComponent(
+    final js = JoystickComponent(
       knob: CircleComponent(
         radius: 30,
         paint: Paint()..color = const Color.fromARGB(255, 200, 230, 255),
@@ -136,7 +91,82 @@ class MyGame extends FlameGame
       ),
       margin: const EdgeInsets.only(left: 40, bottom: 40),
     );
-    camera.viewport.add(joystick);
-    player.joystick = joystick;
+    cam.viewport.add(js);
+    joystick = js;
+    player.joystick = js;
+
+   final npc1 = Npc(
+  position: Vector2(660, 112),
+  manager: dialogManager,
+
+  interactLines: [
+    'Xin chào!',
+    'Trời hôm nay đẹp quá.',
+    'Em ăn cơm chưa?',
+  ],
+
+  // thoại TỰ NÓI (bong bóng lặp)
+  idleLines: [
+    'Hmm...',
+    'Làng này dạo này yên ả ghê.',
+    'Nghe đồn có kho báu ở phía bắc.',
+  ],
+  enableIdleChatter: true,     
+
+  // nhịp tự nói
+  idleSpeakEvery: 5,
+  idleShowFor: 2,
+  idleOnlyNearPlayer: true,
+  idleTalkRadius: 120,
+  idleBubbleOffsetY: -4,
+
+  // sprite & avatar như trước
+  spriteAsset: 'Eleonore.png',
+  srcPosition: Vector2(0, 0),
+  srcSize: Vector2(64, 64),
+  size: Vector2(40, 40),
+
+  avatarAsset: 'assets/images/avatar.png',
+  avatarSrcPosition: Vector2(0, 0),
+  avatarSrcSize: Vector2(64, 64),
+  avatarDisplaySize: Size(96, 96),
+
+  interactRadius: 28,
+  interactGapToCenter: 0,
+  zPriority: 20,
+);
+    await world.add(npc1);
+
+    dialogManager.onRequestOpenOverlay = () {
+      overlays.add(DialogOverlay.id);
+      _lockControls(true);
+    };
+    dialogManager.onRequestCloseOverlay = () {
+      if (overlays.isActive(DialogOverlay.id)) overlays.remove(DialogOverlay.id);
+      _lockControls(false);
+    };
+  }
+
+  void _lockControls(bool lock) {
+    if (lock) {
+      // ngắt input
+      player.joystick = null;
+
+      // ẩn joystick
+      final js = joystick;
+      if (js != null && js.parent != null) {
+        js.removeFromParent();
+      }
+    } else {
+      final js = joystick;
+      final cam = gameCamera;
+
+      if (js != null) {
+        if (js.parent == null && cam != null) {
+          cam.viewport.add(js);
+        }
+        player.joystick = js;
+      }
+    }
   }
 }

@@ -1,60 +1,109 @@
 import 'dart:math';
-import 'dart:ui' show Rect, Size;            // <-- để dùng Rect, Size
+import 'dart:ui' show Rect, Size;
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
-import 'package:flame/extensions.dart';
 import '../dialog/dialog_manager.dart';
 import 'speechbubble.dart';
 import 'interact_badge.dart';
-import '../main.dart';                       // <-- để MyGame có mặt cho HasGameRef
+import '../main.dart';
 
 Vector2 tileCenter(int col, int row, {double tileSize = 16}) =>
     Vector2((col + 0.5) * tileSize, (row + 0.5) * tileSize);
 
-class Npc extends SpriteComponent
-    with HasGameRef<MyGame> {                // <-- cần HasGameRef để dùng gameRef
-  final DialogManager manager;        // dialog manager (BẮT BUỘC truyền)
-  final List<String> lines;           // thoại tuyến tính mặc định
+/// Cấu hình animation từ sprite sheet (sequenced).
+class NpcAnimConfig {
+  final Vector2 frameSize;   // kích thước 1 frame (vd 64x64)
+  final int amount;          // tổng số frame
+  final double stepTime;     // thời gian mỗi frame (giây)
+  final int amountPerRow;    // frame mỗi hàng (0 => = amount)
+  final Vector2 offset;      // offset frame đầu trong sheet
+  NpcAnimConfig({
+    required this.frameSize,
+    required this.amount,
+    this.stepTime = 0.12,
+    this.amountPerRow = 0,
+    Vector2? offset,                       // tránh const default
+  }) : offset = offset ?? Vector2.zero();
+}
 
-  // tự thoại
-  final double speakEvery;
-  final double showFor;
-  final bool onlyTalkNearPlayer;
-  final double talkRadius;
+/// NPC có:
+/// - Idle chatter: bong bóng tự nói theo chu kỳ (tách cấu hình riêng)
+/// - Interact dialogue: mở DialogOverlay khi người chơi nhấn/tap (badge vô hình)
+class Npc extends SpriteComponent with HasGameRef<MyGame> {
+  final DialogManager manager;
 
-  // hiển thị
+  // ===== SPRITE / ANIM =====
   final String spriteAsset;
   final Vector2 srcPosition;
   final Vector2 srcSize;
+  final NpcAnimConfig? anim;
   final int zPriority;
 
-  // bong bóng
-  final double bubbleOffsetY;
+  // ===== AVATAR ở DialogOverlay =====
+  final String? avatarAsset;
+  final Vector2? avatarSrcPosition;
+  final Vector2? avatarSrcSize;
+  final Size avatarDisplaySize;
 
-  // badge tương tác
-  final double interactRadius;
-  final String interactLabel;
+  // ===== INTERACT DIALOGUE (khi người chơi nhấn) =====
+  final List<String> interactLines;      // thoại khi tương tác
+  int _interactIdx = 0;
 
-  int _idx = 0;
-  SpeechBubble? _bubble;
-  InteractBadge? _badge;
+  // ===== IDLE CHATTER (tự thoại lặp lại) =====
+  bool enableIdleChatter;                // bật/tắt tự thoại
+  final List<String> idleLines;          // câu tự thoại
+  int _idleIdx = 0;
+  final double idleSpeakEvery;           // chu kỳ nói
+  final double idleShowFor;              // thời gian hiện bong bóng
+  final bool idleOnlyNearPlayer;         // chỉ nói khi người chơi ở gần
+  final double idleTalkRadius;           // bán kính kiểm tra
+  final double idleBubbleOffsetY;        // offset Y bong bóng
+  TimerComponent? _idleLoop;
   final _rnd = Random();
+
+  // ===== INTERACT BADGE (vùng tap vô hình) =====
+  final double interactRadius;
+  final double interactGapToCenter;
+  InteractBadge? _badge;
+
+  // ===== STATE =====
+  SpeechBubble? _bubble;
+  SpriteAnimationComponent? _animComp;
 
   Npc({
     required Vector2 position,
-    required this.manager,                   // <-- bắt buộc
-    required this.lines,
-    this.speakEvery = 4,
-    this.showFor = 2,
-    this.onlyTalkNearPlayer = false,
-    this.talkRadius = 160,
+    required this.manager,
+
+    // sprite/anim
     this.spriteAsset = 'player.png',
     Vector2? srcPosition,
     Vector2? srcSize,
+    this.anim,
     this.zPriority = 20,
-    this.bubbleOffsetY = 0,
+
+    // avatar
+    this.avatarAsset,
+    this.avatarSrcPosition,
+    this.avatarSrcSize,
+    this.avatarDisplaySize = const Size(48, 48),
+
+    // interact dialogue
+    required this.interactLines,
+
+    // idle chatter
+    this.enableIdleChatter = true,
+    required this.idleLines,
+    this.idleSpeakEvery = 4,
+    this.idleShowFor = 2,
+    this.idleOnlyNearPlayer = false,
+    this.idleTalkRadius = 160,
+    this.idleBubbleOffsetY = 0,
+
+    // interact region
     this.interactRadius = 56,
-    this.interactLabel = 'Nói',
+    this.interactGapToCenter = 0,
+
+    // hiển thị
     Vector2? size,
   })  : srcPosition = srcPosition ?? Vector2(0, 0),
         srcSize = srcSize ?? Vector2(80, 80),
@@ -68,36 +117,59 @@ class Npc extends SpriteComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    final img = await gameRef.images.load(spriteAsset);
-    sprite = Sprite(img, srcPosition: srcPosition, srcSize: srcSize);
 
-    // badge tại tâm NPC (add vào world/parent của NPC)
+    // ===== sprite / anim =====
+    final img = await gameRef.images.load(spriteAsset);
+    if (anim == null) {
+      sprite = Sprite(img, srcPosition: srcPosition, srcSize: srcSize);
+    } else {
+      final cfg = anim!;
+      final data = SpriteAnimationData.sequenced(
+        amount: cfg.amount,
+        stepTime: cfg.stepTime,
+        textureSize: cfg.frameSize,
+        amountPerRow: cfg.amountPerRow == 0 ? cfg.amount : cfg.amountPerRow,
+        texturePosition: cfg.offset,
+      );
+      final animation = SpriteAnimation.fromFrameData(img, data);
+      _animComp = SpriteAnimationComponent(
+        animation: animation,
+        size: size,
+        anchor: Anchor.center,
+        priority: zPriority,
+      );
+      await add(_animComp!);
+      sprite = null;
+    }
+
+    // ===== badge tương tác vô hình =====
     _badge = InteractBadge(
       target: this,
       radius: interactRadius,
-      gapToCenter: 0,
-      label: interactLabel,
-      onPressed: _openDialogLinear,
+      gapToCenter: interactGapToCenter,
+      onPressed: _openInteractDialogue,
     );
     parent?.add(_badge!);
 
-    // tự thoại (lệch nhịp để các NPC không đồng thanh)
-    final jitter = _rnd.nextDouble() * 1.5;
-    final loop = TimerComponent(
-      period: speakEvery,
-      repeat: true,
-      onTick: _speakOnce,
-      autoStart: false,
-    );
-    add(loop);
-    add(TimerComponent(
-      period: jitter,
-      onTick: () {
-        _speakOnce();
-        loop.timer.start();
-      },
-      removeOnFinish: true,
-    ));
+    // ===== idle chatter loop (nếu bật) =====
+    if (enableIdleChatter && idleLines.isNotEmpty) {
+      final jitter = _rnd.nextDouble() * 1.5;
+      _idleLoop = TimerComponent(
+        period: idleSpeakEvery,
+        repeat: true,
+        autoStart: false,
+        onTick: _idleSpeakOnce,
+      );
+      add(_idleLoop!);
+      add(TimerComponent(
+        period: jitter,
+        onTick: () {
+          _idleSpeakOnce();
+          _idleLoop?.timer.start();
+        },
+        removeOnFinish: true,
+      ));
+    }
   }
 
   @override
@@ -108,43 +180,101 @@ class Npc extends SpriteComponent
     }
   }
 
-  // mở hội thoại tuyến tính bằng DialogManager
-  void _openDialogLinear() {
-    if (lines.isEmpty) return;
-    manager.startLinear(
-      lines.map((t) => DialogueLine(
-        t,
-        speaker: Portrait(
-          asset: spriteAsset,
-          src: Rect.fromLTWH(
-            srcPosition.x, srcPosition.y, srcSize.x, srcSize.y,
-          ),
-          size: const Size(48, 48),
-        ),
-      )).toList(),
-    );
+  // ========= PUBLIC API để điều khiển Idle Chatter theo ý bạn =========
+  void startIdleChatter() {
+    enableIdleChatter = true;
+    _idleLoop?.timer.start();
   }
 
-  Future<void> _speakOnce() async {
-    if (lines.isEmpty) return;
+  void stopIdleChatter() {
+    enableIdleChatter = false;
+    _idleLoop?.timer.stop();
+    _removeBubble();
+  }
 
-    if (onlyTalkNearPlayer) {
-      final p = gameRef.player;                         // <-- dùng gameRef.player
-      if (p.position.distanceTo(position) > talkRadius) return;
+  void setIdleLines(List<String> lines, {bool resetIndex = true}) {
+    idleLines
+      ..clear()
+      ..addAll(lines);
+    if (resetIndex) _idleIdx = 0;
+  }
+
+  void setInteractLines(List<String> lines, {bool resetIndex = true}) {
+    interactLines
+      ..clear()
+      ..addAll(lines);
+    if (resetIndex) _interactIdx = 0;
+  }
+
+  // ========= Interact Dialogue =========
+  void _openInteractDialogue() {
+    if (interactLines.isEmpty) return;
+    if (manager.isOpen) return;          // không mở chồng
+
+    // dọn bubble idle nếu đang hiện
+    _removeBubble();
+
+    // chọn asset & src cho avatar
+    final avatarAssetPath = avatarAsset ?? spriteAsset;
+    Rect avatarSrc;
+    if (avatarSrcPosition != null && avatarSrcSize != null) {
+      avatarSrc = Rect.fromLTWH(
+        avatarSrcPosition!.x, avatarSrcPosition!.y,
+        avatarSrcSize!.x, avatarSrcSize!.y,
+      );
+    } else if (anim != null) {
+      final a = anim!;
+      avatarSrc = Rect.fromLTWH(a.offset.x, a.offset.y, a.frameSize.x, a.frameSize.y);
+    } else {
+      avatarSrc = Rect.fromLTWH(srcPosition.x, srcPosition.y, srcSize.x, srcSize.y);
     }
 
-    final text = lines[_idx % lines.length];
-    _idx++;
+    // chuẩn bị kịch bản: bắt đầu từ _interactIdx (tuỳ thích)
+    final script = <DialogueLine>[];
+    for (int i = 0; i < interactLines.length; i++) {
+      final idx = (_interactIdx + i) % interactLines.length;
+      script.add(
+        DialogueLine(
+          interactLines[idx],
+          speaker: Portrait(
+            asset: avatarAssetPath,
+            src: avatarSrc,
+            size: avatarDisplaySize,
+          ),
+        ),
+      );
+    }
+    // lần sau sẽ bắt đầu tiếp câu kế
+    _interactIdx = (_interactIdx + 1) % (interactLines.isEmpty ? 1 : interactLines.length);
 
-    _bubble?.removeFromParent();
-    _bubble = null;
+    manager.startLinear(script);
+  }
+
+  // ========= Idle Chatter =========
+  Future<void> _idleSpeakOnce() async {
+    if (!enableIdleChatter) return;
+    if (idleLines.isEmpty) return;
+
+    // nếu đang hội thoại overlay → không tự chat ngoài
+    if (manager.isOpen) return;
+
+    // nếu bật chỉ nói khi gần player
+    if (idleOnlyNearPlayer) {
+      final p = gameRef.player;
+      if (p.position.distanceTo(position) > idleTalkRadius) return;
+    }
+
+    final text = idleLines[_idleIdx % idleLines.length];
+    _idleIdx++;
+
+    _removeBubble();
 
     final b = SpeechBubble(
       text: text,
       target: this,
       maxWidth: 160,
       padding: 6,
-      gapToHead: bubbleOffsetY,
+      gapToHead: idleBubbleOffsetY,
     );
     if (parent != null) {
       await parent!.add(b);
@@ -152,24 +282,26 @@ class Npc extends SpriteComponent
     }
 
     add(TimerComponent(
-      period: showFor,
-      onTick: () {
-        _bubble?.removeFromParent();
-        _bubble = null;
-      },
+      period: idleShowFor,
+      onTick: _removeBubble,
       removeOnFinish: true,
     ));
   }
 
+  void _removeBubble() {
+    _bubble?.removeFromParent();
+    _bubble = null;
+  }
+
+  // ========= tiện ích =========
   void teleportTo(Vector2 p) => position = p;
   void teleportToTile(int col, int row, {double tileSize = 16}) =>
       position = tileCenter(col, row, tileSize: tileSize);
 
   @override
   void onRemove() {
-    _bubble?.removeFromParent();
+    _removeBubble();
     _badge?.removeFromParent();
-    _bubble = null;
     _badge = null;
     super.onRemove();
   }

@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-/// Hiển thị 1 lát cắt (sourceRect) từ ảnh asset, scale ra size mong muốn.
-/// Không cần async ImageStream; dùng ClipRect + Transform đơn giản.
 class SpriteSlice extends StatelessWidget {
   final String asset;
   final Rect source;
@@ -25,7 +23,7 @@ class SpriteSlice extends StatelessWidget {
           child: Image.asset(
             asset,
             gaplessPlayback: true,
-            filterQuality: FilterQuality.none, // giữ pixel art sắc nét
+            filterQuality: FilterQuality.none, 
           ),
         ),
       ),

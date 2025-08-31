@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' show Rect;
 import 'dialog_manager.dart';
 import '../ui/sprite_slice.dart';
 
@@ -11,10 +12,9 @@ class DialogOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: manager.advance, // nhấn bất kỳ để next (nếu không có choices)
+      onTap: manager.advance, 
       child: Stack(
         children: [
-          // Avatar góc trái phía trên hộp thoại
           Positioned(
             left: 12, bottom: 84,
             child: ValueListenableBuilder<Portrait?>(
@@ -37,7 +37,6 @@ class DialogOverlay extends StatelessWidget {
               },
             ),
           ),
-
           // Hộp thoại + lựa chọn
           Align(
             alignment: Alignment.bottomCenter,
@@ -63,8 +62,6 @@ class DialogOverlay extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // lựa chọn (nếu có)
                   const SizedBox(height: 8),
                   ValueListenableBuilder<List<DialogueChoice>>(
                     valueListenable: manager.currentChoices,
