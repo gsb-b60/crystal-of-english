@@ -1,15 +1,19 @@
-// main.dart
+// lib/main.dart
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/services.dart';
-import 'tiledobject.dart';
+import '/components/tiledobject.dart';
 import 'player.dart';
-import 'collisionmap.dart';
-import 'npc.dart'; 
+import '/components/collisionmap.dart';
+import 'dialog/dialog_manager.dart';
+import 'dialog/dialog_overlay.dart';
+import 'components/npc.dart';            // lớp Npc đã yêu cầu manager
 import 'package:flame_tiled/flame_tiled.dart' as ft;
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,32 +21,29 @@ void main() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
   runApp(
     GameWidget(
       game: MyGame(),
+      // LƯU Ý: lấy manager từ chính instance game được truyền vào builder
       overlayBuilderMap: {
-        DialogOverlay.id: (context, game) =>
-            DialogOverlay(game: game as MyGame),
+        DialogOverlay.id: (context, game) {
+          final g = game as MyGame;
+          return DialogOverlay(manager: g.dialogManager);
+        },
       },
     ),
   );
 }
+
 class MyGame extends FlameGame
-    with HasKeyboardHandlerComponents, HasCollisionDetection {
+    with HasKeyboardHandlerComponents, HasCollisionDetection{
   late Player player;
   late ft.TiledComponent map;
   late Rect mapBounds;
 
-  final ValueNotifier<String> dialogText = ValueNotifier<String>('');
-  void showDialogText(String text, {double durationSec = 2}) {
-    dialogText.value = text;
-    overlays.add(DialogOverlay.id);
-    Future.delayed(Duration(milliseconds: (durationSec * 1000).round()), () {
-      if (overlays.isActive(DialogOverlay.id)) {
-        overlays.remove(DialogOverlay.id);
-      }
-    });
-  }
+  // Dialog service (duy nhất)
+  final DialogManager dialogManager = DialogManager();
 
   @override
   Future<void> onLoad() async {
@@ -57,65 +58,62 @@ class MyGame extends FlameGame
       priority: 0,
     );
     await world.add(map);
+
     final loader = TiledObjectLoader(map, world);
     await loader.loadLayer("house");
+
     final collision = Collision(map: map, parent: world);
     await collision.loadLayer("collision");
+
     mapBounds = Rect.fromLTWH(
       0, 0,
       map.tileMap.map.width * 16.0,
       map.tileMap.map.height * 16.0,
     );
+
     player = Player(position: size / 3);
     await world.add(player);
 
-    final npc1 = Npc(
-      position: tileCenter(40, 7), 
-      lines: [
-        'Trời hôm nay đẹp ghê!',
-        'Nghe nói trong làng có kho báu...',
-        'Ngủ trưa xíu đã...',
-      ],
-      speakEvery: 4,  
-      showFor: 2,     
-      bubbleOffsetY: -6, 
-      zPriority: 20,  
-      spriteAsset: 'player.png',
-      srcPosition: Vector2(0, 0),   
-      srcSize: Vector2(80, 80),
-    );
-    final npc2 = Npc(
-      position: tileCenter(25, 18), // đặt đúng tâm ô (25,18) nếu map 16px
-      lines: [
-        'Bánh mì nóng mới ra lò!',
-        'Ai mua hoa quả không~',
-      ],
-      speakEvery: 5,
-      showFor: 2.2,
-      onlyTalkNearPlayer: true, // chỉ nói khi người chơi lại gần
-      talkRadius: 180,
-      bubbleOffsetY: 0, // sát trên đầu
-      zPriority: 20,
-      spriteAsset: 'player.png',
-      srcPosition: Vector2(80, 0), // ví dụ frame kế tiếp
-      srcSize: Vector2(80, 80),
-    );
-    final npc3 = Npc(
-      position: tileCenter(32, 10), // một NPC khác đặt theo ô
-      lines: [
-        'Cẩn thận khu rừng phía bắc!',
-        'Đêm nay trăng tròn đó.',
-      ],
-      speakEvery: 6,
-      showFor: 2,
-      bubbleOffsetY: -10,
-      zPriority: 30, // cao hơn để không bị tán cây/mái nhà che
-      spriteAsset: 'player.png',
-      srcPosition: Vector2(160, 0),
-      srcSize: Vector2(80, 80),
-    );
+    // Gắn callback để DialogManager tự mở/đóng overlay
+    dialogManager.onRequestOpenOverlay = () => overlays.add(DialogOverlay.id);
+    dialogManager.onRequestCloseOverlay = () {
+      if (overlays.isActive(DialogOverlay.id)) overlays.remove(DialogOverlay.id);
+    };
 
-    await world.addAll([npc1, npc2, npc3]);
+    // ====== THÊM NPC (NHỚ TRUYỀN manager) ======
+    final npc1 = Npc(
+      position: Vector2(300, 200),
+      manager: dialogManager,               // <<< BẮT BUỘC
+      lines: [
+        'Xin chào!',
+        'Trời hôm nay đẹp ghê.',
+        'Bạn muốn nghe chuyện kho báu không?',
+      ],
+      spriteAsset: 'player.png',
+      srcPosition: Vector2(0, 0),
+      srcSize: Vector2(80, 80),
+      interactLabel: 'Nói',
+      interactRadius: 56,
+      speakEvery: 4,          // đặt lớn nếu không muốn tự “tám”
+      showFor: 2,
+      bubbleOffsetY: -6,
+      zPriority: 20,
+    );
+    await world.add(npc1);
+
+    // Ví dụ thêm NPC thứ 2 -> cũng PHẢI có manager:
+    // final npc2 = Npc(
+    //   position: Vector2(500, 320),
+    //   manager: dialogManager,             // <<< ĐỪNG QUÊN
+    //   lines: ['Ta là thợ rèn.', 'Cần sửa vũ khí không?'],
+    //   spriteAsset: 'player.png',
+    //   srcPosition: Vector2(0, 0),
+    //   srcSize: Vector2(80, 80),
+    //   interactLabel: 'Nói',
+    // );
+    // await world.add(npc2);
+
+    // Camera
     final camera = CameraComponent(world: world, hudComponents: []);
     await add(camera);
     camera.viewfinder.zoom = 2.5;
@@ -126,6 +124,7 @@ class MyGame extends FlameGame
       map.tileMap.map.height * 16.0,
     ));
 
+    // Joystick
     final joystick = JoystickComponent(
       knob: CircleComponent(
         radius: 30,
@@ -139,43 +138,5 @@ class MyGame extends FlameGame
     );
     camera.viewport.add(joystick);
     player.joystick = joystick;
-  }
-}
-
-class DialogOverlay extends StatelessWidget {
-  static const id = 'dialog';
-  final MyGame game;
-  const DialogOverlay({super.key, required this.game});
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 24.0, left: 16, right: 16),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: ValueListenableBuilder<String>(
-              valueListenable: game.dialogText,
-              builder: (context, text, _) {
-                return Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    height: 1.3,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

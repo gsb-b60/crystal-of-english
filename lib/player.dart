@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/input.dart';
 import 'main.dart';
-import 'collisionmap.dart';
+import 'components/collisionmap.dart';
 
 class Player extends SpriteComponent
     with HasGameRef<MyGame>, CollisionCallbacks {
