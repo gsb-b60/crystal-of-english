@@ -1,16 +1,16 @@
 import 'package:flame/components.dart';
-import 'package:flame_tiled/flame_tiled.dart';
+import 'package:flame_tiled/flame_tiled.dart' as ft;
 import 'package:flame/game.dart';
 import 'package:flame/flame.dart';
 
 class TiledObjectLoader {
-  final TiledComponent map;
+  final ft.TiledComponent map;
   final World world;
 
   TiledObjectLoader(this.map, this.world);
 
   Future<void> loadLayer(String layerName) async {
-    final objectGroup = map.tileMap.getLayer<ObjectGroup>(layerName);
+    final objectGroup = map.tileMap.getLayer<ft.ObjectGroup>(layerName);
     if (objectGroup == null) {
       print("object layer '$layerName' does not exsist");
       return;

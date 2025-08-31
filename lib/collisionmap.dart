@@ -1,15 +1,16 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
-import 'package:flame_tiled/flame_tiled.dart';
+import 'package:flame_tiled/flame_tiled.dart' as ft;
+
 
 class Collision {
-  final TiledComponent map;
+  final ft.TiledComponent map;
   final Component parent;
 
   Collision({required this.map, required this.parent});
 
   Future<void> loadLayer(String layerName) async {
-    final collisionLayer = map.tileMap.getLayer<ObjectGroup>(layerName);
+    final collisionLayer = map.tileMap.getLayer<ft.ObjectGroup>(layerName);
     if (collisionLayer == null) {
       print('Không tìm thấy layer: $layerName');
       return;
