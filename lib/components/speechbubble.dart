@@ -3,7 +3,6 @@ import 'package:flame/components.dart';
 import 'package:flame/text.dart';
 import 'package:flutter/painting.dart';
 
-/// Bong bóng thoại tách rời, bám theo target, tự mở rộng text.
 class SpeechBubble extends PositionComponent {
   final String text;
   final double minWidth;

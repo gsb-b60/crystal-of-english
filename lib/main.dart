@@ -95,47 +95,42 @@ class MyGame extends FlameGame
     joystick = js;
     player.joystick = js;
 
-   final npc1 = Npc(
+final npc1 = Npc(
   position: Vector2(660, 112),
   manager: dialogManager,
 
-  interactLines: [
-    'Xin chào!',
-    'Trời hôm nay đẹp quá.',
-    'Em ăn cơm chưa?',
+  interactLines: ['Xin chào!', 'Bạn cần gì?'],
+  interactOrderMode: InteractOrderMode.alwaysFromStart,
+  interactPrompt: 'Bạn muốn làm gì?Bạn muốn làm gì?Bạn muốn làm gì?Bạn muốn làm gì?Bạn muốn làm gì?',
+  interactChoices: [
+    DialogueChoice(
+      'Giới thiệu',
+      nextLines: [
+        DialogueLine('Tôi là Eleonore.'),
+        DialogueLine('Rất vui được gặp bạn!'),
+      ],
+    ),
+    DialogueChoice(
+      'Nhiệm vụ',
+      nextLines: [
+        DialogueLine('Hãy mang 3 bông hoa về cho tôi.'),
+      ],
+    ),
+    DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
   ],
-
-  // thoại TỰ NÓI (bong bóng lặp)
-  idleLines: [
-    'Hmm...',
-    'Làng này dạo này yên ả ghê.',
-    'Nghe đồn có kho báu ở phía bắc.',
-  ],
-  enableIdleChatter: true,     
-
-  // nhịp tự nói
-  idleSpeakEvery: 5,
-  idleShowFor: 2,
-  idleOnlyNearPlayer: true,
-  idleTalkRadius: 120,
-  idleBubbleOffsetY: -4,
-
-  // sprite & avatar như trước
+  idleLines: ['Hmm...', 'Nghe nói phía bắc có kho báu.'],
+  enableIdleChatter: true,
   spriteAsset: 'Eleonore.png',
   srcPosition: Vector2(0, 0),
   srcSize: Vector2(64, 64),
   size: Vector2(40, 40),
 
   avatarAsset: 'assets/images/avatar.png',
-  avatarSrcPosition: Vector2(0, 0),
-  avatarSrcSize: Vector2(64, 64),
-  avatarDisplaySize: Size(96, 96),
-
+  avatarDisplaySize: const Size(162, 162),
   interactRadius: 28,
-  interactGapToCenter: 0,
   zPriority: 20,
 );
-    await world.add(npc1);
+await world.add(npc1);
 
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
@@ -149,7 +144,6 @@ class MyGame extends FlameGame
 
   void _lockControls(bool lock) {
     if (lock) {
-      // ngắt input
       player.joystick = null;
 
       // ẩn joystick

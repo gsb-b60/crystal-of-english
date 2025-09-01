@@ -1,107 +1,122 @@
-import 'dart:ui' show Rect, Size;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
-// ===== Models =====
 class Portrait {
   final String asset;
-  final Rect? src;
-  final Size size;
-  const Portrait({required this.asset, this.src, this.size = const Size(48, 48)});
-}
-
-class DialogueChoice {
-  final String text;
-  final void Function()? onChoose;
-  DialogueChoice(this.text, {this.onChoose});
+  final Rect? src;   
+  final Size size;    
+  const Portrait({required this.asset, this.src, this.size = const Size(64, 64)});
 }
 
 class DialogueLine {
   final String text;
   final Portrait? speaker;
-  final List<DialogueChoice> choices;
-  const DialogueLine(this.text, {this.speaker, this.choices = const []});
+  const DialogueLine(this.text, {this.speaker});
 }
 
-// ===== Manager =====
+class DialogueChoice {
+  final String text;
+  final List<DialogueLine>? nextLines;
+  final VoidCallback? onSelected;
+  const DialogueChoice(this.text, {this.nextLines, this.onSelected});
+}
+
 class DialogManager {
-  // Notifiers cho Overlay
   final ValueNotifier<String> currentText = ValueNotifier<String>('');
   final ValueNotifier<List<DialogueChoice>> currentChoices =
       ValueNotifier<List<DialogueChoice>>(<DialogueChoice>[]);
-  final ValueNotifier<Portrait?> currentPortrait =
-      ValueNotifier<Portrait?>(null);
+  final ValueNotifier<Portrait?> currentPortrait = ValueNotifier<Portrait?>(null);
+  final ValueNotifier<Portrait?> currentRightPortrait = ValueNotifier<Portrait?>(null);
+  VoidCallback? onRequestOpenOverlay;
+  VoidCallback? onRequestCloseOverlay;
 
-  // Callbacks để Flame overlay mở/đóng
-  void Function()? onRequestOpenOverlay;
-  void Function()? onRequestCloseOverlay;
-
-  // Trạng thái
-  bool _isOpen = false;
   bool get isOpen => _isOpen;
+  bool _isOpen = false;
+  void show({
+    required String text,
+    Portrait? portrait,
+    List<DialogueChoice> choices = const [],
+    Portrait? rightPortrait,
+  }) {
+    currentText.value = text;
+    currentChoices.value = choices;
+    currentPortrait.value = portrait ?? currentPortrait.value;
+    currentRightPortrait.value = rightPortrait;
 
-  final List<DialogueLine> _script = [];
-  int _idx = 0;
-
-  /// Mở hội thoại tuyến tính.
-  /// Nếu đang mở 1 phiên khác → **bỏ qua** (tránh chồng).
+    if (!_isOpen) {
+      _isOpen = true;
+      onRequestOpenOverlay?.call();
+    }
+  }
   void startLinear(List<DialogueLine> lines) {
     if (lines.isEmpty) return;
-    if (_isOpen) {
-      // đang mở → bỏ qua để không chồng hội thoại
-      return;
-    }
-    _script
-      ..clear()
-      ..addAll(lines);
-    _idx = 0;
-    _isOpen = true;
-
-    _apply(_script[_idx]);
-    onRequestOpenOverlay?.call();
+    _linear = List<DialogueLine>.from(lines);
+    _cursor = 0;
+    _showCurrentLinear();
+  }
+  void setPortraits({Portrait? left, Portrait? right}) {
+    if (left != null) currentPortrait.value = left;
+    if (right != null) currentRightPortrait.value = right;
   }
 
-  /// Next: nếu line hiện có choices ⇒ bỏ qua (đợi người chơi chọn)
-  /// Nếu đã hết ⇒ close.
-  void advance() {
-    if (!_isOpen) return;
-    if (currentChoices.value.isNotEmpty) {
-      // đang chờ chọn, không next bằng tap
-      return;
-    }
-    _idx++;
-    if (_idx >= _script.length) {
-      close();
-    } else {
-      _apply(_script[_idx]);
-    }
-  }
-
-  /// Chọn 1 phương án. Nếu có callback thì gọi, sau đó next.
-  void choose(int i) {
-    if (!_isOpen) return;
-    final cs = currentChoices.value;
-    if (i < 0 || i >= cs.length) return;
-    cs[i].onChoose?.call();
-    // Sau khi chọn → clear choices và next
-    currentChoices.value = const [];
-    advance();
-  }
-
-  /// Đóng hội thoại (reset trạng thái + đóng overlay)
+  /// Đóng overlay
   void close() {
     if (!_isOpen) return;
-    _isOpen = false;
-    _script.clear();
-    _idx = 0;
-    currentText.value = '';
+    _linear = null;
+    _cursor = -1;
     currentChoices.value = const [];
-    currentPortrait.value = null;
+    _isOpen = false;
     onRequestCloseOverlay?.call();
   }
 
-  void _apply(DialogueLine line) {
+  // ========== DÒNG TUYẾN TÍNH ==========
+
+  List<DialogueLine>? _linear;
+  int _cursor = -1;
+
+  void _showCurrentLinear() {
+    if (_linear == null || _cursor < 0 || _cursor >= _linear!.length) {
+      close();
+      return;
+    }
+    final line = _linear![_cursor];
     currentText.value = line.text;
-    currentPortrait.value = line.speaker;
-    currentChoices.value = List.unmodifiable(line.choices);
+    if (line.speaker != null) currentPortrait.value = line.speaker;
+    currentChoices.value = const [];  
+
+    if (!_isOpen) {
+      _isOpen = true;
+      onRequestOpenOverlay?.call();
+    }
+  }
+
+  void advance() {
+    if (currentChoices.value.isNotEmpty) return; 
+    if (_linear == null) {
+      close();
+      return;
+    }
+    _cursor++;
+    if (_cursor >= _linear!.length) {
+      close();
+    } else {
+      _showCurrentLinear();
+    }
+  }
+
+  void choose(int index) {
+    final list = currentChoices.value;
+    if (index < 0 || index >= list.length) return;
+    final c = list[index];
+    if (c.nextLines != null && c.nextLines!.isNotEmpty) {
+      startLinear(c.nextLines!);
+      return;
+    }
+
+    //chạy callback
+    if (c.onSelected != null) {
+      c.onSelected!.call();
+      return;
+    }
+    close();
   }
 }
