@@ -1,14 +1,14 @@
-// lib/main.dart
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'ui/health.dart';
 import '/components/tiledobject.dart';
 import '/components/collisionmap.dart';
-
+import 'components/enemy_wander.dart';
+import 'components/battle_scene.dart';
 import 'player.dart';
 import 'dialog/dialog_manager.dart';
 import 'dialog/dialog_overlay.dart';
@@ -16,7 +16,7 @@ import 'components/npc.dart';
 import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
-
+import 'dart:ui' as ui;
 import 'package:flame_tiled/flame_tiled.dart' as ft;
 
 void main() async {
@@ -50,7 +50,13 @@ void main() async {
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
   // World/Map/Camera
+BattleScene? _battleScene;
+bool _inBattle = false;
+Vector2? _savedJoystickPos;
+bool _hudWasAttached = false;
+
   late World world;
+  late Health heartsHud;
   late ft.TiledComponent map;
   late Rect mapBounds;
   final PositionComponent hudRoot = PositionComponent(priority: 100000);
@@ -112,6 +118,18 @@ class MyGame extends FlameGame
       overlays.add(DialogOverlay.id);
       _lockControls(true);
     };
+
+    heartsHud = Health(
+      maxHearts: 5,
+      currentHearts: 5,
+      fullHeartAsset: 'hp/heart.png',
+      emptyHeartAsset: 'hp/empty_heart.png',
+      heartSize: 32, // chỉnh theo ý
+      spacing: 6,
+      margin: const EdgeInsets.only(left: 16, top: 16),
+    );
+    await hudRoot.add(heartsHud);
+
     dialogManager.onRequestCloseOverlay = () {
       if (overlays.isActive(DialogOverlay.id)) {
         overlays.remove(DialogOverlay.id);
@@ -120,7 +138,7 @@ class MyGame extends FlameGame
     };
   }
 
-  // HUD theo kích thước màn hình
+  //hud theo kích thước màn hình
   @override
   void onGameResize(Vector2 newSize) {
     super.onGameResize(newSize);
@@ -138,7 +156,7 @@ class MyGame extends FlameGame
       if (js != null && js.parent != null) js.removeFromParent();
     } else {
       if (js != null && js.parent == null) {
-        hudRoot.add(js); // add lại vào HUD
+        hudRoot.add(js); 
       }
       if (js != null) player.joystick = js;
     }
@@ -188,10 +206,7 @@ class MyGame extends FlameGame
             'Vào đảo undead',
             onSelected: () async {
               dialogManager.close();
-              await loadMap(
-                'Undead_land.tmx',
-                spawn: Vector2(354, 102),
-              );
+              await loadMap('Undead_land.tmx', spawn: Vector2(354, 102));
             },
           ),
           DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
@@ -208,8 +223,65 @@ class MyGame extends FlameGame
         zPriority: 20,
       );
       await world.add(npc2);
+
+
+
+      await world.add(EnemyWander(
+      patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120), // vùng tuần tra (x,y,w,h)
+      spritePath: 'Joanna.png',
+      speed: 35,
+      triggerRadius: 40,
+    ));
+  }
+}
+//bug
+Future<void> enterBattle() async {
+  if (_inBattle) return;
+  _inBattle = true;
+  world.removeFromParent();
+  gameCamera.removeFromParent();
+
+  if (player.joystick != null) {
+    _savedJoystickPos = joystick?.position.clone();
+    player.joystick = null;
+    if (joystick != null) {
+      joystick!.position = Vector2(-10000, -10000);
     }
   }
+
+  heartsHud.removeFromParent();
+  _battleScene = BattleScene(
+    onEnd: (result) => exitBattle(result),
+  );
+  await add(_battleScene!);
+  _battleScene!.heroHealth.setCurrent(heartsHud.currentHearts);
+}
+
+void exitBattle(BattleResult result) {
+  _battleScene?.removeFromParent();
+  _battleScene = null;
+  _inBattle = false;
+
+  add(world);
+  add(gameCamera);
+
+  hudRoot.add(heartsHud);
+  if (_battleScene != null) {
+    heartsHud.setCurrent(_battleScene!.heroHealth.currentHearts);
+  }
+
+  if (joystick != null) {
+    if (_savedJoystickPos != null) {
+      joystick!.position = _savedJoystickPos!;
+    }
+    player.joystick = joystick;
+  }
+
+  if (result.outcome == 'lose') {
+    heartsHud.refill(); 
+    player.position = Vector2(310, 138); 
+  }
+}
 
   Future<void> loadMap(
     String mapFile, {
@@ -217,7 +289,6 @@ class MyGame extends FlameGame
     Vector2? spawnTile,
     double tileSize = 16,
   }) async {
-    // Remove world cũ
     if (world.parent != null) world.removeFromParent();
 
     final newWorld = World();
@@ -237,7 +308,6 @@ class MyGame extends FlameGame
     final mapH = map.tileMap.map.height * tileSize;
     mapBounds = Rect.fromLTWH(0, 0, mapW, mapH);
 
-    // Spawn
     Vector2 finalSpawn;
     if (spawnTile != null) {
       finalSpawn = Vector2(
@@ -262,33 +332,33 @@ class MyGame extends FlameGame
       await hudRoot.add(joystick!);
     }
     player.joystick = joystick;
-   await showAreaTitle(
+    await showAreaTitle(
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'Undead_land.tmx'
-              ? 'Welcome to Undead Island'
-              : 'Overworld',
-);
+          ? 'Welcome to Undead Island'
+          : 'Overworld',
+    );
     if (mapFile == 'houseinterior.tmx') {
-  await world.add(
-    Coin(
-      position: finalSpawn.clone(),
-      interactRadius: 140,
-      onCollected: () async {
-        await loadMap('map.tmx', spawn: Vector2(657, 133));
-      },
-    ),
-  );
-} else if (mapFile == 'Undead_land.tmx') {
-  await world.add(
-    Coin(
-      position: finalSpawn.clone(),
-      interactRadius: 140,
-      onCollected: () async {
-        await loadMap('map.tmx', spawn: Vector2(955, 672));
-      },
-    ),
-  );
-}
+      await world.add(
+        Coin(
+          position: finalSpawn.clone(),
+          interactRadius: 140,
+          onCollected: () async {
+            await loadMap('map.tmx', spawn: Vector2(657, 133));
+          },
+        ),
+      );
+    } else if (mapFile == 'Undead_land.tmx') {
+      await world.add(
+        Coin(
+          position: finalSpawn.clone(),
+          interactRadius: 140,
+          onCollected: () async {
+            await loadMap('map.tmx', spawn: Vector2(955, 672));
+          },
+        ),
+      );
+    }
   }
 }

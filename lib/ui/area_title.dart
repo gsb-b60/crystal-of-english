@@ -16,7 +16,7 @@ class AreaTitle extends PositionComponent {
     await super.onLoad();
     _baseStyle = const TextStyle(
       fontFamily: 'MyFont',
-      fontSize: 42, // chữ to
+      fontSize: 42, 
       fontWeight: FontWeight.bold,
       color: Colors.white,  
       shadows: [

@@ -72,7 +72,10 @@ flutter:
     - assets/houseinterior/
     - assets/undeadisland/
     - assets/images/coins/
-
+    - assets/images/hp/
+    - assets/images/battlebackground/
+    - assets/images/characters/maincharacter/
+    - assets/images/characters/
 
 
 
