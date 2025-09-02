@@ -86,7 +86,7 @@ class _DialogOverlayState extends State<DialogOverlay> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Text bên trái
+                      // Text trái
                       Expanded(
                         child: ValueListenableBuilder<String>(
                           valueListenable: manager.currentText,
@@ -99,6 +99,7 @@ class _DialogOverlayState extends State<DialogOverlay> {
                                 child: Text(
                                   text,
                                   style: const TextStyle(
+                                       fontFamily: 'MyFont',  
                                     color: Colors.white,
                                     fontSize: 16,
                                     height: 1.35,
@@ -113,7 +114,6 @@ class _DialogOverlayState extends State<DialogOverlay> {
 
                       const SizedBox(width: 12),
 
-                      // Khung nút bên phải (không dùng Scrollbar để tránh lỗi)
                       ConstrainedBox(
                         constraints: BoxConstraints(
                           minWidth: 140,
@@ -194,6 +194,7 @@ class _ChoiceButtonState extends State<_ChoiceButton> {
             child: Text(
               widget.label,
               style: const TextStyle(
+                fontFamily: 'MyFont', 
                 color: Colors.black,
                 fontSize: 15,
                 height: 1.25,

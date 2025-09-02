@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="27" nextobjectid="53">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="70" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="27" nextobjectid="72">
  <tileset firstgid="1" name="pixel_house_2_by_xenophero_m_dekfln7" tilewidth="16" tileheight="16" tilecount="675" columns="25">
   <image source="../tiles/pixel_house_2_by_xenophero_m_dekfln7.png" width="408" height="438"/>
  </tileset>
@@ -1290,14 +1290,27 @@
   <object id="47" x="1040" y="176">
    <polygon points="0,0 16,-16 32,0 32,16 32,32 0,48 -16,64 -32,64 -48,48 -64,32 -80,48 -96,48 -112,32 -128,48 -128,64 -160,32 -176,32 -192,64 -192,160 -192,176 -48,176 -48,160 -48,144 -32,144 -32,176 80,176 80,-32 0,-32"/>
   </object>
-  <object id="48" x="1120" y="576">
-   <polygon points="0,0 -16,-32 -48,-32 -48,16 -160,112 -192,64 -224,48 -256,96 -256,224 0,224 0,0"/>
-  </object>
   <object id="50" x="144" y="400">
    <polygon points="0,0 128,0 128,96 96,96 80,96 80,80 80,64 48,64 48,96 -32,96 -32,16 0,16"/>
   </object>
   <object id="51" x="272" y="224">
    <polygon points="0,0 0,96 -96,96 -112,96 -112,64 -144,48 -144,16 -112,0 -96,16 -64,16 -64,0"/>
   </object>
+  <object id="54" x="896" y="624" width="32" height="96"/>
+  <object id="55" x="928" y="688" width="96" height="16"/>
+  <object id="56" x="1088" y="544" width="32" height="16"/>
+  <object id="57" x="1072" y="560" width="16" height="16"/>
+  <object id="59" x="1072" y="576"/>
+  <object id="60" x="1056" y="592"/>
+  <object id="61" x="1056" y="608"/>
+  <object id="62" x="1040" y="624"/>
+  <object id="63" x="1040" y="640"/>
+  <object id="64" x="1024" y="656"/>
+  <object id="66" x="1024" y="672" height="16"/>
+  <object id="67" x="1024" y="672"/>
+  <object id="68" x="1024" y="688"/>
+  <object id="69" x="864" y="640" width="32" height="48"/>
+  <object id="70" x="832" y="656" width="32" height="16"/>
+  <object id="71" x="816" y="544" width="16" height="112"/>
  </objectgroup>
 </map>
