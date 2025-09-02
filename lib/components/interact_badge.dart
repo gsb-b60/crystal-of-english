@@ -42,7 +42,7 @@ class InteractBadge extends PositionComponent
     position = target.position + Vector2(0, gapToCenter);
   }
 
-  // Nhận tap nếu tap nằm trong bounds của component
+  //nhận tap nếu tap nằm trong bounds của component
   @override
   void onTapDown(TapDownEvent event) {
     if (_enabled) onPressed();
