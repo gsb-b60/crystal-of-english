@@ -53,17 +53,12 @@ class MyGame extends FlameGame
   late World world;
   late ft.TiledComponent map;
   late Rect mapBounds;
-
-  // HUD root: tạo NGAY tại khai báo để không bị LateInitializationError
   final PositionComponent hudRoot = PositionComponent(priority: 100000);
+  late final CameraComponent gameCamera;
 
-  late final CameraComponent gameCamera;   // camera duy nhất
-
-  // Player & input
   late Player player;
   JoystickComponent? joystick;
 
-  // Dialog & HUD actions
   final DialogManager dialogManager = DialogManager();
   final ValueNotifier<List<RightAction>> rightActions =
       ValueNotifier<List<RightAction>>(<RightAction>[]);
@@ -71,8 +66,6 @@ class MyGame extends FlameGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-
-    // --- World + map khởi đầu ---
     world = World();
     await add(world);
 
@@ -88,28 +81,19 @@ class MyGame extends FlameGame
 
     final collision = Collision(map: map, parent: world);
     await collision.loadLayer("collision");
-
     final mapW = map.tileMap.map.width * 16.0;
     final mapH = map.tileMap.map.height * 16.0;
     mapBounds = Rect.fromLTWH(0, 0, mapW, mapH);
-
-    // --- Player ---
     player = Player(position: Vector2(310, 138));
     await world.add(player);
-
-    // --- Camera (tạo 1 lần, không remove) ---
     gameCamera = CameraComponent(world: world, hudComponents: []);
     await add(gameCamera);
     gameCamera.viewfinder.zoom = 2.5;
     gameCamera.follow(player, maxSpeed: 5000);
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
-
-    // --- HUD root là con của viewport (ổn với Flame 1.31.0) ---
-    hudRoot.size = size; // kích thước theo màn hình
+    hudRoot.size = size;
     await gameCamera.viewport.add(hudRoot);
-
-    // --- Joystick (add vào HUD root) ---
     joystick = JoystickComponent(
       knob: CircleComponent(
         radius: 30,
@@ -123,11 +107,7 @@ class MyGame extends FlameGame
     );
     await hudRoot.add(joystick!);
     player.joystick = joystick;
-
-    // --- Title map khởi đầu ---
     await showAreaTitle('Overworld');
-
-    // --- Dialog overlay handlers ---
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
@@ -147,12 +127,10 @@ class MyGame extends FlameGame
     hudRoot.size = newSize; // hudRoot luôn tồn tại
   }
 
-  // Hiện chữ vào HUD root
   Future<void> showAreaTitle(String text) async {
     await hudRoot.add(AreaTitle(text));
   }
 
-  // Khóa/mở điều khiển khi đang thoại
   void _lockControls(bool lock) {
     final js = joystick;
     if (lock) {
@@ -166,13 +144,10 @@ class MyGame extends FlameGame
     }
   }
 
-  // Tạo object theo map
   Future<void> _initMapObjects(String mapFile) async {
     if (mapFile == 'map.tmx') {
       final loader = TiledObjectLoader(map, world);
       await loader.loadLayer("house");
-
-      // NPC mở map nội thất
       final npc1 = Npc(
         position: Vector2(660, 112),
         manager: dialogManager,
@@ -195,33 +170,59 @@ class MyGame extends FlameGame
         srcPosition: Vector2(0, 0),
         srcSize: Vector2(64, 64),
         size: Vector2(40, 40),
-        avatarAsset: 'assets/images/avatar.png',
+        avatarAsset: 'assets/images/Eleonore_avatar.png',
         avatarDisplaySize: const Size(162, 162),
         interactRadius: 28,
         zPriority: 20,
       );
       await world.add(npc1);
+
+      final npc2 = Npc(
+        position: Vector2(876, 560),
+        manager: dialogManager,
+        interactLines: ['Xin chào!', 'Bạn cần gì?'],
+        interactOrderMode: InteractOrderMode.alwaysFromStart,
+        interactPrompt: 'Xin chào!, Bạn cần gì?',
+        interactChoices: [
+          DialogueChoice(
+            'Vào đảo undead',
+            onSelected: () async {
+              dialogManager.close();
+              await loadMap(
+                'Undead_land.tmx',
+                spawn: Vector2(354, 102),
+              );
+            },
+          ),
+          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
+        ],
+        idleLines: ['Hmm...', 'Nghe nói phía bắc có kho báu.'],
+        enableIdleChatter: true,
+        spriteAsset: 'Joanna.png',
+        srcPosition: Vector2(0, 0),
+        srcSize: Vector2(64, 64),
+        size: Vector2(40, 40),
+        avatarAsset: 'assets/images/Joanna_avatar.png',
+        avatarDisplaySize: const Size(162, 162),
+        interactRadius: 28,
+        zPriority: 20,
+      );
+      await world.add(npc2);
     }
-    // Thêm if khác cho nội thất khác nếu cần
   }
 
-  // Đổi map + coin quay lại map ngoài khi vào nội thất
   Future<void> loadMap(
     String mapFile, {
-    required Vector2 spawn, // pixel
-    Vector2? spawnTile, // nếu muốn theo tile
+    required Vector2 spawn,
+    Vector2? spawnTile,
     double tileSize = 16,
   }) async {
-    // KHÔNG đụng HUD/camera; chỉ thay world/map/player
-
     // Remove world cũ
     if (world.parent != null) world.removeFromParent();
 
-    // World + map mới
     final newWorld = World();
     await add(newWorld);
     world = newWorld;
-
     map = await ft.TiledComponent.load(
       mapFile,
       Vector2.all(tileSize),
@@ -229,12 +230,9 @@ class MyGame extends FlameGame
       priority: 0,
     );
     await world.add(map);
-
     await _initMapObjects(mapFile);
-
     final collision = Collision(map: map, parent: world);
     await collision.loadLayer("collision");
-
     final mapW = map.tileMap.map.width * tileSize;
     final mapH = map.tileMap.map.height * tileSize;
     mapBounds = Rect.fromLTWH(0, 0, mapW, mapH);
@@ -253,38 +251,44 @@ class MyGame extends FlameGame
       finalSpawn.x.clamp(0, mapW - player.size.x).toDouble(),
       finalSpawn.y.clamp(0, mapH - player.size.y).toDouble(),
     );
-
-    // Player mới
     if (player.parent != null) player.removeFromParent();
     player = Player(position: finalSpawn);
     await world.add(player);
-
-    // Cập nhật camera để theo world + player mới
-    gameCamera.world = world; // (nếu bản của bạn không có setter này, báo mình để đổi sang cách khác)
+    gameCamera.world = world;
     gameCamera.follow(player, maxSpeed: 5000);
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
-
-    // Gán joystick lại cho player (HUD vẫn ở viewport)
     if (joystick != null && joystick!.parent == null) {
       await hudRoot.add(joystick!);
     }
     player.joystick = joystick;
-
-    // Title theo map
-    await showAreaTitle(mapFile == 'houseinterior.tmx' ? 'Library' : 'Overworld');
-
-    // Coin quay về map ngoài nếu đang ở nội thất
+   await showAreaTitle(
+      mapFile == 'houseinterior.tmx'
+          ? 'Library'
+          : mapFile == 'Undead_land.tmx'
+              ? 'Welcome to Undead Island'
+              : 'Overworld',
+);
     if (mapFile == 'houseinterior.tmx') {
-      await world.add(
-        Coin(
-          position: finalSpawn.clone(),
-          interactRadius: 140,
-          onCollected: () async {
-            await loadMap('map.tmx', spawn: Vector2(657, 133));
-          },
-        ),
-      );
-    }
+  await world.add(
+    Coin(
+      position: finalSpawn.clone(),
+      interactRadius: 140,
+      onCollected: () async {
+        await loadMap('map.tmx', spawn: Vector2(657, 133));
+      },
+    ),
+  );
+} else if (mapFile == 'Undead_land.tmx') {
+  await world.add(
+    Coin(
+      position: finalSpawn.clone(),
+      interactRadius: 140,
+      onCollected: () async {
+        await loadMap('map.tmx', spawn: Vector2(955, 672));
+      },
+    ),
+  );
+}
   }
 }

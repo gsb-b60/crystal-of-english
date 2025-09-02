@@ -38,7 +38,7 @@ class Coin extends SpriteAnimationComponent with TapCallbacks {
   bool onTapUp(TapUpEvent event) {
     // Tìm game instance để lấy player
     final game = findGame() as MyGame?;
-    if (game == null || game.player == null) return false;
+    if (game == null) return false;
     final distance = position.distanceTo(game.player.center);
 
     if (distance <= interactRadius) {
