@@ -1,4 +1,4 @@
-name: mygame
+name: totoki
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.8.1
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,12 +30,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  provider:
+  path_provider: 
+  path:
+  sqflite: 
+  file_picker:
+  archive:
+  intl:
+  flutter_archive: 
+  audioplayers:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  flame: ^1.31.0
-  flame_tiled: ^3.0.6
 
 dev_dependencies:
   flutter_test:
@@ -60,24 +66,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/maps/
-    - assets/tiles/
-    - assets/tiles/Animation/
-    - assets/tiles/Art/water/
-    - assets/tiles/Model_01/
-    - assets/tiles/Model_02/
-    - assets/tiles/Model_03/
-    - assets/images/
-    - assets/houseinterior/
-    - assets/undeadisland/
-    - assets/images/coins/
-    - assets/images/hp/
-    - assets/images/battlebackground/
-    - assets/images/characters/maincharacter/
-    - assets/images/characters/
-
-
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -90,10 +81,9 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  fonts:
-    - family: MyFont
-      fonts:
-          - asset: assets/fonts/svncrux.ttf
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
