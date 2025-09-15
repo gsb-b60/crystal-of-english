@@ -16,8 +16,7 @@ class QuizPanel extends PositionComponent
   static const double panelHeightRatio = 0.68;
 
   late final List<_RectZone> _answerHitZones;
-
-  late final RectangleComponent _dimBg;
+  bool _disabled = false;  
 
   QuizPanel({required this.question, required this.onAnswer})
       : super(priority: 100003);
@@ -34,16 +33,6 @@ class QuizPanel extends PositionComponent
     final panelH = h * panelHeightRatio;
     final panelY = h - panelH;
 
-    // blur
-    _dimBg = RectangleComponent(
-      position: Vector2.zero(),
-      size: Vector2(w, h),
-      paint: ui.Paint()..color = const ui.Color(0x88000000),
-      priority: priority - 1,
-    );
-    await add(_dimBg);
-
-    //full width, h 68%
     await add(RectangleComponent(
       position: Vector2(0, panelY),
       size: Vector2(w, panelH),
@@ -53,15 +42,14 @@ class QuizPanel extends PositionComponent
 
     final halfW = w * 0.5;
 
-    final qRect = RectangleComponent(
+    await add(RectangleComponent(
       position: Vector2(0, panelY),
       size: Vector2(halfW, panelH),
       paint: ui.Paint()..color = const ui.Color(0xFF1B2430),
       priority: priority + 1,
-    );
-    await add(qRect);
+    ));
 
-    final promptText = TextComponent(
+    await add(TextComponent(
       text: question.prompt,
       anchor: Anchor.center,
       textRenderer: TextPaint(
@@ -72,16 +60,14 @@ class QuizPanel extends PositionComponent
       ),
       position: Vector2(halfW / 2, panelY + panelH / 2),
       priority: priority + 2,
-    );
-    await add(promptText);
+    ));
 
-    final aRect = RectangleComponent(
+    await add(RectangleComponent(
       position: Vector2(halfW, panelY),
       size: Vector2(halfW, panelH),
       paint: ui.Paint()..color = const ui.Color(0xFF0F172A),
       priority: priority + 1,
-    );
-    await add(aRect);
+    ));
 
     const pad = 12.0;
     final innerW = halfW - pad * 2;
@@ -91,25 +77,23 @@ class QuizPanel extends PositionComponent
 
     _answerHitZones = [];
     for (int i = 0; i < 4; i++) {
-      final row = i ~/ 2; // 0..1
-      final col = i % 2;  
+      final row = i ~/ 2;
+      final col = i % 2;
 
       final x = halfW + pad + col * (cellW + pad);
       final y = panelY + pad + row * (cellH + pad);
 
-      final btn = RectangleComponent(
+      await add(RectangleComponent(
         position: Vector2(x, y),
         size: Vector2(cellW, cellH),
         paint: ui.Paint()..color = const ui.Color(0xFF233042),
         priority: priority + 2,
-      );
-      await add(btn);
+      ));
 
-      final label = ['', '', '', ''][i];
       final option = question.options[i];
 
-      final labelText = TextComponent(
-        text: '$label) $option',
+      await add(TextComponent(
+        text: option,
         anchor: Anchor.center,
         textRenderer: TextPaint(
           style: const TextStyle(
@@ -119,8 +103,7 @@ class QuizPanel extends PositionComponent
         ),
         position: Vector2(x + cellW / 2, y + cellH / 2),
         priority: priority + 3,
-      );
-      await add(labelText);
+      ));
 
       _answerHitZones.add(
         _RectZone(index: i, rect: ui.Rect.fromLTWH(x, y, cellW, cellH)),
@@ -130,12 +113,13 @@ class QuizPanel extends PositionComponent
 
   @override
   void onTapDown(TapDownEvent event) {
+    if (_disabled) return; 
     final p = event.canvasPosition;
     for (final z in _answerHitZones) {
       if (z.rect.contains(ui.Offset(p.x, p.y))) {
+        _disabled = true; 
         final correct = z.index == question.correctIndex;
         onAnswer(correct);
-        removeFromParent(); 
         break;
       }
     }

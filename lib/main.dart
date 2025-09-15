@@ -222,13 +222,13 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
-      // Thêm các loại quái
+
       await world.add(EnemyWander(
         patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.normal, // Quái thường (2 máu)
+        enemyType: EnemyType.normal, 
       ));
 
       await world.add(EnemyWander(
@@ -236,7 +236,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.strong, // Quái mạnh (3 máu)
+        enemyType: EnemyType.strong, 
       ));
 
       await world.add(EnemyWander(
@@ -244,7 +244,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.miniboss, // Miniboss (5 máu)
+        enemyType: EnemyType.miniboss, 
       ));
 
       await world.add(EnemyWander(
@@ -252,7 +252,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.boss, // Boss (10 máu)
+        enemyType: EnemyType.boss, 
       ));
     }
   }

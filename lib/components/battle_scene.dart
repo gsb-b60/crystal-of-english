@@ -1,3 +1,4 @@
+// lib/components/battle_scene.dart
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -14,7 +15,7 @@ import '../ui/health.dart';
 import 'enemy_wander.dart' show EnemyType;
 
 class BattleResult {
-  final String outcome; //win lose escape
+  final String outcome; // 'win' | 'lose' | 'escape'
   BattleResult(this.outcome);
   static BattleResult win() => BattleResult('win');
   static BattleResult lose() => BattleResult('lose');
@@ -44,10 +45,7 @@ class HealthWithRightAlign extends Health {
     for (var i = 0; i < maxHearts; i++) {
       final icon = children.elementAt(i) as SpriteComponent;
       icon.anchor = Anchor.topLeft;
-      icon.position = Vector2(
-        (maxHearts - 1 - i) * (heartSize + spacing),
-        0,
-      );
+      icon.position = Vector2((maxHearts - 1 - i) * (heartSize + spacing), 0);
     }
     setCurrent(currentHearts);
   }
@@ -87,44 +85,60 @@ class BossHealth extends Health {
   }
 }
 
+// 2D Battle Scene with Quiz turns
 class BattleScene extends Component with HasGameRef<MyGame> {
   final BattleEndCallback onEnd;
   final EnemyType enemyType;
 
   BattleScene({required this.onEnd, required this.enemyType});
 
+  static const double battleScale = 1.8; 
+  static final Vector2 actorBaseSize = Vector2(48, 48); 
+  static const double baseGap = 70.0; // giữ const
+  // khoảng cách hai bên (đơn vị px HUD)
+
+  // World (chỉ để vẽ background)
   late final World world;
   late final CameraComponent cam;
+
+  // HUD (health bars, hero/enemy, quiz panel, buttons)
   late final PositionComponent hud;
 
   late Health heroHealth;
   late Health enemyHealth;
 
+  // Hero/Enemy vẽ trên HUD để canh đúng phía trên panel
   late SpriteComponent hero;
   late SpriteComponent enemy;
+  late PositionComponent heroShadow;
+  late PositionComponent enemyShadow;
 
   // Quiz state
   late final QuizRepository _quizRepo;
-  late List<QuizQuestion> _pool;
-  final String _topic = 'animals';
+  late List<QuizQuestion> _pool; // câu hỏi theo chủ đề
+  final String _topic = 'animals'; // tạm thời cố định; có thể truyền từ map
   bool _takingTurn = false;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
+    // World chỉ có background
     world = World();
     await add(world);
 
     cam = CameraComponent(world: world);
-    cam.viewfinder.zoom = 2.0;
+    cam.viewfinder.zoom = 2.0; // zoom world nếu muốn (HUD không bị ảnh hưởng)
     await add(cam);
 
-    final bgSprite = await Sprite.load('battlebackground/battle_background.png');
+    final bgSprite = await Sprite.load(
+      'battlebackground/battle_background.png',
+    );
     final logicalBg = Vector2(320, 180);
     final screenSize = gameRef.size;
     final scale = min(screenSize.x / logicalBg.x, screenSize.y / logicalBg.y);
 
+    // BG đặt ở giữa world; scale để phủ vừa viewport (không ảnh hưởng HUD)
     final bg = SpriteComponent(
       sprite: bgSprite,
       size: logicalBg * scale,
@@ -134,42 +148,27 @@ class BattleScene extends Component with HasGameRef<MyGame> {
     );
     await world.add(bg);
 
-    // Hero
-    hero = SpriteComponent(
-      sprite: await Sprite.load('characters/maincharacter/hero.png'),
-      size: Vector2(48, 48),
-      anchor: Anchor.bottomCenter,
-      position: Vector2(-70, 40),
-      priority: 10,
+    // HUD overlay
+    hud = PositionComponent(
+      priority: 100000,
+      size: screenSize,
+      position: Vector2.zero(),
     );
-    await world.add(hero);
-    await world.add(_shadowAt(hero.position, z: 9));
-
-    // Enemy (flipped)
-    enemy = SpriteComponent(
-      sprite: await Sprite.load('Joanna.png'),
-      size: Vector2(48, 48),
-      anchor: Anchor.bottomCenter,
-      position: Vector2(70, 40),
-      priority: 10,
-    )..scale = Vector2(-1, 1);
-    await world.add(enemy);
-    await world.add(_shadowAt(enemy.position, z: 9));
-
-    hud = PositionComponent(priority: 100000);
     await cam.viewport.add(hud);
 
-    heroHealth = Health(
-      maxHearts: 5,
-      currentHearts: 5,
-      fullHeartAsset: 'hp/heart.png',
-      emptyHeartAsset: 'hp/empty_heart.png',
-      heartSize: 32,
-      spacing: 6,
-      margin: const EdgeInsets.only(left: 16, top: 16),
-    )
-      ..anchor = Anchor.topLeft
-      ..position = Vector2(16, 16);
+    // Health bars (HUD)
+    heroHealth =
+        Health(
+            maxHearts: 5,
+            currentHearts: 5,
+            fullHeartAsset: 'hp/heart.png',
+            emptyHeartAsset: 'hp/empty_heart.png',
+            heartSize: 32,
+            spacing: 6,
+            margin: const EdgeInsets.only(left: 16, top: 16),
+          )
+          ..anchor = Anchor.topLeft
+          ..position = Vector2(16, 16);
     await hud.add(heroHealth);
 
     final enemyMaxHearts = switch (enemyType) {
@@ -201,9 +200,60 @@ class BattleScene extends Component with HasGameRef<MyGame> {
 
     enemyHealth
       ..anchor = Anchor.topRight
-      ..position = Vector2(gameRef.size.x - 16, 16);
+      ..position = Vector2(screenSize.x - 16, 16);
     await hud.add(enemyHealth);
 
+    // === ĐẶT HERO/ENEMY Ở PHẦN TRÊN (TRÊN MÉP PANEL) ===
+    final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
+    final centerX = screenSize.x / 2;
+
+    // baseline ngay trên panel; đẩy lên theo scale cho cân đối
+    final baselineY = panelTop - (8 * battleScale);
+
+    // Khoảng cách lệch trái/phải giữa hero & enemy theo scale
+    final double halfGap = baseGap * battleScale;
+
+    // Kích thước nhân vật sau khi scale
+    final Vector2 actorSize = actorBaseSize * battleScale;
+
+    // ===== Tạo HERO (to hơn) =====
+    hero = SpriteComponent(
+      sprite: await Sprite.load('characters/maincharacter/hero.png'),
+      size: actorSize,
+      anchor: Anchor.bottomCenter,
+      position: Vector2(centerX - halfGap, baselineY),
+      priority: 10,
+    );
+    await hud.add(hero);
+
+    // Shadow cũng scale theo
+    heroShadow = _shadowAt(
+      hero.position,
+      z: 9,
+      width: 36 * battleScale,
+      height: 10 * battleScale,
+    );
+    await hud.add(heroShadow);
+
+    // ===== Tạo ENEMY (to hơn) =====
+    enemy = SpriteComponent(
+      sprite: await Sprite.load('Joanna.png'),
+      size: actorSize,
+      anchor: Anchor.bottomCenter,
+      position: Vector2(centerX + halfGap, baselineY),
+      priority: 10,
+    )..scale = Vector2(-1, 1);
+    await hud.add(enemy);
+
+    enemyShadow = _shadowAt(
+      enemy.position,
+      z: 9,
+      width: 36 * battleScale,
+      height: 10 * battleScale,
+    );
+    await hud.add(enemyShadow);
+
+    // Nút "Chạy"
     await hud.add(
       TextButtonHud(
         label: 'Chạy',
@@ -212,11 +262,13 @@ class BattleScene extends Component with HasGameRef<MyGame> {
       ),
     );
 
+    // Load quiz & bắt đầu lượt
     _quizRepo = QuizRepository();
     _pool = await _quizRepo.loadTopic(_topic);
     await _nextTurn();
   }
 
+  // ======= QUIZ TURN LOOP =======
   Future<void> _nextTurn() async {
     if (_takingTurn) return;
     _takingTurn = true;
@@ -227,7 +279,7 @@ class BattleScene extends Component with HasGameRef<MyGame> {
     }
 
     _pool.shuffle();
-    final q = _pool.first; //final q = _pool.removeLast();
+    final q = _pool.first; // hoặc removeLast()
 
     await hud.add(
       QuizPanel(
@@ -251,6 +303,7 @@ class BattleScene extends Component with HasGameRef<MyGame> {
     );
   }
 
+  // ======= ACTIONS =======
   Future<void> _playerAttack() async {
     await _dash(hero, towards: enemy.position, offset: Vector2(-12, 0));
     enemyHealth.damage(1);
@@ -278,35 +331,45 @@ class BattleScene extends Component with HasGameRef<MyGame> {
     final mid =
         Vector2((start.x + towards.x) / 2, (start.y + towards.y) / 2) + offset;
 
-    await who.add(MoveEffect.to(
-      mid,
-      EffectController(duration: 0.15, curve: Curves.easeOut),
-    ));
-    await who.add(MoveEffect.to(
-      start,
-      EffectController(duration: 0.18, curve: Curves.easeIn),
-    ));
+    await who.add(
+      MoveEffect.to(
+        mid,
+        EffectController(duration: 0.15, curve: Curves.easeOut),
+      ),
+    );
+    await who.add(
+      MoveEffect.to(
+        start,
+        EffectController(duration: 0.18, curve: Curves.easeIn),
+      ),
+    );
   }
 
   Future<void> _hitFx(Vector2 at) async {
+    // FX trên HUD để cùng hệ toạ độ với hero/enemy
     final fx = CircleComponent(
-      radius: 8,
+      radius: 8 * battleScale, // hiệu ứng cũng lớn theo
       anchor: Anchor.center,
-      position: at + Vector2(0, -28),
+      position: at + Vector2(0, -28 * battleScale),
       paint: ui.Paint()..color = const ui.Color(0x88FFFFFF),
       priority: 20,
     );
-    await world.add(fx);
+    await hud.add(fx);
     await fx.add(OpacityEffect.fadeOut(EffectController(duration: 0.15)));
     await Future.delayed(const Duration(milliseconds: 160));
     fx.removeFromParent();
   }
 
-  PositionComponent _shadowAt(Vector2 pos, {int z = 0}) {
+  PositionComponent _shadowAt(
+    Vector2 pos, {
+    int z = 0,
+    double width = 36,
+    double height = 10,
+  }) {
     return _ShadowOval(
-      width: 36,
-      height: 10,
-      position: pos + Vector2(0, 2),
+      width: width,
+      height: height,
+      position: pos + Vector2(0, 2 * (width / 36)), // đẩy nhẹ theo scale
       z: z,
     );
   }
@@ -328,8 +391,7 @@ class TextButtonHud extends PositionComponent with TapCallbacks {
   void render(ui.Canvas canvas) {
     super.render(canvas);
     final bg = ui.Paint()
-      ..color =
-          _down ? const ui.Color(0xFF1B4F72) : const ui.Color(0xFF2E86DE);
+      ..color = _down ? const ui.Color(0xFF1B4F72) : const ui.Color(0xFF2E86DE);
     canvas.drawRect(size.toRect(), bg);
 
     final tp = TextPaint();
@@ -360,11 +422,11 @@ class _ShadowOval extends PositionComponent {
     required Vector2 position,
     this.z = 0,
   }) : super(
-          position: position,
-          size: Vector2(width, height),
-          anchor: Anchor.center,
-          priority: z,
-        );
+         position: position,
+         size: Vector2(width, height),
+         anchor: Anchor.center,
+         priority: z,
+       );
 
   @override
   void render(ui.Canvas canvas) {

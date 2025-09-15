@@ -24,8 +24,6 @@ class Coin extends SpriteAnimationComponent with TapCallbacks {
     for (int i = 1; i <= 4; i++) {
       sprites.add(await Sprite.load('coins/coin$i.png'));
     }
-
-    // Tạo animation: chạy liên tục với tốc độ 0.15 giây/frame, lặp vô hạn
     animation = SpriteAnimation.spriteList(
       sprites,
       stepTime: 0.15,
@@ -36,7 +34,6 @@ class Coin extends SpriteAnimationComponent with TapCallbacks {
 
   @override
   bool onTapUp(TapUpEvent event) {
-    // Tìm game instance để lấy player
     final game = findGame() as MyGame?;
     if (game == null) return false;
     final distance = position.distanceTo(game.player.center);
