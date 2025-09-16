@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'Flashcard.dart';
-import 'Deck.dart';
-import 'package:totoki/testdb/deckwelcome.dart';
+import 'business/Flashcard.dart';
+import 'business/Deck.dart';
+import 'package:totoki/screen/deckwelcome.dart';
 
 
 

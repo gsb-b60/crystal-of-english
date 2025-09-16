@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
-import 'package:totoki/Deck.dart';
-import 'package:totoki/Flashcard.dart';
+import 'package:totoki/business/Deck.dart';
+import 'package:totoki/business/Flashcard.dart';
 import 'package:path/path.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -55,7 +55,7 @@ class DatabaseHelper {
         usageSound text,
         example text,
         ipa text,
-        meida text,
+        complexity  int default 1,
         interval integer,
         reps integer,
         due integer,
@@ -294,10 +294,22 @@ class DatabaseHelper {
       final defSoundPath=soundRegex.firstMatch(fields[3])?.group(1);
       final usageSoundPath=soundRegex.firstMatch(fields[4])?.group(1);
       final soundPath=soundRegex.firstMatch(fields[2])?.group(1);
+      final word=fields[0].replaceAll(tagRegex, '');
+      var complexity=1;
+      if(word.length<=4)
+      {
+        complexity=1;
+      }else if(word.length<=8){
+        complexity=2;
+      }
+      else{
+        complexity=3;
+      }
+
       if (fields.length == 8) {
         Flashcard newCard = Flashcard(
           deckId: deckId,
-          word: fields[0].replaceAll(tagRegex, ''),
+          word: word,
           meaning: fields[5],
           example: fields[6],
           ipa: fields[7].replaceAll(tagRegex, ""),
@@ -306,6 +318,7 @@ class DatabaseHelper {
           usageSound: usageSoundPath,
           img: imagePath,
           sound: soundPath,
+          complexity: complexity,
         );
         insertCard(newCard);
       }

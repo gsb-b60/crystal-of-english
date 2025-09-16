@@ -1,6 +1,6 @@
 // ignore: file_names
 import 'package:flutter/widgets.dart';
-import 'package:totoki/database_helper.dart';
+import 'package:totoki/data/database_helper.dart';
 
 class Deck {
   final int? id;

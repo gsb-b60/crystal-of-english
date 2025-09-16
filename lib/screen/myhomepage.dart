@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:totoki/Deck.dart';
+import 'package:totoki/business/Deck.dart';
 import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {

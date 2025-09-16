@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'database_helper.dart';
+import '../data/database_helper.dart';
 
 class Flashcard {
   final int? id;
@@ -16,7 +16,7 @@ class Flashcard {
   final String? usageSound;
   final String? example;
   final String? ipa;
-
+  final int? complexity;
 
   //review related fields
   final int? interval;
@@ -25,6 +25,8 @@ class Flashcard {
   final DateTime? lastReview;
   final int? lapses;
   final double? easeFactor;
+
+
 
   Flashcard({
     this.id,
@@ -45,7 +47,7 @@ class Flashcard {
     this.sound,
     this.defSound,
     this.usageSound,
-
+    this.complexity
   });
   Map<String, dynamic> toMap() {
     return {
@@ -65,7 +67,8 @@ class Flashcard {
       'ease_factor': easeFactor,
       'sound':sound,
       'defSound':defSound,
-      'usageSound':usageSound
+      'usageSound':usageSound,
+      'complexity':complexity,
     };
   }
 
@@ -82,8 +85,12 @@ class Flashcard {
       meaning: map['meaning'] as String?,
       example: map['example'] as String?,
       ipa: map['ipa'] as String?,
-      interval: map['interval'] as int?,
-      reps: map['reps'] as int?,
+      complexity: map['complexity'] as int?,
+
+
+
+      interval: map['interval'] !=null ?map['interval'] as int?: 0,
+      reps: map['reps']!=null? map['reps'] as int?:0,
       due: map['due'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['due'] as int)
           : null,
@@ -137,6 +144,7 @@ class Cardmodel with ChangeNotifier {
       lastReview: card.lastReview,
       lapses: card.lapses,
       easeFactor: card.easeFactor,
+      complexity: card.complexity
     );
     _cards.add(newCard);
     notifyListeners();

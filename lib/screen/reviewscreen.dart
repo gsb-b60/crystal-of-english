@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:totoki/Flashcard.dart';
+import 'package:totoki/business/Flashcard.dart';
 
 class ReviewSreen extends StatefulWidget {
   final int deckId;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:totoki/Flashcard.dart';
-import 'package:totoki/testdb/reviewscreen.dart';
+import 'package:totoki/business/Flashcard.dart';
+import 'package:totoki/screen/reviewscreen.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
@@ -195,29 +195,49 @@ class FlashCardItem extends StatelessWidget {
                   Text(card.usageSound ?? "no image"),
                   const SizedBox(height: 6),
                   // Review info: interval / reps / due date
-                  Row(
+                  Column(
                     children: [
-                      if (card.interval == null)
-                        Chip(
-                          label: Text('Interval: ${card.interval}'),
-                          backgroundColor: Colors.blue[50],
-                        ),
-                      if (card.reps == null)
-                        Chip(
-                          label: Text('Reps: ${card.reps}'),
-                          backgroundColor: Colors.green[50],
-                        ),
-                      if (card.due == null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: Text(
-                            'Due: ${DateFormat('MM/dd').format(card.due!)}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
+                      Row(
+                        children: [
+                          if (card.interval != null)
+                            Chip(
+                              label: Text('Interval: ${card.interval}'),
+                              backgroundColor: Colors.blue[50],
                             ),
-                          ),
-                        ),
+                          if (card.reps != null)
+                            Chip(
+                              label: Text('Reps: ${card.reps}'),
+                              backgroundColor: Colors.green[50],
+                            ),
+                          
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          if (card.due != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: Text(
+                                'Due: ${DateFormat('MM/dd').format(card.due!)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                          if (card.complexity != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: Text(
+                                'complexity: ${card.complexity}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                        ],
+                      )
                     ],
                   ),
                 ],

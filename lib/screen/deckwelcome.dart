@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:totoki/Deck.dart';
+import 'package:totoki/business/Deck.dart';
 import 'cardlistscreen.dart';
 
 class DeckListScreen extends StatefulWidget {
