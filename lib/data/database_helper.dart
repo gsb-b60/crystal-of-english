@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:archive/archive.dart' as archive;
 import 'package:flutter_archive/flutter_archive.dart';
-//import 'package:flutter_archive/flutter_archive.dart' as flutter_archive;
+import 'flashCard_Mapper.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -50,6 +50,7 @@ class DatabaseHelper {
         word text,
         meaning text,
         img text,
+        synonyms text,
         sound text,
         defSound text,
         usageSound text,
@@ -204,7 +205,8 @@ class DatabaseHelper {
     if (!ankiDir.existsSync()) {
       await ankiDir.create(recursive: true);
     }
-    final deckDir = 'deck_${DateTime.now().toIso8601String().replaceAll(":", "-")}';
+    final deckDir =
+        'deck_${DateTime.now().toIso8601String().replaceAll(":", "-")}';
     final outputDir = Directory('${ankiDir.path}/${deckDir}');
 
     if (!outputDir.existsSync()) {
@@ -214,7 +216,6 @@ class DatabaseHelper {
         print(e);
       }
     }
-    
 
     return outputDir;
   }
@@ -250,7 +251,7 @@ class DatabaseHelper {
     final Map<String, dynamic> deckMap =
         jsonDecode(deckString) as Map<String, dynamic>;
 
-    final folderName=await MoveMediaFile();
+    final folderName = await MoveMediaFile();
 
     for (final deck in deckMap.entries) {
       {
@@ -259,7 +260,7 @@ class DatabaseHelper {
         final deckName = deck.value['name'] as String;
         //insert deck to my db
         //comment to debug
-        Deck newDeck = Deck(name: deckName,media: folderName);
+        Deck newDeck = Deck(name: deckName, media: folderName);
         final int myDeckId = await insertDeck(newDeck);
         await processCardForDeck(ankiDb, deckId, myDeckId);
       }
@@ -272,54 +273,30 @@ class DatabaseHelper {
     int ankiDeckId,
     int deckId,
   ) async {
-    final imgRegex = RegExp(r'<img\s+src="([^"]+)"');
-    final soundRegex = RegExp(r'\[sound:([^\]]+)\]');
-    final tagRegex = RegExp(r'<[^>]+>');
-
+    
+    // select n.flds ,n.id,c.id,c.did,n.mid 
+    //     from notes n 
+    //     join cards c 
+    //     on c.nid =n.id 
     final cards = await ankiDb.rawQuery(
       '''
-        select n.flds ,n.id,c.id,c.did 
-        from notes n 
-        join cards c 
-        on c.nid =n.id 
+        SELECT DISTINCT
+          n.id AS note_id,
+          c.did AS deck_id,
+          n.flds ,
+          n.mid
+        FROM notes AS n
+        JOIN cards AS c
+        ON n.id = c.nid
         where c.did=?
 ''',
       [ankiDeckId],
     );
 
     for (final row in cards) {
-      final flds = row['flds'] as String;
-      final List<String> fields = flds.split('\x1f');
-      final imagePath=imgRegex.firstMatch(fields[1])?.group(1);
-      final defSoundPath=soundRegex.firstMatch(fields[3])?.group(1);
-      final usageSoundPath=soundRegex.firstMatch(fields[4])?.group(1);
-      final soundPath=soundRegex.firstMatch(fields[2])?.group(1);
-      final word=fields[0].replaceAll(tagRegex, '');
-      var complexity=1;
-      if(word.length<=4)
-      {
-        complexity=1;
-      }else if(word.length<=8){
-        complexity=2;
-      }
-      else{
-        complexity=3;
-      }
-
-      if (fields.length == 8) {
-        Flashcard newCard = Flashcard(
-          deckId: deckId,
-          word: word,
-          meaning: fields[5],
-          example: fields[6],
-          ipa: fields[7].replaceAll(tagRegex, ""),
-          due: DateTime.now(),
-          defSound: defSoundPath,
-          usageSound: usageSoundPath,
-          img: imagePath,
-          sound: soundPath,
-          complexity: complexity,
-        );
+      print("model :${row['mid']}");
+      final newCard = mapRowToFlashcard(row, deckId);
+      if (newCard != null) {
         insertCard(newCard);
       }
     }
@@ -343,7 +320,6 @@ class DatabaseHelper {
     final outputDir = await CreateUnZipFolder();
     Directory deckDir = await CreateDeckFolder();
     try {
-      
       for (final entry in mediaMap.entries) {
         final oldFile = File('${dir.path}/anki/unzipAnki/${entry.key}');
         if (oldFile.existsSync()) {
@@ -364,20 +340,24 @@ class DatabaseHelper {
     } catch (e) {
       print('import bug $e');
     }
-    final folderName=basename(deckDir.path);
+    final folderName = basename(deckDir.path);
     return folderName;
   }
-  Future<String?> getMediaFile(int deckID) async{
-    final db= await database;
-    final result =await db.rawQuery('''
+
+  Future<String?> getMediaFile(int deckID) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      '''
       select media
       from decks
       where id=?
-''',[deckID]);
-  print(result);
-    if(result.isNotEmpty){
+''',
+      [deckID],
+    );
+    print(result);
+    if (result.isNotEmpty) {
       return result.first['media'] as String?;
     }
     return null;
-  } 
+  }
 }

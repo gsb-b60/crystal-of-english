@@ -11,6 +11,7 @@ class Flashcard {
   final String? word;
   final String? meaning;
   final String? img;
+  final String? synonyms;
   final String? sound;
   final String? defSound;
   final String? usageSound;
@@ -47,7 +48,8 @@ class Flashcard {
     this.sound,
     this.defSound,
     this.usageSound,
-    this.complexity
+    this.complexity,
+    this.synonyms
   });
   Map<String, dynamic> toMap() {
     return {
@@ -69,6 +71,7 @@ class Flashcard {
       'defSound':defSound,
       'usageSound':usageSound,
       'complexity':complexity,
+      'synonyms':synonyms
     };
   }
 
@@ -99,10 +102,11 @@ class Flashcard {
           : null,
       lapses: map['lapses'] as int?,
       easeFactor: map['ease_factor'] as double?,
-      img: map['img'] as String,
-      sound: map['sound'] as String,
-      defSound: map['defSound'] as String,
-      usageSound: map['usageSound'] as String
+      img: map['img'] as String?,
+      synonyms: map['synonyms'] as String?,
+      sound: map['sound'] as String?,
+      defSound: map['defSound'] as String?,
+      usageSound: map['usageSound'] as String?
     );
   }
 }
@@ -144,7 +148,8 @@ class Cardmodel with ChangeNotifier {
       lastReview: card.lastReview,
       lapses: card.lapses,
       easeFactor: card.easeFactor,
-      complexity: card.complexity
+      complexity: card.complexity,
+      synonyms: card.synonyms,
     );
     _cards.add(newCard);
     notifyListeners();
