@@ -1,8 +1,11 @@
+// lib/components/quiz_panel.dart
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flame/cache.dart' show Images;          // <- dùng Images riêng
 import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/foundation.dart' show VoidCallback;
 
 import '../quiz/quiz_models.dart';
 import '../main.dart';
@@ -10,15 +13,15 @@ import '../main.dart';
 typedef OnAnswer = void Function(bool isCorrect);
 
 class QuizPanel extends PositionComponent
-    with TapCallbacks, HasGameReference<MyGame> {  // <— đổi mixin
+    with TapCallbacks, HasGameReference<MyGame> {
   final QuizQuestion question;
   final OnAnswer onAnswer;
 
   static const double panelHeightRatio = 0.68;
 
-  late final List<_RectZone> _answerHitZones;
   bool _disabled = false;
 
+  // cột trái:
   late final double _leftW;
   late final double _panelY;
   late final double _panelH;
@@ -26,11 +29,52 @@ class QuizPanel extends PositionComponent
   QuizPanel({required this.question, required this.onAnswer})
       : super(priority: 100003);
 
+  // ==== Helpers ============================================================
+
+  // Chuẩn hoá path: thêm 'assets/' nếu thiếu
+  String _asset(String p) => p.startsWith('assets/') ? p : 'assets/$p';
+
+  // Load Sprite "bất chấp" prefix global: dùng Images(prefix: '')
+  Future<Sprite?> _loadSpriteAny(String rawPath) async {
+    final candidates = <String>[
+      rawPath,
+      _asset(rawPath),
+    ];
+    final images = Images(prefix: ''); // không gắn thêm gì hết
+    for (final path in candidates) {
+      try {
+        // debug cho chắc
+        // ignore: avoid_print
+        print('[QuizPanel] Try load image: $path');
+        final img = await images.load(path);
+        return Sprite(img);
+      } catch (_) {
+        // tiếp tục thử candidate tiếp theo
+      }
+    }
+    // ignore: avoid_print
+    print('[QuizPanel] Image NOT FOUND with any candidate: $candidates');
+    return null;
+  }
+
+  Future<void> _playSoundSafe(String rawPath) async {
+    final p = _asset(rawPath); // ép có 'assets/...'
+    try {
+      await FlameAudio.audioCache.load(p); // preload (không bắt buộc)
+      await FlameAudio.play(p);
+    } catch (e) {
+      // ignore: avoid_print
+      print('[QuizPanel] Cannot play sound: $p — $e');
+    }
+  }
+
+  // =======================================================================
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    size = game.size;                // <— game thay vì gameRef
+    size = game.size;
     position = Vector2.zero();
 
     final w = size.x;
@@ -38,7 +82,7 @@ class QuizPanel extends PositionComponent
     _panelH = h * panelHeightRatio;
     _panelY = h - _panelH;
 
-    // nền
+    // Nền panel
     await add(RectangleComponent(
       position: Vector2(0, _panelY),
       size: Vector2(w, _panelH),
@@ -46,8 +90,9 @@ class QuizPanel extends PositionComponent
       priority: priority,
     ));
 
-    // cột trái
+    // Cột trái (prompt + image + sound)
     _leftW = w * 0.5;
+
     await add(RectangleComponent(
       position: Vector2(0, _panelY),
       size: Vector2(_leftW, _panelH),
@@ -55,7 +100,7 @@ class QuizPanel extends PositionComponent
       priority: priority + 1,
     ));
 
-    // prompt
+    // Prompt
     final promptText = TextComponent(
       text: question.prompt,
       anchor: Anchor.topCenter,
@@ -74,50 +119,59 @@ class QuizPanel extends PositionComponent
     double yCursor = promptText.position.y + 28;
 
     // Nút âm thanh (nếu có)
-    if ((question.sound ?? '').isNotEmpty) {
+    final soundPath = (question.sound ?? '').trim();
+    if (soundPath.isNotEmpty) {
       final btn = _SmallButton(
         label: '🔊 Phát âm',
-        onPressed: _playSound,
+        onPressed: () => _playSoundSafe(soundPath),
         position: Vector2(12, yCursor),
       );
       await add(btn);
       yCursor += 36;
 
-      // Auto-play chỉ khi type chứa 'sound' (có thể bị chặn trên web nếu chưa có gesture)
       if (question.type.contains('sound')) {
-        // không critical nếu bị chặn; người chơi có thể bấm nút
-        _playSound();
+        _playSoundSafe(soundPath); // auto play — nếu bị chặn thì user ấn nút
       }
     }
 
     // Ảnh (nếu có)
-    if ((question.image ?? '').isNotEmpty) {
-      try {
-        final imgSprite = await Sprite.load(question.image!);
+    final imagePath = (question.image ?? '').trim();
+    if (imagePath.isNotEmpty) {
+      final sprite = await _loadSpriteAny(imagePath);
+      if (sprite != null) {
         const pad = 12.0;
         final maxW = _leftW - pad * 2;
         final desiredH = _panelH * 0.5;
-        final aspect = imgSprite.srcSize.x / imgSprite.srcSize.y;
-        final displayW = (maxW).clamp(60, maxW);
+
+        final aspect = sprite.srcSize.x / sprite.srcSize.y;
+        final displayW = maxW; // full theo bề ngang cột trái
         final displayH = (displayW / aspect).clamp(60, desiredH);
 
         final imageComp = SpriteComponent(
-          sprite: imgSprite,
-          size: Vector2(displayW.toDouble(), displayH.toDouble()),
+          sprite: sprite,
+          size: Vector2(displayW, displayH.toDouble()),
           anchor: Anchor.topCenter,
           position: Vector2(_leftW / 2, yCursor),
           priority: priority + 2,
         );
         await add(imageComp);
         yCursor += displayH.toDouble() + 8;
-      } catch (e) {
-        // In ra console để debug nếu sai đường dẫn assets
-        // ignore: avoid_print
-        print('Không load được ảnh: ${question.image} — $e');
+      } else {
+        // hiện một nhãn báo lỗi nhỏ (khỏi đen màn)
+        await add(TextComponent(
+          text: 'Image not found:\n${_asset(imagePath)}',
+          anchor: Anchor.topLeft,
+          textRenderer: TextPaint(
+            style: const TextStyle(color: ui.Color(0xFFEF4444), fontSize: 12),
+          ),
+          position: Vector2(12, yCursor),
+          priority: priority + 2,
+        ));
+        yCursor += 28;
       }
     }
 
-    // Cột phải (đáp án)
+    // Cột phải (đáp án) — 4 nút chia đều, có margin + gap
     final rightX = _leftW;
     await add(RectangleComponent(
       position: Vector2(rightX, _panelY),
@@ -126,86 +180,50 @@ class QuizPanel extends PositionComponent
       priority: priority + 1,
     ));
 
-    // Lưới 2x2 đáp án
-    const pad = 12.0;
-    final innerW = _leftW - pad * 2;
-    final innerH = _panelH - pad * 2;
-    final cellW = (innerW - pad) / 2;
-    final cellH = (innerH - pad) / 2;
+    const double marginH = 16.0; // trái/phải
+    const double marginV = 16.0; // trên/dưới
+    const int count = 4;
+    const double gap = 8.0; // khoảng hở giữa các nút
 
-    _answerHitZones = [];
-    for (int i = 0; i < 4; i++) {
-      final row = i ~/ 2;
-      final col = i % 2;
+    final double innerW = _leftW - marginH * 2;
+    final double innerH = _panelH - marginV * 2;
+    final double startX = rightX + marginH;
+    double rowY = _panelY + marginV;
 
-      final x = rightX + pad + col * (cellW + pad);
-      final y = _panelY + pad + row * (cellH + pad);
+    final double rowH = (innerH - gap * (count - 1)) / count;
 
-      await add(RectangleComponent(
-        position: Vector2(x, y),
-        size: Vector2(cellW, cellH),
-        paint: ui.Paint()..color = const ui.Color(0xFF233042),
-        priority: priority + 2,
-      ));
-
-      final option = question.options[i];
-
-      await add(TextComponent(
-        text: option,
-        anchor: Anchor.center,
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            color: ui.Color(0xFFE2E8F0),
-            fontSize: 16,
-          ),
-        ),
-        position: Vector2(x + cellW / 2, y + cellH / 2),
+    for (int i = 0; i < count; i++) {
+      final displayLabel = '${i + 1}. ${question.options[i]}';
+      await add(_AnswerItem(
+        rect: ui.Rect.fromLTWH(startX, rowY, innerW, rowH),
+        label: displayLabel,
         priority: priority + 3,
+        onTap: () {
+          if (_disabled) return;
+          _disabled = true;
+          onAnswer(i == question.correctIndex);
+        },
       ));
-
-      _answerHitZones.add(
-        _RectZone(index: i, rect: ui.Rect.fromLTWH(x, y, cellW, cellH)),
-      );
-    }
-  }
-
-  void _playSound() {
-    final s = question.sound;
-    if (s == null || s.isEmpty) return;
-    // Trên web auto-play có thể bị chặn; bấm nút sẽ phát OK.
-    FlameAudio.play(s);
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    if (_disabled) return;
-    final p = event.canvasPosition;
-    for (final z in _answerHitZones) {
-      if (z.rect.contains(ui.Offset(p.x, p.y))) {
-        _disabled = true;
-        final correct = z.index == question.correctIndex;
-        onAnswer(correct);
-        break;
-      }
+      rowY += rowH + gap;
     }
   }
 }
 
-class _RectZone {
-  final int index;
-  final ui.Rect rect;
-  _RectZone({required this.index, required this.rect});
-}
+/// ====== Các lớp con hỗ trợ ======
 
 class _SmallButton extends PositionComponent with TapCallbacks {
   final String label;
-  final void Function() onPressed;
+  final VoidCallback onPressed;
 
   _SmallButton({
     required this.label,
     required this.onPressed,
     required Vector2 position,
-  }) : super(position: position, size: Vector2(112, 28), priority: 100004);
+  }) : super(
+          position: position,
+          size: Vector2(112, 28),
+          priority: 100004,
+        );
 
   bool _down = false;
 
@@ -232,5 +250,63 @@ class _SmallButton extends PositionComponent with TapCallbacks {
   void onTapUp(TapUpEvent event) {
     _down = false;
     onPressed();
+  }
+}
+
+class _AnswerItem extends PositionComponent with TapCallbacks {
+  final String label;
+  final VoidCallback onTap;
+
+  _AnswerItem({
+    required ui.Rect rect,
+    required this.label,
+    required int priority,
+    required this.onTap,
+  }) : super(
+          position: Vector2(rect.left, rect.top),
+          size: Vector2(rect.width, rect.height),
+          anchor: Anchor.topLeft,
+          priority: priority,
+        );
+
+  bool _down = false;
+
+  @override
+  void render(ui.Canvas canvas) {
+    final rrect = ui.RRect.fromRectAndRadius(
+      ui.Rect.fromLTWH(0, 0, size.x, size.y),
+      const ui.Radius.circular(12),
+    );
+
+    final fill = ui.Paint()
+      ..color = _down
+          ? const ui.Color(0xFF2A3647)  // nhấn
+          : const ui.Color(0xFF233042); // thường
+    canvas.drawRRect(rrect, fill);
+
+    final border = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = const ui.Color(0x33FFFFFF);
+    canvas.drawRRect(rrect, border);
+
+    final tp = TextPaint(
+      style: const TextStyle(
+        color: ui.Color(0xFFE2E8F0),
+        fontSize: 16,
+        height: 1.1,
+      ),
+    );
+    tp.render(canvas, label, Vector2(12, size.y / 2), anchor: Anchor.centerLeft);
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) => _down = true;
+  @override
+  void onTapCancel(TapCancelEvent event) => _down = false;
+  @override
+  void onTapUp(TapUpEvent event) {
+    _down = false;
+    onTap();
   }
 }

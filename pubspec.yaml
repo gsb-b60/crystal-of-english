@@ -78,7 +78,8 @@ flutter:
     - assets/images/characters/maincharacter/
     - assets/images/characters/
     - assets/quiz/animals/animals.json
-    - assets/quiz/animals/images/
+    - assets/quiz/animals/images/lion.png
+    - assets/quiz/animals/images/wolf.png
     - assets/quiz/animals/sounds/
 
 

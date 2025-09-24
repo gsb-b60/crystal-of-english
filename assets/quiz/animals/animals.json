@@ -6,7 +6,7 @@
       "type": "text",
       "prompt": "The only mammal that lays eggs is the ___.",
       "options": ["platypus","kangaroo","bat","hedgehog"],
-      "correctIndex": 0,
+      "correctIndex": 0
     },
     {
       "id": "q2",
