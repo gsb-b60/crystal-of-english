@@ -84,7 +84,6 @@ class BossHealth extends Health {
   }
 }
 
-// 2D Battle Scene với lượt Quiz
 class BattleScene extends Component with HasGameReference<MyGame> {
   final BattleEndCallback onEnd;
   final EnemyType enemyType;
@@ -95,25 +94,20 @@ class BattleScene extends Component with HasGameReference<MyGame> {
   static final Vector2 actorBaseSize = Vector2(48, 48);
   static const double baseGap = 70.0;
 
-  // World (chỉ để vẽ background)
   late final World world;
   late final CameraComponent cam;
-
-  // HUD (health bars, hero/enemy, quiz panel, buttons)
   late final PositionComponent hud;
 
   late Health heroHealth;
   late Health enemyHealth;
 
-  // Hero/Enemy (vẽ trên HUD)
   late SpriteComponent hero;
   late SpriteComponent enemy;
   late PositionComponent heroShadow;
   late PositionComponent enemyShadow;
 
-  // Quiz state
   late final QuizRepository _quizRepo;
-  late List<QuizQuestion> _pool; // câu hỏi theo chủ đề
+  late List<QuizQuestion> _pool; 
   final String _topic = 'animals'; // tạm thời cố định
   bool _takingTurn = false;
 
@@ -123,7 +117,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // World chỉ có background
     world = World();
     await add(world);
 
@@ -199,7 +192,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       ..position = Vector2(screenSize.x - 16, 16);
     await hud.add(enemyHealth);
 
-    // === Vị trí HERO/ENEMY sát mép panel ===
+  
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
     final baselineY = panelTop - (8 * battleScale);
@@ -242,14 +235,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await hud.add(enemyShadow);
 
-    // Nút "Chạy"
-    await hud.add(
-      TextButtonHud(
-        label: 'Chạy',
-        position: Vector2(12, screenSize.y - 40),
-        onPressed: () => onEnd(BattleResult.escape()),
-      ),
-    );
 
     // Load quiz & bắt đầu lượt
     _quizRepo = QuizRepository();
@@ -298,7 +283,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     await hud.add(_panel!);
   }
 
-  // ======= Hành động =======
+  // acction
   Future<void> _playerAttack() async {
     await _dash(hero, towards: enemy.position, offset: Vector2(-12, 0));
     enemyHealth.damage(1);

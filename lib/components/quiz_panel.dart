@@ -1,4 +1,3 @@
-// lib/components/quiz_panel.dart
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -29,7 +28,6 @@ class QuizPanel extends PositionComponent
   QuizPanel({required this.question, required this.onAnswer})
       : super(priority: 100003);
 
-  // ===== Load image (ui.Image) trực tiếp từ bundle =====
   Future<ui.Image?> _loadUiImage(String raw) async {
     final candidates = <String>[
       raw,
@@ -45,17 +43,14 @@ class QuizPanel extends PositionComponent
       } catch (_) {}
     }
     // debug:
-    // ignore: avoid_print
     print('[QuizPanel] Image NOT FOUND: $raw (tried: $candidates)');
     return null;
   }
 
   Future<void> _playSoundRaw(String raw) async {
     try {
-      // prefix đã set 'assets/' trong main()
       await FlameAudio.play(raw);
     } catch (e) {
-      // ignore: avoid_print
       print('[QuizPanel] Cannot play sound: $raw — $e');
     }
   }
@@ -72,7 +67,7 @@ class QuizPanel extends PositionComponent
     _panelH = h * panelHeightRatio;
     _panelY = h - _panelH;
 
-    // nền tổng
+    // backgrd
     await add(RectangleComponent(
       position: Vector2(0, _panelY),
       size: Vector2(w, _panelH),
@@ -80,7 +75,6 @@ class QuizPanel extends PositionComponent
       priority: priority,
     ));
 
-    // cột trái
     _leftW = w * 0.5;
     await add(RectangleComponent(
       position: Vector2(0, _panelY),
@@ -89,7 +83,6 @@ class QuizPanel extends PositionComponent
       priority: priority + 1,
     ));
 
-    // cột phải (đáp án)
     final rightX = _leftW;
     await add(RectangleComponent(
       position: Vector2(rightX, _panelY),
@@ -108,8 +101,7 @@ class QuizPanel extends PositionComponent
     } else if (type == 'image') {
       if (hasImage) await _addImageCentered((question.image!).trim());
     } else if (type == 'imagesound' || type == 'image_sound') {
-      await _addImageSoundWithTitle(
-        title: question.prompt,        // <<< text ở trên
+      await _addImageSound(
         imageRaw: hasImage ? (question.image!).trim() : null,
         soundRaw: hasSound ? (question.sound!).trim() : null,
       );
@@ -119,7 +111,7 @@ class QuizPanel extends PositionComponent
       await _addCenteredText(question.prompt);
     }
 
-    // RIGHT column: 4 đáp án chia đều, gap đẹp
+    // RIGHT column
     const double marginH = 16.0;
     const double marginV = 16.0;
     const double gap = 8.0;
@@ -146,8 +138,6 @@ class QuizPanel extends PositionComponent
       rowY += rowH + gap;
     }
   }
-
-  // -------- LEFT BUILDERS --------
 
   Future<void> _addCenteredText(String text) async {
     await add(TextComponent(
@@ -202,48 +192,25 @@ class QuizPanel extends PositionComponent
     ));
   }
 
-  /// imagesound: Text trên cùng, ảnh ở giữa (bo góc), nút âm thanh ở đáy – tất cả trong cột trái.
-  Future<void> _addImageSoundWithTitle({
-    required String title,
+  /// imagesound: sound button on top, image below
+  Future<void> _addImageSound({
     String? imageRaw,
     String? soundRaw,
   }) async {
     const pad = 12.0;
-
-    // 1) Title ở trên (căn giữa)
-    final titleComp = TextComponent(
-      text: title,
-      anchor: Anchor.topCenter,
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: ui.Color(0xFFF1F5F9),
-          fontSize: 18,
-          height: 1.25,
-        ),
-      ),
-      position: Vector2(_leftW / 2, _panelY + pad),
-      priority: priority + 2,
-    );
-    await add(titleComp);
-
-    // Giả định chiều cao phần title ~ 28 (font 18 + line-height)
-    const titleBlockH = 28.0 + pad; // text + spacing dưới
-
-    // 2) Âm thanh ở đáy (căn giữa)
     const btnH = 32.0;
     const btnW = 140.0;
     const btnGapBottom = 12.0;
-    final btnY = _panelY + _panelH - (btnGapBottom + btnH);
 
+    // Sound button at the top
     if (soundRaw != null && soundRaw.isNotEmpty) {
       await add(_SmallButton(
         label: '🔊 Phát âm',
         onPressed: () => _playSoundRaw(soundRaw),
-        position: Vector2((_leftW - btnW) / 2, btnY),
+        position: Vector2((_leftW - btnW) / 2, _panelY + pad),
       )..size = Vector2(btnW, btnH));
     }
 
-    // 3) Ảnh nằm giữa title và nút
     if (imageRaw == null || imageRaw.isEmpty) return;
 
     final img = await _loadUiImage(imageRaw);
@@ -254,14 +221,15 @@ class QuizPanel extends PositionComponent
         textRenderer: TextPaint(
           style: const TextStyle(color: ui.Color(0xFFEF4444), fontSize: 12),
         ),
-        position: Vector2(12, _panelY + titleBlockH),
+        position: Vector2(12, _panelY + pad + btnH + btnGapBottom),
         priority: priority + 2,
       ));
       return;
     }
 
-    final imageAreaTop = _panelY + titleBlockH + pad;
-    final imageAreaBottom = btnY - pad; // chừa khoảng cho nút
+    // Image below the sound button
+    final imageAreaTop = _panelY + pad + btnH + btnGapBottom;
+    final imageAreaBottom = _panelY + _panelH - pad;
     final imageAreaH = (imageAreaBottom - imageAreaTop).clamp(40.0, _panelH);
 
     final maxW = _leftW - pad * 2;
@@ -299,7 +267,6 @@ class QuizPanel extends PositionComponent
   }
 }
 
-// ===== Rounded image component =====
 class _RoundedImage extends PositionComponent {
   final ui.Image image;
   final double radius;
@@ -324,7 +291,6 @@ class _RoundedImage extends PositionComponent {
     canvas.drawImageRect(image, src, rect, ui.Paint());
     canvas.restore();
 
-    // viền nhẹ
     final border = ui.Paint()
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 1
@@ -332,8 +298,6 @@ class _RoundedImage extends PositionComponent {
     canvas.drawRRect(rrect, border);
   }
 }
-
-// ===== Button & Answer item =====
 
 class _SmallButton extends PositionComponent with TapCallbacks {
   final String label;

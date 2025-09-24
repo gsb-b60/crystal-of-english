@@ -4,14 +4,13 @@ import 'package:flutter/services.dart' show rootBundle;
 class QuizQuestion {
   final String id;
   final String topic;
-  final String type;          // "text" | "sound" | "text_sound" | "image_sound"
+  final String type;          // "text"  "sound"  "text_sound"  "image_sound"
   final String prompt;
   final List<String> options;
   final int correctIndex;
 
-  // THÊM:
-  final String? sound;        // ví dụ: assets/quiz/animals/sounds/lion.mp3
-  final String? image;        // ví dụ: assets/quiz/animals/images/lion.png
+  final String? sound;       
+  final String? image;        
 
   const QuizQuestion({
     required this.id,
@@ -39,13 +38,9 @@ class QuizQuestion {
 }
 
 class QuizRepository {
-  /// Tự thử nhiều đường dẫn để phù hợp cấu trúc asset khác nhau:
-  /// - assets/quiz/<topic>.json
-  /// - assets/quiz/<topic>/<topic>.json
-  /// - assets/quiz/<topic>/animals.json hoặc animal.json (nếu bạn đặt tên vậy)
   Future<List<QuizQuestion>> loadTopic(String topic) async {
     final candidates = <String>[
-      'assets/quiz/$topic/animals.json', // hay dùng
+      'assets/quiz/$topic/animals.json', //temp
     ];
 
     String? raw;
@@ -53,7 +48,6 @@ class QuizRepository {
     for (final path in candidates) {
       try {
         raw = await rootBundle.loadString(path);
-        // Nếu mở được 1 path là dừng.
         break;
       } catch (e) {
         lastErr = e;
@@ -61,9 +55,7 @@ class QuizRepository {
     }
 
     if (raw == null) {
-      // Cho lỗi rõ ràng để bạn thấy trên console
-      throw Exception('Không tìm thấy JSON cho topic "$topic". '
-          'Hãy kiểm tra lại đường dẫn trong assets/pubspec.yaml. Lần thử cuối: $lastErr');
+      throw Exception('cant not find "$topic"');
     }
 
     final data = json.decode(raw) as Map<String, dynamic>;
