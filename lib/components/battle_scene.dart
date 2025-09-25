@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/animation.dart' show Curves;
 import 'package:flutter/material.dart' show EdgeInsets;
@@ -12,6 +12,31 @@ import '../quiz/quiz_models.dart';
 import '../main.dart' show MyGame;
 import '../ui/health.dart';
 import 'enemy_wander.dart' show EnemyType;
+import 'package:flame/sprite.dart' show SpriteSheet;
+import 'package:flame/effects.dart';
+
+
+const _kHeroIdlePng   = 'characters/maincharacter/Idle.png';
+const _kHeroAttackPng = 'characters/maincharacter/Attack.png';
+const _kHeroDeadPng   = 'characters/maincharacter/Dead.png';
+
+// frame size
+final Vector2 _kIdleFrameSize   = Vector2(64, 64);
+final Vector2 _kAttackFrameSize = Vector2(96, 80);
+final Vector2 _kDeadFrameSize   = Vector2(80, 64);
+
+// số frame
+const int _kIdleFrames   = 3;  // Idle
+const int _kAttackFrames = 8;  // Attack
+const int _kDeadFrames   = 8;  // Dead
+
+// Tốc độ khung
+const double _kIdleStep   = 0.18;
+const double _kAttackStep = 0.07;
+const double _kDeadStep   = 0.08;
+
+const int _kPostAnswerDelayMs = 800;
+
 
 class BattleResult {
   final String outcome; // 'win' | 'lose' | 'escape'
@@ -84,11 +109,17 @@ class BossHealth extends Health {
   }
 }
 
+
 class BattleScene extends Component with HasGameReference<MyGame> {
   final BattleEndCallback onEnd;
   final EnemyType enemyType;
 
   BattleScene({required this.onEnd, required this.enemyType});
+
+  // Hero animation
+  late final PositionComponent heroRoot;        
+  late final SpriteAnimationComponent heroAnim;  
+  late SpriteAnimation _idleAnim;              
 
   static const double battleScale = 1.8;
   static final Vector2 actorBaseSize = Vector2(48, 48);
@@ -101,15 +132,16 @@ class BattleScene extends Component with HasGameReference<MyGame> {
   late Health heroHealth;
   late Health enemyHealth;
 
-  late SpriteComponent hero;
   late SpriteComponent enemy;
   late PositionComponent heroShadow;
   late PositionComponent enemyShadow;
 
   late final QuizRepository _quizRepo;
-  late List<QuizQuestion> _pool; 
-  final String _topic = 'animals'; // tạm thời cố định
+  late List<QuizQuestion> _pool;
+  final String _topic = 'animals';
   bool _takingTurn = false;
+
+  bool _answering = false;
 
   QuizPanel? _panel;
 
@@ -138,7 +170,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await world.add(bg);
 
-    // HUD overlay
     hud = PositionComponent(
       priority: 100000,
       size: screenSize,
@@ -146,7 +177,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await cam.viewport.add(hud);
 
-    // Health
     heroHealth = Health(
       maxHearts: 5,
       currentHearts: 5,
@@ -160,6 +190,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       ..position = Vector2(16, 16);
     await hud.add(heroHealth);
 
+    // Health (Enemy)
     final enemyMaxHearts = switch (enemyType) {
       EnemyType.normal => 2,
       EnemyType.strong => 3,
@@ -192,32 +223,56 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       ..position = Vector2(screenSize.x - 16, 16);
     await hud.add(enemyHealth);
 
-  
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
-    final baselineY = panelTop - (8 * battleScale);
+    final baselineY = panelTop - (8 * battleScale);  
     final double halfGap = baseGap * battleScale;
     final Vector2 actorSize = actorBaseSize * battleScale;
 
-    // Hero
-    hero = SpriteComponent(
-      sprite: await Sprite.load('characters/maincharacter/hero.png'),
-      size: actorSize,
+    final heroDisplaySize = actorSize;
+
+    final ui.Image idleImg   = await game.images.load(_kHeroIdlePng);
+    final ui.Image attackImg = await game.images.load(_kHeroAttackPng);
+    final ui.Image deadImg   = await game.images.load(_kHeroDeadPng);
+
+    final idleSheet   = SpriteSheet(image: idleImg,   srcSize: _kIdleFrameSize);
+    final attackSheet = SpriteSheet(image: attackImg, srcSize: _kAttackFrameSize);
+    final deadSheet   = SpriteSheet(image: deadImg,   srcSize: _kDeadFrameSize);
+
+    _idleAnim = idleSheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kIdleFrames - 1,
+      stepTime: _kIdleStep,
+      loop: true,
+    );
+
+    heroRoot = PositionComponent(
+      size: heroDisplaySize,
       anchor: Anchor.bottomCenter,
-      position: Vector2(centerX - halfGap, baselineY),
+      position: Vector2(centerX - 70 * battleScale, baselineY + 77),  
       priority: 10,
     );
-    await hud.add(hero);
+
+    heroAnim = SpriteAnimationComponent(
+      animation: _idleAnim,
+      size: heroDisplaySize,
+      anchor: Anchor.bottomCenter,
+      position: Vector2.zero(),
+      priority: 10,
+    );
+
+    await heroRoot.add(heroAnim);
+    await hud.add(heroRoot);
 
     heroShadow = _shadowAt(
-      hero.position,
+      heroRoot.position,
       z: 9,
       width: 36 * battleScale,
       height: 10 * battleScale,
     );
     await hud.add(heroShadow);
 
-    // Enemy
     enemy = SpriteComponent(
       sprite: await Sprite.load('Joanna.png'),
       size: actorSize,
@@ -235,15 +290,13 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await hud.add(enemyShadow);
 
-
-    // Load quiz & bắt đầu lượt
+    // Load quiz & start turn
     _quizRepo = QuizRepository();
     _pool = await _quizRepo.loadTopic(_topic);
-    await _nextTurn();
+    await _nextTurn(attackSheet, deadSheet);
   }
 
-  // ======= Vòng lặp lượt =======
-  Future<void> _nextTurn() async {
+  Future<void> _nextTurn(SpriteSheet attackSheet, SpriteSheet deadSheet) async {
     if (_takingTurn) return;
     _takingTurn = true;
 
@@ -253,77 +306,94 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     }
 
     _pool.shuffle();
-    final q = _pool.removeAt(0); // lấy & loại khỏi pool
+    final q = _pool.removeAt(0);
 
-    // remove panel cũ nếu còn
-    _panel?.removeFromParent();
+    _panel?.removeFromParent();  
+    _answering = false;       
 
     _panel = QuizPanel(
       question: q,
       onAnswer: (isCorrect) async {
-        // đóng panel ngay khi có đáp án
-        _panel?.removeFromParent();
-        _panel = null;
+        if (_answering) return;  
+        _answering = true;
 
         if (isCorrect) {
-          await _playerAttack();
-          if (!enemyHealth.isDead) {
-            _takingTurn = false;
-            await _nextTurn();
+          await _playHeroAttackOnce(attackSheet);  
+          enemyHealth.damage(1);
+          await _hitFx(enemy.position);
+
+          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+
+          // end
+          _panel?.removeFromParent();
+          _panel = null;
+
+          if (enemyHealth.isDead) {
+            onEnd(BattleResult.win());
+            return;
           }
+
+          _takingTurn = false;
+          await _nextTurn(attackSheet, deadSheet);
         } else {
-          await _enemyAttack();
-          if (!heroHealth.isDead) {
-            _takingTurn = false;
-            await _nextTurn();
+          heroHealth.damage(1);
+          await _hitFx(heroRoot.position);
+
+          if (heroHealth.isDead) {
+            await _playHeroDeadOnce(deadSheet);  
+            await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+            _panel?.removeFromParent();
+            _panel = null;
+            onEnd(BattleResult.lose());
+            return;
           }
+
+          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+
+          _panel?.removeFromParent();
+          _panel = null;
+
+          _takingTurn = false;
+          await _nextTurn(attackSheet, deadSheet);
         }
       },
     );
+
     await hud.add(_panel!);
   }
 
-  // acction
-  Future<void> _playerAttack() async {
-    await _dash(hero, towards: enemy.position, offset: Vector2(-12, 0));
-    enemyHealth.damage(1);
-    await _hitFx(enemy.position);
-    if (enemyHealth.isDead) {
-      onEnd(BattleResult.win());
+  // animation helper
+
+  Future<void> _playHeroAttackOnce(SpriteSheet sheet) async {
+    final anim = sheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kAttackFrames - 1,
+      stepTime: _kAttackStep,
+      loop: false,
+    );
+    heroAnim.animation = anim;
+    final durMs = (_kAttackFrames * _kAttackStep * 1000).round();
+    await Future.delayed(Duration(milliseconds: durMs));
+    if (heroAnim.isMounted) {
+      heroAnim.animation = _idleAnim;  
     }
   }
 
-  Future<void> _enemyAttack() async {
-    await _dash(enemy, towards: hero.position, offset: Vector2(12, 0));
-    heroHealth.damage(1);
-    await _hitFx(hero.position);
-    if (heroHealth.isDead) {
-      onEnd(BattleResult.lose());
-    }
+  Future<void> _playHeroDeadOnce(SpriteSheet sheet) async {
+    final anim = sheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kDeadFrames - 1,
+      stepTime: _kDeadStep,
+      loop: false,
+    );
+    heroAnim.animation = anim;
+    final durMs = (_kDeadFrames * _kDeadStep * 1000).round();
+    await Future.delayed(Duration(milliseconds: durMs));
   }
 
-  Future<void> _dash(
-    SpriteComponent who, {
-    required Vector2 towards,
-    required Vector2 offset,
-  }) async {
-    final start = who.position.clone();
-    final mid =
-        Vector2((start.x + towards.x) / 2, (start.y + towards.y) / 2) + offset;
-
-    await who.add(
-      MoveEffect.to(
-        mid,
-        EffectController(duration: 0.15, curve: Curves.easeOut),
-      ),
-    );
-    await who.add(
-      MoveEffect.to(
-        start,
-        EffectController(duration: 0.18, curve: Curves.easeIn),
-      ),
-    );
-  }
+  // combat
 
   Future<void> _hitFx(Vector2 at) async {
     final fx = CircleComponent(
@@ -353,6 +423,8 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
   }
 }
+
+
 
 class TextButtonHud extends PositionComponent with TapCallbacks {
   final String label;

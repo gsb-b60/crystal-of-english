@@ -4,13 +4,12 @@ import 'package:flutter/services.dart' show rootBundle;
 class QuizQuestion {
   final String id;
   final String topic;
-  final String type;          // "text"  "sound"  "text_sound"  "image_sound"
+  final String type; // "text" | "sound" | "text_sound" | "image_sound" | "sound_fill"
   final String prompt;
   final List<String> options;
   final int correctIndex;
-
-  final String? sound;       
-  final String? image;        
+  final String? sound;
+  final String? image;
 
   const QuizQuestion({
     required this.id,
@@ -31,8 +30,8 @@ class QuizQuestion {
       prompt: m['prompt'] as String,
       options: (m['options'] as List).map((e) => e as String).toList(),
       correctIndex: m['correctIndex'] as int,
-      sound: m['sound'] as String?,   // <- lấy từ JSON
-      image: m['image'] as String?,   // <- lấy từ JSON
+      sound: m['sound'] as String?,
+      image: m['image'] as String?,
     );
   }
 }
@@ -40,7 +39,7 @@ class QuizQuestion {
 class QuizRepository {
   Future<List<QuizQuestion>> loadTopic(String topic) async {
     final candidates = <String>[
-      'assets/quiz/$topic/animals.json', //temp
+      'assets/quiz/$topic/animals.json',
     ];
 
     String? raw;
@@ -55,7 +54,7 @@ class QuizRepository {
     }
 
     if (raw == null) {
-      throw Exception('cant not find "$topic"');
+      throw Exception('Cannot find JSON for topic "$topic". Last error: $lastErr');
     }
 
     final data = json.decode(raw) as Map<String, dynamic>;

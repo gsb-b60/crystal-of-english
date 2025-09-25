@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'dart:math'; // Added import for min function
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -40,24 +41,47 @@ class QuizPanel extends PositionComponent
         final codec = await ui.instantiateImageCodec(bytes);
         final frame = await codec.getNextFrame();
         return frame.image;
-      } catch (_) {}
+      } catch (e) {
+        print('[QuizPanel] Failed to load image: $p — $e');
+      }
     }
-    // debug:
     print('[QuizPanel] Image NOT FOUND: $raw (tried: $candidates)');
     return null;
   }
 
   Future<void> _playSoundRaw(String raw) async {
-    try {
-      await FlameAudio.play(raw);
-    } catch (e) {
-      print('[QuizPanel] Cannot play sound: $raw — $e');
+    final candidates = <String>[
+      raw,
+      if (!raw.startsWith('assets/')) 'assets/$raw',
+    ];
+    for (final p in candidates) {
+      try {
+        await FlameAudio.play(p);
+        return;
+      } catch (e) {
+        print('[QuizPanel] Failed to play sound: $p — $e');
+      }
     }
+    print('[QuizPanel] Sound NOT FOUND: $raw (tried: $candidates)');
+    await add(TextComponent(
+      text: 'Sound not found:\n$raw',
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(color: ui.Color(0xFFEF4444), fontSize: 12),
+      ),
+      position: Vector2(_leftW / 2, _panelY + _panelH / 2),
+      priority: priority + 3,
+    ));
   }
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    if (game.size.isZero()) {
+      print('[QuizPanel] Error: game.size is zero');
+      return;
+    }
 
     size = game.size;
     position = Vector2.zero();
@@ -107,6 +131,15 @@ class QuizPanel extends PositionComponent
       );
     } else if (type == 'sound') {
       if (hasSound) await _addSoundButtonCentered((question.sound!).trim());
+    } else if (type == 'sound_fill') {
+      if (hasSound) {
+        await _addSoundFill(
+          prompt: question.prompt,
+          soundRaw: (question.sound!).trim(),
+        );
+      } else {
+        await _addCenteredText(question.prompt);
+      }
     } else {
       await _addCenteredText(question.prompt);
     }
@@ -115,7 +148,7 @@ class QuizPanel extends PositionComponent
     const double marginH = 16.0;
     const double marginV = 16.0;
     const double gap = 8.0;
-    const int count = 4;
+    final count = min(question.options.length, 4); // Fixed: Using dart:math's min
 
     final innerW = _leftW - marginH * 2;
     final innerH = _panelH - marginV * 2;
@@ -152,6 +185,7 @@ class QuizPanel extends PositionComponent
       ),
       position: Vector2(_leftW / 2, _panelY + _panelH / 2),
       priority: priority + 2,
+      size: Vector2(_leftW - 24, _panelH - 24), // Support text wrapping
     ));
   }
 
@@ -192,7 +226,6 @@ class QuizPanel extends PositionComponent
     ));
   }
 
-  /// imagesound: sound button on top, image below
   Future<void> _addImageSound({
     String? imageRaw,
     String? soundRaw,
@@ -202,7 +235,6 @@ class QuizPanel extends PositionComponent
     const btnW = 140.0;
     const btnGapBottom = 12.0;
 
-    // Sound button at the top
     if (soundRaw != null && soundRaw.isNotEmpty) {
       await add(_SmallButton(
         label: '🔊 Phát âm',
@@ -227,7 +259,6 @@ class QuizPanel extends PositionComponent
       return;
     }
 
-    // Image below the sound button
     final imageAreaTop = _panelY + pad + btnH + btnGapBottom;
     final imageAreaBottom = _panelY + _panelH - pad;
     final imageAreaH = (imageAreaBottom - imageAreaTop).clamp(40.0, _panelH);
@@ -265,6 +296,42 @@ class QuizPanel extends PositionComponent
       position: pos,
     )..size = Vector2(btnW, btnH));
   }
+
+  Future<void> _addSoundFill({
+    required String prompt,
+    required String soundRaw,
+  }) async {
+    const pad = 12.0;
+    const btnH = 32.0;
+    const btnW = 140.0;
+    const btnGapBottom = 12.0;
+
+    await add(_SmallButton(
+      label: '🔊 Phát âm',
+      onPressed: () => _playSoundRaw(soundRaw),
+      position: Vector2((_leftW - btnW) / 2, _panelY + pad),
+    )..size = Vector2(btnW, btnH));
+
+    final textAreaTop = _panelY + pad + btnH + btnGapBottom;
+    final textAreaBottom = _panelY + _panelH - pad;
+    final textAreaH = (textAreaBottom - textAreaTop).clamp(40.0, _panelH);
+    final centerY = textAreaTop + textAreaH / 2;
+
+    await add(TextComponent(
+      text: prompt,
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: ui.Color(0xFFF1F5F9),
+          fontSize: 18,
+          height: 1.25,
+        ),
+      ),
+      position: Vector2(_leftW / 2, centerY),
+      priority: priority + 2,
+      size: Vector2(_leftW - pad * 2, textAreaH),
+    ));
+  }
 }
 
 class _RoundedImage extends PositionComponent {
@@ -286,8 +353,7 @@ class _RoundedImage extends PositionComponent {
     final rrect = ui.RRect.fromRectAndRadius(rect, ui.Radius.circular(radius));
     canvas.save();
     canvas.clipRRect(rrect);
-    final src =
-        ui.Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
+    final src = ui.Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
     canvas.drawImageRect(image, src, rect, ui.Paint());
     canvas.restore();
 
