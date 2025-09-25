@@ -18,7 +18,7 @@ class QuizPanel extends PositionComponent
   final OnAnswer onAnswer;
 
   static const double panelHeightRatio = 0.68;
-
+    bool _autoPlayed = false; 
   bool _disabled = false;
 
   // layout
@@ -142,6 +142,13 @@ class QuizPanel extends PositionComponent
       }
     } else {
       await _addCenteredText(question.prompt);
+    }
+     if (hasSound && !_autoPlayed) {
+      _autoPlayed = true;
+      // delay 100–150ms cho UI mounted 
+      Future.delayed(const Duration(milliseconds: 120), () {
+        _playSoundRaw((question.sound!).trim());
+      });
     }
 
     // RIGHT column

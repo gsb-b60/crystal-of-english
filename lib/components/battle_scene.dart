@@ -39,7 +39,7 @@ const int _kPostAnswerDelayMs = 800;
 
 
 class BattleResult {
-  final String outcome; // 'win' | 'lose' | 'escape'
+  final String outcome; // 'win'  'lose'  'escape'
   BattleResult(this.outcome);
   static BattleResult win() => BattleResult('win');
   static BattleResult lose() => BattleResult('lose');
@@ -138,7 +138,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
   late final QuizRepository _quizRepo;
   late List<QuizQuestion> _pool;
-  final String _topic = 'animals';
+  final String _topic = 'job';
   bool _takingTurn = false;
 
   bool _answering = false;
@@ -177,18 +177,18 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await cam.viewport.add(hud);
 
-    heroHealth = Health(
-      maxHearts: 5,
-      currentHearts: 5,
-      fullHeartAsset: 'hp/heart.png',
-      emptyHeartAsset: 'hp/empty_heart.png',
-      heartSize: 32,
-      spacing: 6,
-      margin: const EdgeInsets.only(left: 16, top: 16),
-    )
-      ..anchor = Anchor.topLeft
-      ..position = Vector2(16, 16);
-    await hud.add(heroHealth);
+heroHealth = Health(
+  maxHearts: 5,
+  currentHearts: 5,
+  fullHeartAsset: 'hp/heart.png',
+  emptyHeartAsset: 'hp/empty_heart.png',
+  heartSize: 32,
+  spacing: 6,
+  margin: const EdgeInsets.only(left: 8, top: 4), 
+)
+  ..anchor = Anchor.topLeft
+  ..position = Vector2(8, 4); 
+await hud.add(heroHealth);
 
     // Health (Enemy)
     final enemyMaxHearts = switch (enemyType) {
@@ -199,29 +199,29 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     };
 
     enemyHealth = (enemyType == EnemyType.boss)
-        ? BossHealth(
-            maxHearts: enemyMaxHearts,
-            currentHearts: enemyMaxHearts,
-            fullHeartAsset: 'hp/heart.png',
-            emptyHeartAsset: 'hp/empty_heart.png',
-            heartSize: 32,
-            spacing: 6,
-            margin: const EdgeInsets.only(right: 16, top: 16),
-          )
-        : HealthWithRightAlign(
-            maxHearts: enemyMaxHearts,
-            currentHearts: enemyMaxHearts,
-            fullHeartAsset: 'hp/heart.png',
-            emptyHeartAsset: 'hp/empty_heart.png',
-            heartSize: 32,
-            spacing: 6,
-            margin: const EdgeInsets.only(right: 16, top: 16),
-          );
+    ? BossHealth(
+        maxHearts: enemyMaxHearts,
+        currentHearts: enemyMaxHearts,
+        fullHeartAsset: 'hp/heart.png',
+        emptyHeartAsset: 'hp/empty_heart.png',
+        heartSize: 32,
+        spacing: 6,
+        margin: const EdgeInsets.only(right: 8, top: 4), 
+      )
+    : HealthWithRightAlign(
+        maxHearts: enemyMaxHearts,
+        currentHearts: enemyMaxHearts,
+        fullHeartAsset: 'hp/heart.png',
+        emptyHeartAsset: 'hp/empty_heart.png',
+        heartSize: 32,
+        spacing: 6,
+        margin: const EdgeInsets.only(right: 8, top: 4), 
+      );
 
-    enemyHealth
-      ..anchor = Anchor.topRight
-      ..position = Vector2(screenSize.x - 16, 16);
-    await hud.add(enemyHealth);
+enemyHealth
+  ..anchor = Anchor.topRight
+  ..position = Vector2(screenSize.x - 8, 4); 
+await hud.add(enemyHealth);
 
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
@@ -305,7 +305,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       return;
     }
 
-    _pool.shuffle();
     final q = _pool.removeAt(0);
 
     _panel?.removeFromParent();  

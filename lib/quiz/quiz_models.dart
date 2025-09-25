@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 
 class QuizQuestion {
   final String id;
   final String topic;
-  final String type; // "text" | "sound" | "text_sound" | "image_sound" | "sound_fill"
+  final String type;
   final String prompt;
   final List<String> options;
   final int correctIndex;
@@ -26,7 +27,7 @@ class QuizQuestion {
     return QuizQuestion(
       id: m['id'] as String,
       topic: topic,
-      type: m['type'] as String,
+      type: (m['type'] as String).toLowerCase(),
       prompt: m['prompt'] as String,
       options: (m['options'] as List).map((e) => e as String).toList(),
       correctIndex: m['correctIndex'] as int,
@@ -39,7 +40,8 @@ class QuizQuestion {
 class QuizRepository {
   Future<List<QuizQuestion>> loadTopic(String topic) async {
     final candidates = <String>[
-      'assets/quiz/$topic/animals.json',
+      'assets/quiz/$topic/$topic.json',
+      'assets/quiz/$topic/animals.json', 
     ];
 
     String? raw;
@@ -52,13 +54,17 @@ class QuizRepository {
         lastErr = e;
       }
     }
-
     if (raw == null) {
       throw Exception('Cannot find JSON for topic "$topic". Last error: $lastErr');
     }
 
     final data = json.decode(raw) as Map<String, dynamic>;
     final list = (data['questions'] as List).cast<Map<String, dynamic>>();
-    return list.map((m) => QuizQuestion.fromMap(m, topic)).toList();
+    final questions = list.map((m) => QuizQuestion.fromMap(m, topic)).toList();
+
+    //random questions
+    questions.shuffle(Random());
+
+    return questions;
   }
 }

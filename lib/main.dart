@@ -19,11 +19,12 @@ import 'ui/area_title.dart';
 import 'dart:ui' as ui;
 import 'package:flame_tiled/flame_tiled.dart' as ft;
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-
+await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
