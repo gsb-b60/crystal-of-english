@@ -1,3 +1,6 @@
+
+
+
 bool checkSuffix(String word) {
   final suffix = ['tion', 'ology', 'sion', 'phobia'];
   for (var suf in suffix) {
@@ -15,33 +18,35 @@ bool checkSuffix(String word) {
 }
 
 int countSyllables(String word) {
-  word = word.toLowerCase();
-  final vowels='aeiouy';  
-  int count=0;
-  for(int i=0;i<word.length-1;i++){
-    if(i==word.length-1 && word[i]=='e'&& !vowels.contains(word[i-1])){
-      return count;
-    }
-    if(vowels.contains(word[i]) && !vowels.contains(word[i+1])){
-      count++;
-    }
+  word = word.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
+  if (word.isEmpty) return 0;
 
+  // Remove silent 'e' at the end
+  if (word.endsWith('e')) {
+    word = word.substring(0, word.length - 1);
   }
-  return count;
-}
-int findComplexity(word) {
-  //check for collocation
-  int rule= findLengthRule(word);
-  int syllables=countSyllables(word);
-  int hasSuffix=checkSuffix(word)?1:0;
 
-  int complexity=(syllables*0.7 + rule*0.3).round()+hasSuffix;
-  return complexity;
+  final vowels = 'aeiouy';
+  int count = 0;
+  bool prevVowel = false;
+
+  for (int i = 0; i < word.length; i++) {
+    if (vowels.contains(word[i])) {
+      if (!prevVowel) {
+        count++;
+        prevVowel = true;
+      }
+    } else {
+      prevVowel = false;
+    }
+  }
+
+  // Ensure at least one syllable
+  return count > 0 ? count : 1;
 }
 
-int findLengthRule(word){
-  if(word.contains('-') || word.contains(' '))
-  {
+int findLengthRule(String word) {
+  if (word.contains('-') || word.contains(' ')) {
     return 0;
   }
 
@@ -55,6 +60,18 @@ int findLengthRule(word){
     return 4;
   } else if (word.length < 11) {
     return 5;
+  } else if (word.length < 15) {
+    return 6;
+  } else {
+    return 7;
   }
-  return 1;
+}
+
+int findComplexity(String word) {
+  int rule = findLengthRule(word);
+  int syllables = countSyllables(word);
+  int hasSuffix = checkSuffix(word) ? 1 : 0;
+
+  int complexity = (syllables * 0.7 + rule * 0.3).round() + hasSuffix;
+  return complexity;
 }

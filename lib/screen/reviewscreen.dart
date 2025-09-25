@@ -41,10 +41,10 @@ class _ReviewSreenState extends State<ReviewSreen> {
       return;
     }
     final cardModel = Provider.of<Cardmodel>(context, listen: false);
-    final currentCard = _dueCards[_currentCardIndex];
+    //final currentCard = _dueCards[_currentCardIndex];
     
 
-    await cardModel.updateCardAfterReview(currentCard, rating);
+    //await cardModel.updateCardAfterReview(currentCard, rating);
     setState(() {
       _currentCardIndex++;
       _isfrontVisible=true;

@@ -18,7 +18,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
         title: const Text("My Decks"),
         actions: [
           Padding(
-            padding: EdgeInsetsGeometry.only(right: 60),
+            padding: EdgeInsets.only(right: 60), // FIXED
             child: IconButton(
               onPressed: 
               () {
@@ -30,7 +30,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
         ],
       ),
       body: Padding(
-        padding: EdgeInsetsGeometry.all(16),
+        padding: EdgeInsets.all(16), // FIXED
         child: Column(
           children: [
             Expanded(
@@ -55,6 +55,9 @@ class _DeckListScreenState extends State<DeckListScreen> {
                           onPressed: () {
                             if (deck.id != null) {
                               deckModel.deleteDeck(deck.id!);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Deck "${deck.name}" deleted')),
+                              );
                             }
                           },
                           icon: Icon(Icons.delete),
@@ -83,30 +86,45 @@ class CreateNewDeck extends StatefulWidget {
 class _CreateNewDeckState extends State<CreateNewDeck> {
   final deckController = TextEditingController();
 
+  void _createDeck(BuildContext context, Deckmodel value) {
+    final deckName = deckController.text.trim();
+    if (deckName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Deck name cannot be empty')),
+      );
+      return;
+    }
+    final deckExists = value.deck.any((deck) => deck.name == deckName);
+    if (deckExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Deck "$deckName" already exists')),
+      );
+      return;
+    }
+    value.insertDeck(deckName);
+    deckController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: deckController,
-            decoration: InputDecoration(labelText: "new deck name"),
-          ),
-        ),
-        Consumer<Deckmodel>(
-          builder: (context, value, child) {
-            return ElevatedButton(
-              onPressed: () {
-                if (deckController.text.isNotEmpty) {
-                  value.insertDeck(deckController.text);
-                  deckController.clear();
-                }
-              },
+    return Consumer<Deckmodel>(
+      builder: (context, value, child) {
+        return Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: deckController,
+                decoration: InputDecoration(labelText: "new deck name"),
+                onSubmitted: (_) => _createDeck(context, value), // ADDED
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => _createDeck(context, value), // UPDATED
               child: Text('them deck'),
-            );
-          },
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

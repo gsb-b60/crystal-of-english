@@ -207,7 +207,7 @@ class DatabaseHelper {
     }
     final deckDir =
         'deck_${DateTime.now().toIso8601String().replaceAll(":", "-")}';
-    final outputDir = Directory('${ankiDir.path}/${deckDir}');
+    final outputDir = Directory('${ankiDir.path}/$deckDir');
 
     if (!outputDir.existsSync()) {
       try {

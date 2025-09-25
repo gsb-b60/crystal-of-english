@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:totoki/business/Flashcard.dart';
+import 'package:totoki/screen/newwayreview.dart';
 import 'package:totoki/screen/reviewscreen.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -64,6 +65,20 @@ class _CardListScreenState extends State<CardListScreen> {
                   );
                 },
                 child: const Text('Learn this deck'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Newwayreview(
+                        deckId: widget.deckId!,
+                        key: ValueKey(widget.deckId),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Review'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -363,7 +378,7 @@ class FlashCardItem extends StatelessWidget {
                             icon: const Icon(Icons.volume_up),
                             onPressed: () async {
                               await audio.play(
-                                DeviceFileSource('${dir}/${card.sound}'),
+                                DeviceFileSource('$dir/${card.sound}'),
                               );
                             },
                           ),
@@ -377,7 +392,7 @@ class FlashCardItem extends StatelessWidget {
                             icon: const Icon(Icons.volume_up),
                             onPressed: () async {
                               await audio.play(
-                                DeviceFileSource('${dir}/${card.usageSound}'),
+                                DeviceFileSource('$dir/${card.usageSound}'),
                               );
                             },
                           ),
@@ -391,7 +406,7 @@ class FlashCardItem extends StatelessWidget {
                             icon: const Icon(Icons.volume_up),
                             onPressed: () async {
                               await audio.play(
-                                DeviceFileSource('${dir}/${card.defSound}'),
+                                DeviceFileSource('$dir/${card.defSound}'),
                               );
                             },
                           ),
@@ -431,15 +446,35 @@ class Complexity extends StatelessWidget {
   final Flashcard card;
   Color _getChipColor(int complexity) {
     if (complexity == 1) {
-      return const Color.fromARGB(255, 0, 168, 6)!; // Mức độ dễ (xanh lá cây nhạt)
+      return const Color.fromARGB(
+        255,
+        0,
+        168,
+        6,
+      ); // Mức độ dễ (xanh lá cây nhạt)
     } else if (complexity == 2) {
-      return const Color.fromARGB(255, 0, 97, 73)!; // Mức độ dễ vừa (xanh lá cây sáng hơn)
+      return const Color.fromARGB(
+        255,
+        0,
+        97,
+        73,
+      ); // Mức độ dễ vừa (xanh lá cây sáng hơn)
     } else if (complexity == 3) {
-      return const Color.fromARGB(255, 0, 59, 94)!; // Mức độ trung bình (vàng nhạt)
+      return const Color.fromARGB(
+        255,
+        0,
+        59,
+        94,
+      ); // Mức độ trung bình (vàng nhạt)
     } else if (complexity == 4) {
-      return const Color.fromARGB(255, 141, 3, 106)!; // Mức độ khó vừa (cam nhạt)
+      return const Color.fromARGB(
+        255,
+        141,
+        3,
+        106,
+      ); // Mức độ khó vừa (cam nhạt)
     } else if (complexity == 5) {
-      return const Color.fromARGB(255, 138, 3, 16)!; // Mức độ khó (đỏ nhạt)
+      return const Color.fromARGB(255, 138, 3, 16); // Mức độ khó (đỏ nhạt)
     } else {
       // Mặc định hoặc giá trị không xác định
       return Colors.grey[100]!;
@@ -450,9 +485,10 @@ class Complexity extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _getChipColor(card.complexity ?? 0);
     return Chip(
-      label: Text('level: ${card.complexity}',style:TextStyle(
-        color: Colors.white
-      ),),
+      label: Text(
+        'level: ${card.complexity}',
+        style: TextStyle(color: Colors.white),
+      ),
       backgroundColor: color,
     );
   }
