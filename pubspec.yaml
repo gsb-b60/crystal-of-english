@@ -76,7 +76,9 @@ flutter:
     - assets/images/battlebackground/
     - assets/images/characters/maincharacter/
     - assets/images/characters/
-
+    - assets/menu/
+    - assets/menu/pauseMenu/
+    - assets/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
