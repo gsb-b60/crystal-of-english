@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
 import 'ui/health.dart';
-import '/components/tiledobject.dart';
-import '/components/collisionmap.dart';
+import 'components/tiledobject.dart';
+import 'components/collisionmap.dart';
 import 'components/enemy_wander.dart';
 import 'components/battle_scene.dart';
 import 'player.dart';
@@ -19,12 +19,16 @@ import 'ui/return_button.dart';
 import 'ui/area_title.dart';
 import 'dart:ui' as ui;
 import 'package:flame_tiled/flame_tiled.dart' as ft;
+import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/services.dart';
 import 'package:mygame/components/Menu/mainmenu.dart';
 import 'package:mygame/components/Menu/pausebutton.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlameAudio.audioCache.prefix = 'assets/';
+await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
@@ -63,11 +67,10 @@ void main() async {
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
-  // World/Map/Camera
-BattleScene? _battleScene;
-bool _inBattle = false;
-Vector2? _savedJoystickPos;
-bool _hudWasAttached = false;
+  BattleScene? _battleScene;
+  bool _inBattle = false;
+  Vector2? _savedJoystickPos;
+  bool _hudWasAttached = false;
 
   late World world;
   late Health heartsHud;
@@ -138,7 +141,7 @@ bool _hudWasAttached = false;
       currentHearts: 5,
       fullHeartAsset: 'hp/heart.png',
       emptyHeartAsset: 'hp/empty_heart.png',
-      heartSize: 32, // chỉnh theo ý
+      heartSize: 32,
       spacing: 6,
       margin: const EdgeInsets.only(left: 16, top: 16),
     );
@@ -152,11 +155,10 @@ bool _hudWasAttached = false;
     };
   }
 
-  //hud theo kích thước màn hình
   @override
   void onGameResize(Vector2 newSize) {
     super.onGameResize(newSize);
-    hudRoot.size = newSize; // hudRoot luôn tồn tại
+    hudRoot.size = newSize;
   }
 
   Future<void> showAreaTitle(String text) async {
@@ -170,7 +172,7 @@ bool _hudWasAttached = false;
       if (js != null && js.parent != null) js.removeFromParent();
     } else {
       if (js != null && js.parent == null) {
-        hudRoot.add(js); 
+        hudRoot.add(js);
       }
       if (js != null) player.joystick = js;
     }
@@ -239,63 +241,88 @@ bool _hudWasAttached = false;
       await world.add(npc2);
 
 
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.normal, 
+      ));
 
       await world.add(EnemyWander(
-      patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120), // vùng tuần tra (x,y,w,h)
-      spritePath: 'Joanna.png',
-      speed: 35,
-      triggerRadius: 40,
-    ));
-  }
-}
-//bug
-Future<void> enterBattle() async {
-  if (_inBattle) return;
-  _inBattle = true;
-  world.removeFromParent();
-  gameCamera.removeFromParent();
+        patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.strong, 
+      ));
 
-  if (player.joystick != null) {
-    _savedJoystickPos = joystick?.position.clone();
-    player.joystick = null;
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.miniboss, 
+      ));
+
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.boss, 
+      ));
+    }
+  }
+
+  Future<void> enterBattle({required EnemyType enemyType}) async {
+    if (_inBattle) return;
+    _inBattle = true;
+    world.removeFromParent();
+    gameCamera.removeFromParent();
+
+    if (player.joystick != null) {
+      _savedJoystickPos = joystick?.position.clone();
+      player.joystick = null;
+      if (joystick != null) {
+        joystick!.position = Vector2(-10000, -10000);
+      }
+    }
+
+    heartsHud.removeFromParent();
+    _battleScene = BattleScene(
+      onEnd: (result) => exitBattle(result),
+      enemyType: enemyType,
+    );
+    await add(_battleScene!);
+    _battleScene!.heroHealth.setCurrent(heartsHud.currentHearts);
+  }
+
+  void exitBattle(BattleResult result) {
+    _battleScene?.removeFromParent();
+    _battleScene = null;
+    _inBattle = false;
+
+    add(world);
+    add(gameCamera);
+
+    hudRoot.add(heartsHud);
+    if (_battleScene != null) {
+      heartsHud.setCurrent(_battleScene!.heroHealth.currentHearts);
+    }
+
     if (joystick != null) {
-      joystick!.position = Vector2(-10000, -10000);
+      if (_savedJoystickPos != null) {
+        joystick!.position = _savedJoystickPos!;
+      }
+      player.joystick = joystick;
+    }
+
+    if (result.outcome == 'lose') {
+      heartsHud.refill();
+      player.position = Vector2(310, 138);
     }
   }
-
-  heartsHud.removeFromParent();
-  _battleScene = BattleScene(
-    onEnd: (result) => exitBattle(result),
-  );
-  await add(_battleScene!);
-  _battleScene!.heroHealth.setCurrent(heartsHud.currentHearts);
-}
-
-void exitBattle(BattleResult result) {
-  _battleScene?.removeFromParent();
-  _battleScene = null;
-  _inBattle = false;
-
-  add(world);
-  add(gameCamera);
-
-  hudRoot.add(heartsHud);
-  if (_battleScene != null) {
-    heartsHud.setCurrent(_battleScene!.heroHealth.currentHearts);
-  }
-
-  if (joystick != null) {
-    if (_savedJoystickPos != null) {
-      joystick!.position = _savedJoystickPos!;
-    }
-    player.joystick = joystick;
-  }
-
-  if (result.outcome == 'lose') {
-    heartsHud.refill(); 
-    player.position = Vector2(310, 138); 
-  }
-}
 
   Future<void> loadMap(
     String mapFile, {

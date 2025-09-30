@@ -1,0 +1,133 @@
+{
+  "topic": "job",
+  "questions": [
+    {
+      "id": "q16",
+      "type": "text",
+      "prompt": "An architect is someone who…",
+      "options": ["Designs buildings", "Catches criminals", "Serves food", "Flies planes"],
+      "correctIndex": 0
+    },
+    {
+      "id": "q17",
+      "type": "text",
+      "prompt": "An accountant is responsible for…",
+      "options": ["Managing financial records", "Painting houses", "Writing stories", "Growing fruit"],
+      "correctIndex": 0
+    },
+    {
+      "id": "q18",
+      "type": "text",
+      "prompt": "A accountant usually works with.... ",
+      "options": ["Drug", "Number", "Gun", "Chemistry"],
+      "correctIndex": 1
+    },
+    {
+      "id": "q19",
+      "type": "text",
+      "prompt": "A salesperson usually…",
+      "options": ["Sells products to customers", "Repairs engines", "Treats patients", "Guards a building"],
+      "correctIndex": 0
+    },
+    {
+      "id": "q20",
+      "type": "text",
+      "prompt": "A cashier works at…",
+      "options": ["A checkout counter in a store", "A farm", "A police station", "A library"],
+      "correctIndex": 0
+    },
+    {
+      "id": "q25",
+      "type": "sound",
+      "prompt": "What job is this?",
+      "options": ["Scientist", "Cashier", "Mechanic", "Tour Guide"],
+      "correctIndex": 0,
+      "sound": "quiz/job/sounds/scientist.mp3"
+    },
+    {
+      "id": "q26",
+      "type": "sound",
+      "prompt": "What job is this?",
+      "options": ["Accountant", "Chef", "Actor", "Engineer"],
+      "correctIndex": 0,
+      "sound": "quiz/job/sounds/accountant.mp3"
+    },
+    {
+      "id": "q27",
+      "type": "sound",
+      "prompt": "What job is this?",
+      "options": ["Police Officer", "Soldier", "Judge", "Pilot"],
+      "correctIndex": 1,
+      "sound": "quiz/job/sounds/soldier.mp3"
+    },
+    {
+      "id": "q28",
+      "type": "sound",
+      "prompt": "What job is this?",
+      "options": ["Doctor", "Nurse", "Software Developer", "Farmer"],
+      "correctIndex": 0,
+      "sound": "quiz/job/sounds/doctor.mp3"
+    },
+    {
+      "id": "q29",
+      "type": "sound",
+      "prompt": "What job is this?",
+      "options": ["Cashier", "Waiter", "Salesperson", "Architect"],
+      "correctIndex": 3,
+      "sound": "quiz/job/sounds/architect.mp3"
+    },
+    {
+      "id": "q30",
+      "type": "sound",
+      "prompt": "What kind of job do you hear?",
+      "options": ["Driver", "Data Analyst", "Librarian", "Singer"],
+      "correctIndex": 0,
+      "sound": "quiz/job/sounds/driver.mp3"
+    },
+    {
+      "id": "q31",
+      "type": "image_sound",
+      "prompt": "What job is this?",
+      "options": ["Teacher", "Doctor", "Engineer", "Lawyer"],
+      "correctIndex": 1,
+      "image": "quiz/job/images/doctor.jpg",
+      "sound": "quiz/job/sounds/doctor.mp3"
+    },
+    {
+      "id": "q32",
+      "type": "image_sound",
+      "prompt": "What job is this?",
+      "options": ["Nurse", "Pilot", "Architect", "Scientist"],
+      "correctIndex": 0,
+      "image": "quiz/job/images/nurse.jpg",
+      "sound": "quiz/job/sounds/nurse.mp3"
+    },
+    {
+      "id": "q33",
+      "type": "image_sound",
+      "prompt": "What job is this?",
+      "options": ["Programmer", "Cashier", "Firefighter", "farmer"],
+      "correctIndex": 2,
+      "image": "quiz/job/images/firefighter.jpg",
+      "sound": "quiz/job/sounds/firefighter.mp3"
+    },
+    {
+      "id": "q34",
+      "type": "image_sound",
+      "prompt": "What job is this?",
+      "options": ["Police Officer", "Banker", "Flight Attendant", "Soldier"],
+      "correctIndex": 0,
+      "image": "quiz/job/images/policeofficer.jpg",
+      "sound": "quiz/job/sounds/policeofficer.mp3"
+    },
+    {
+      "id": "q35",
+      "type": "image_sound",
+      "prompt": "What job is this?",
+      "options": ["Architect", "Engineer", "Lawyer", "Doctor"],
+      "correctIndex": 1,
+      "image": "quiz/job/images/Engineer.png",
+      "sound": "quiz/job/sounds/Engineer.mp3"
+    }
+  ]
+}

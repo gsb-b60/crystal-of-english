@@ -1,16 +1,45 @@
-import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
-import 'package:flame/experimental.dart';
-import 'package:flame/events.dart';
-import 'dart:ui' as ui;
+import 'dart:async';
 import 'dart:math';
-import 'package:flutter/material.dart'; 
-import 'package:flutter/animation.dart' show Curves; 
+import 'dart:ui' as ui;
+
+import 'package:flame/components.dart';
+import 'package:flame/events.dart';
+import 'package:flutter/animation.dart' show Curves;
+import 'package:flutter/material.dart' show EdgeInsets;
+
+import '../components/quiz_panel.dart';
+import '../quiz/quiz_models.dart';
 import '../main.dart' show MyGame;
-import '../ui/health.dart'; // Import Health
+import '../ui/health.dart';
+import 'enemy_wander.dart' show EnemyType;
+import 'package:flame/sprite.dart' show SpriteSheet;
+import 'package:flame/effects.dart';
+
+
+const _kHeroIdlePng   = 'characters/maincharacter/Idle.png';
+const _kHeroAttackPng = 'characters/maincharacter/Attack.png';
+const _kHeroDeadPng   = 'characters/maincharacter/Dead.png';
+
+// frame size
+final Vector2 _kIdleFrameSize   = Vector2(64, 64);
+final Vector2 _kAttackFrameSize = Vector2(96, 80);
+final Vector2 _kDeadFrameSize   = Vector2(80, 64);
+
+// số frame
+const int _kIdleFrames   = 3;  // Idle
+const int _kAttackFrames = 8;  // Attack
+const int _kDeadFrames   = 8;  // Dead
+
+// Tốc độ khung
+const double _kIdleStep   = 0.18;
+const double _kAttackStep = 0.07;
+const double _kDeadStep   = 0.08;
+
+const int _kPostAnswerDelayMs = 800;
+
 
 class BattleResult {
-  final String outcome; // 'win' | 'lose' | 'escape'
+  final String outcome; // 'win'  'lose'  'escape'
   BattleResult(this.outcome);
   static BattleResult win() => BattleResult('win');
   static BattleResult lose() => BattleResult('lose');
@@ -19,209 +48,382 @@ class BattleResult {
 
 typedef BattleEndCallback = void Function(BattleResult result);
 
-class BattleScene extends Component with HasGameRef<MyGame> {
-  final BattleEndCallback onEnd;
-  BattleScene({required this.onEnd});
-  late final World world;
-  late final CameraComponent cam;
-  late final PositionComponent hud;
-  late Health heroHealth;
-  int enemyHp = 12, enemyMax = 12;
-  late SpriteComponent hero;
-  late SpriteComponent enemy;
-  final _rng = Random();
+class HealthWithRightAlign extends Health {
+  HealthWithRightAlign({
+    required super.maxHearts,
+    super.currentHearts,
+    required super.fullHeartAsset,
+    required super.emptyHeartAsset,
+    super.heartSize = 32,
+    super.spacing = 6,
+    super.margin = const EdgeInsets.only(right: 16, top: 16),
+    super.priority = 100001,
+  });
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    final w = maxHearts * heartSize + (maxHearts - 1) * spacing;
+    final h = heartSize;
+    size = Vector2(w, h);
+    for (var i = 0; i < maxHearts; i++) {
+      final icon = children.elementAt(i) as SpriteComponent;
+      icon.anchor = Anchor.topLeft;
+      icon.position = Vector2((maxHearts - 1 - i) * (heartSize + spacing), 0);
+    }
+    setCurrent(currentHearts);
+  }
+}
+
+class BossHealth extends Health {
+  BossHealth({
+    required super.maxHearts,
+    super.currentHearts,
+    required super.fullHeartAsset,
+    required super.emptyHeartAsset,
+    super.heartSize = 32,
+    super.spacing = 6,
+    super.margin = const EdgeInsets.only(right: 16, top: 16),
+    super.priority = 100001,
+  });
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    final cols = 5;
+    final rows = (maxHearts / cols).ceil();
+    final w = cols * heartSize + (cols - 1) * spacing;
+    final h = rows * heartSize + (rows - 1) * spacing;
+    size = Vector2(w, h);
+    for (var i = 0; i < maxHearts; i++) {
+      final row = i ~/ cols;
+      final col = i % cols;
+      final icon = children.elementAt(i) as SpriteComponent;
+      icon.anchor = Anchor.topLeft;
+      icon.position = Vector2(
+        (cols - 1 - col) * (heartSize + spacing),
+        row * (heartSize + spacing),
+      );
+    }
+    setCurrent(currentHearts);
+  }
+}
+
+
+class BattleScene extends Component with HasGameReference<MyGame> {
+  final BattleEndCallback onEnd;
+  final EnemyType enemyType;
+
+  BattleScene({required this.onEnd, required this.enemyType});
+
+  // Hero animation
+  late final PositionComponent heroRoot;        
+  late final SpriteAnimationComponent heroAnim;  
+  late SpriteAnimation _idleAnim;              
+
+  static const double battleScale = 1.8;
+  static final Vector2 actorBaseSize = Vector2(48, 48);
+  static const double baseGap = 70.0;
+
+  late final World world;
+  late final CameraComponent cam;
+  late final PositionComponent hud;
+
+  late Health heroHealth;
+  late Health enemyHealth;
+
+  late SpriteComponent enemy;
+  late PositionComponent heroShadow;
+  late PositionComponent enemyShadow;
+
+  late final QuizRepository _quizRepo;
+  late List<QuizQuestion> _pool;
+  final String _topic = 'job';
+  bool _takingTurn = false;
+
+  bool _answering = false;
+
+  QuizPanel? _panel;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
     world = World();
     await add(world);
+
     cam = CameraComponent(world: world);
     cam.viewfinder.zoom = 2.0;
     await add(cam);
+
     final bgSprite = await Sprite.load('battlebackground/battle_background.png');
-    final spriteSize = Vector2(320, 180);
-    final screenSize = gameRef.size;
-    final scale = min(screenSize.x / spriteSize.x, screenSize.y / spriteSize.y);
+    final logicalBg = Vector2(320, 180);
+    final screenSize = game.size;
+    final scale = min(screenSize.x / logicalBg.x, screenSize.y / logicalBg.y);
+
     final bg = SpriteComponent(
       sprite: bgSprite,
-      size: spriteSize * scale, 
+      size: logicalBg * scale,
       anchor: Anchor.center,
       position: Vector2.zero(),
       priority: 0,
     );
     await world.add(bg);
-    hero = SpriteComponent(
-      sprite: await Sprite.load('characters/maincharacter/hero.png'),
-      size: Vector2(48, 48),
+
+    hud = PositionComponent(
+      priority: 100000,
+      size: screenSize,
+      position: Vector2.zero(),
+    );
+    await cam.viewport.add(hud);
+
+heroHealth = Health(
+  maxHearts: 5,
+  currentHearts: 5,
+  fullHeartAsset: 'hp/heart.png',
+  emptyHeartAsset: 'hp/empty_heart.png',
+  heartSize: 32,
+  spacing: 6,
+  margin: const EdgeInsets.only(left: 8, top: 4), 
+)
+  ..anchor = Anchor.topLeft
+  ..position = Vector2(8, 4); 
+await hud.add(heroHealth);
+
+    // Health (Enemy)
+    final enemyMaxHearts = switch (enemyType) {
+      EnemyType.normal => 2,
+      EnemyType.strong => 3,
+      EnemyType.miniboss => 5,
+      EnemyType.boss => 10,
+    };
+
+    enemyHealth = (enemyType == EnemyType.boss)
+    ? BossHealth(
+        maxHearts: enemyMaxHearts,
+        currentHearts: enemyMaxHearts,
+        fullHeartAsset: 'hp/heart.png',
+        emptyHeartAsset: 'hp/empty_heart.png',
+        heartSize: 32,
+        spacing: 6,
+        margin: const EdgeInsets.only(right: 8, top: 4), 
+      )
+    : HealthWithRightAlign(
+        maxHearts: enemyMaxHearts,
+        currentHearts: enemyMaxHearts,
+        fullHeartAsset: 'hp/heart.png',
+        emptyHeartAsset: 'hp/empty_heart.png',
+        heartSize: 32,
+        spacing: 6,
+        margin: const EdgeInsets.only(right: 8, top: 4), 
+      );
+
+enemyHealth
+  ..anchor = Anchor.topRight
+  ..position = Vector2(screenSize.x - 8, 4); 
+await hud.add(enemyHealth);
+
+    final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
+    final centerX = screenSize.x / 2;
+    final baselineY = panelTop - (8 * battleScale);  
+    final double halfGap = baseGap * battleScale;
+    final Vector2 actorSize = actorBaseSize * battleScale;
+
+    final heroDisplaySize = actorSize;
+
+    final ui.Image idleImg   = await game.images.load(_kHeroIdlePng);
+    final ui.Image attackImg = await game.images.load(_kHeroAttackPng);
+    final ui.Image deadImg   = await game.images.load(_kHeroDeadPng);
+
+    final idleSheet   = SpriteSheet(image: idleImg,   srcSize: _kIdleFrameSize);
+    final attackSheet = SpriteSheet(image: attackImg, srcSize: _kAttackFrameSize);
+    final deadSheet   = SpriteSheet(image: deadImg,   srcSize: _kDeadFrameSize);
+
+    _idleAnim = idleSheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kIdleFrames - 1,
+      stepTime: _kIdleStep,
+      loop: true,
+    );
+
+    heroRoot = PositionComponent(
+      size: heroDisplaySize,
       anchor: Anchor.bottomCenter,
-      position: Vector2(-70, 40),
+      position: Vector2(centerX - 70 * battleScale, baselineY + 77),  
       priority: 10,
     );
-    await world.add(hero);
-    await world.add(_shadowAt(hero.position, z: 9));
+
+    heroAnim = SpriteAnimationComponent(
+      animation: _idleAnim,
+      size: heroDisplaySize,
+      anchor: Anchor.bottomCenter,
+      position: Vector2.zero(),
+      priority: 10,
+    );
+
+    await heroRoot.add(heroAnim);
+    await hud.add(heroRoot);
+
+    heroShadow = _shadowAt(
+      heroRoot.position,
+      z: 9,
+      width: 36 * battleScale,
+      height: 10 * battleScale,
+    );
+    await hud.add(heroShadow);
 
     enemy = SpriteComponent(
       sprite: await Sprite.load('Joanna.png'),
-      size: Vector2(48, 48),
+      size: actorSize,
       anchor: Anchor.bottomCenter,
-      position: Vector2(70, 40),
+      position: Vector2(centerX + halfGap, baselineY),
       priority: 10,
     )..scale = Vector2(-1, 1);
-    await world.add(enemy);
-    await world.add(_shadowAt(enemy.position, z: 9));
+    await hud.add(enemy);
 
-    // HUD
-    hud = PositionComponent(priority: 100000);
-    await cam.viewport.add(hud);
-
-    // Thanh máu 
-    heroHealth = Health(
-      maxHearts: 5,
-      currentHearts: 5,
-      fullHeartAsset: 'hp/heart.png',
-      emptyHeartAsset: 'hp/empty_heart.png',
-      heartSize: 32,
-      spacing: 6,
-      margin: const EdgeInsets.only(left: 16, top: 16), 
+    enemyShadow = _shadowAt(
+      enemy.position,
+      z: 9,
+      width: 36 * battleScale,
+      height: 10 * battleScale,
     );
-    await hud.add(heroHealth);
-    await hud.add(
-      HpBar(
-        position: Vector2(screenSize.x - 12 - 120, 10), // Đặt bên phải
-        size: Vector2(120, 10),
-        getRatio: () => enemyHp / enemyMax,
-        label: '',
-        alignRight: true,
-      ),
-    );
+    await hud.add(enemyShadow);
 
-    //điều khiển battle
-    await hud.addAll([
-      TextButtonHud(
-        label: 'Tấn công',
-        position: Vector2(12, screenSize.y - 40), 
-        onPressed: () async => _playerAttack(),
-      ),
-      TextButtonHud(
-        label: 'Chạy',
-        position: Vector2(90, screenSize.y - 40),
-        onPressed: () => onEnd(BattleResult.escape()),
-      ),
-    ]);
+    // Load quiz & start turn
+    _quizRepo = QuizRepository();
+    _pool = await _quizRepo.loadTopic(_topic);
+    await _nextTurn(attackSheet, deadSheet);
   }
 
-  Future<void> _playerAttack() async {
-    await _dash(hero, towards: enemy.position, offset: Vector2(-12, 0));
-    final dmg = _rng.nextInt(3) + 4; // 4..6
-    enemyHp = (enemyHp - dmg).clamp(0, enemyMax);
-    await _hitFx(enemy.position);
-    if (enemyHp <= 0) {
+  Future<void> _nextTurn(SpriteSheet attackSheet, SpriteSheet deadSheet) async {
+    if (_takingTurn) return;
+    _takingTurn = true;
+
+    if (_pool.isEmpty) {
       onEnd(BattleResult.win());
       return;
     }
-    await Future.delayed(const Duration(milliseconds: 200));
-    await _enemyAttack();
+
+    final q = _pool.removeAt(0);
+
+    _panel?.removeFromParent();  
+    _answering = false;       
+
+    _panel = QuizPanel(
+      question: q,
+      onAnswer: (isCorrect) async {
+        if (_answering) return;  
+        _answering = true;
+
+        if (isCorrect) {
+          await _playHeroAttackOnce(attackSheet);  
+          enemyHealth.damage(1);
+          await _hitFx(enemy.position);
+
+          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+
+          // end
+          _panel?.removeFromParent();
+          _panel = null;
+
+          if (enemyHealth.isDead) {
+            onEnd(BattleResult.win());
+            return;
+          }
+
+          _takingTurn = false;
+          await _nextTurn(attackSheet, deadSheet);
+        } else {
+          heroHealth.damage(1);
+          await _hitFx(heroRoot.position);
+
+          if (heroHealth.isDead) {
+            await _playHeroDeadOnce(deadSheet);  
+            await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+            _panel?.removeFromParent();
+            _panel = null;
+            onEnd(BattleResult.lose());
+            return;
+          }
+
+          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+
+          _panel?.removeFromParent();
+          _panel = null;
+
+          _takingTurn = false;
+          await _nextTurn(attackSheet, deadSheet);
+        }
+      },
+    );
+
+    await hud.add(_panel!);
   }
 
-  Future<void> _enemyAttack() async {
-    await _dash(enemy, towards: hero.position, offset: Vector2(12, 0));
-    final dmg = _rng.nextInt(3) + 3; 
-    heroHealth.damage(1); // dama -1 
-    await _hitFx(hero.position);
-    if (heroHealth.isDead) {
-      onEnd(BattleResult.lose());
+  // animation helper
+
+  Future<void> _playHeroAttackOnce(SpriteSheet sheet) async {
+    final anim = sheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kAttackFrames - 1,
+      stepTime: _kAttackStep,
+      loop: false,
+    );
+    heroAnim.animation = anim;
+    final durMs = (_kAttackFrames * _kAttackStep * 1000).round();
+    await Future.delayed(Duration(milliseconds: durMs));
+    if (heroAnim.isMounted) {
+      heroAnim.animation = _idleAnim;  
     }
   }
 
-  Future<void> _dash(
-    SpriteComponent who, {
-    required Vector2 towards,
-    required Vector2 offset,
-  }) async {
-    final start = who.position.clone();
-    final mid = Vector2((start.x + towards.x) / 2, (start.y + towards.y) / 2) + offset;
-
-    await who.add(
-      MoveEffect.to(
-        mid,
-        EffectController(duration: 0.15, curve: Curves.easeOut), 
-      ),
+  Future<void> _playHeroDeadOnce(SpriteSheet sheet) async {
+    final anim = sheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kDeadFrames - 1,
+      stepTime: _kDeadStep,
+      loop: false,
     );
-    await who.add(
-      MoveEffect.to(
-        start,
-        EffectController(duration: 0.18, curve: Curves.easeIn), 
-      ),
-    );
+    heroAnim.animation = anim;
+    final durMs = (_kDeadFrames * _kDeadStep * 1000).round();
+    await Future.delayed(Duration(milliseconds: durMs));
   }
+
+  // combat
 
   Future<void> _hitFx(Vector2 at) async {
     final fx = CircleComponent(
-      radius: 8,
+      radius: 8 * battleScale,
       anchor: Anchor.center,
-      position: at + Vector2(0, -28),
+      position: at + Vector2(0, -28 * battleScale),
       paint: ui.Paint()..color = const ui.Color(0x88FFFFFF),
       priority: 20,
     );
-    await world.add(fx);
+    await hud.add(fx);
     await fx.add(OpacityEffect.fadeOut(EffectController(duration: 0.15)));
     await Future.delayed(const Duration(milliseconds: 160));
     fx.removeFromParent();
   }
 
-  PositionComponent _shadowAt(Vector2 pos, {int z = 0}) {
+  PositionComponent _shadowAt(
+    Vector2 pos, {
+    int z = 0,
+    double width = 36,
+    double height = 10,
+  }) {
     return _ShadowOval(
-      width: 36,
-      height: 10,
-      position: pos + Vector2(0, 2),
+      width: width,
+      height: height,
+      position: pos + Vector2(0, 2 * (width / 36)),
       z: z,
     );
   }
 }
 
-//thanh hp trên hud
-class HpBar extends PositionComponent {
-  final double Function() getRatio;
-  final String label;
-  final bool alignRight;
-  HpBar({
-    required Vector2 position,
-    required Vector2 size,
-    required this.getRatio,
-    required this.label,
-    this.alignRight = false,
-  }) : super(position: position, size: size, priority: 100001);
 
-  @override
-  void render(ui.Canvas canvas) {
-    super.render(canvas);
-    final rect = size.toRect();
-    //nền
-    canvas.drawRect(rect, ui.Paint()..color = const ui.Color(0x66000000));
-
-    final pBorder = ui.Paint()
-      ..color = const ui.Color(0xFFFFFFFF)
-      ..style = ui.PaintingStyle.stroke
-      ..strokeWidth = 1;
-    canvas.drawRect(rect, pBorder);
-    //máu
-    final ratio = getRatio().clamp(0.0, 1.0);
-    final w = (size.x - 2) * ratio;
-    final fillRect = ui.Rect.fromLTWH(1, 1, w, size.y - 2);
-    canvas.drawRect(
-      fillRect,
-      ui.Paint()..color = const ui.Color(0xFFEF5350), // Đỏ
-    );
-    final textPaint = TextPaint();
-    textPaint.render(
-      canvas,
-      label,
-      alignRight ? Vector2(size.x, -12) : Vector2(0, -12),
-      anchor: alignRight ? Anchor.topRight : Anchor.topLeft,
-    );
-  }
-}
 
 class TextButtonHud extends PositionComponent with TapCallbacks {
   final String label;
@@ -231,7 +433,7 @@ class TextButtonHud extends PositionComponent with TapCallbacks {
     required this.label,
     required Vector2 position,
     required this.onPressed,
-  }) : super(position: position, size: Vector2(70, 22), priority: 100002);
+  }) : super(position: position, size: Vector2(80, 24), priority: 100002);
 
   bool _down = false;
 
@@ -245,37 +447,38 @@ class TextButtonHud extends PositionComponent with TapCallbacks {
     final tp = TextPaint();
     tp.render(canvas, label, size / 2, anchor: Anchor.center);
   }
+
   @override
   void onTapDown(TapDownEvent event) => _down = true;
+
   @override
   void onTapUp(TapUpEvent event) {
     _down = false;
     onPressed();
   }
+
   @override
   void onTapCancel(TapCancelEvent event) => _down = false;
 }
 
 class _ShadowOval extends PositionComponent {
-  final double width;
-  final double height;
   final int z;
 
   _ShadowOval({
-    required this.width,
-    required this.height,
+    required double width,
+    required double height,
     required Vector2 position,
     this.z = 0,
   }) : super(
-         position: position,
-         size: Vector2(width, height),
-         anchor: Anchor.center,
-         priority: z,
-       );
+          position: position,
+          size: Vector2(width, height),
+          anchor: Anchor.center,
+          priority: z,
+        );
 
   @override
   void render(ui.Canvas canvas) {
-    final paint = ui.Paint()..color = const ui.Color(0x22000000);
+    final paint = ui.Paint()..color = const ui.Color.fromARGB(33, 0, 0, 0);
     final rect = size.toRect().shift(ui.Offset(-size.x / 2, -size.y / 2));
     canvas.drawOval(rect, paint);
   }
