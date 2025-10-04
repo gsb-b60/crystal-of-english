@@ -22,7 +22,6 @@ Flashcard? mapRowToFlashcard(Map<String, Object?> row, int deckId) {
       //un use
 
       final word = fields[0].replaceAll(tagRegex, '');
-      print("card ielts");
       if (fields.length == 7) {
         Flashcard newCard = Flashcard(
           deckId: deckId,

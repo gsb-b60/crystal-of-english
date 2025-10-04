@@ -83,7 +83,6 @@ class Deckmodel with ChangeNotifier{
 
   Future<String?> getMediaFile(int id) async{
     final String? result= await _dbhelper.getMediaFile(id);
-    print(result);
     return result;
   }
 }

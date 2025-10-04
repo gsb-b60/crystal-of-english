@@ -354,7 +354,6 @@ class DatabaseHelper {
 ''',
       [deckID],
     );
-    print(result);
     if (result.isNotEmpty) {
       return result.first['media'] as String?;
     }

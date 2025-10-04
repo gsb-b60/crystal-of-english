@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "534134901611",
+    "project_id": "totoki-7c2dd",
+    "storage_bucket": "totoki-7c2dd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534134901611:android:f82e864ecd5a21dc289a2e",
+        "android_client_info": {
+          "package_name": "com.example.totoki"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPFLDuXeYawO3MrvQJu5JLxzoQle2QYao"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

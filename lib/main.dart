@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:totoki/screen/auth/auth_screen.dart';
 import 'business/Flashcard.dart';
 import 'business/Deck.dart';
 import 'package:totoki/screen/deckwelcome.dart';
-
-
-
+import "firebase_options.dart";
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.playIntegrity
+  );
   
   final deckModel = Deckmodel();
   await deckModel.fetchDecks();
 
   final cardModel = Cardmodel();
-  await cardModel.fetchCards(1);
-
 
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -23,7 +27,7 @@ void main() async {
         ChangeNotifierProvider.value(value: deckModel),
         ChangeNotifierProvider.value(value: cardModel),
       ],
-      child: const MyApp()
+      child: const MyApp(),
     ),
   );
 }
@@ -41,10 +45,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const DeckListScreen(),
+      //AuthScreen()
     );
   }
 }
-
-
-
-
