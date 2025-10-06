@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:swipable_stack/swipable_stack.dart';
 import 'package:totoki/business/Flashcard.dart';
-import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flip_card/flip_card.dart';
 import 'front.dart';
 import "back.dart";
+import 'dart:math';
 
 //audio player instance
 final AudioPlayer audio = AudioPlayer();
@@ -47,12 +47,20 @@ class _Newwayreview extends State<Newwayreview> {
       appBar: AppBar(title: const Text('Review Cards')),
       body: FutureBuilder(
         future: _loadDueCard(),
-        builder: (context, snapshot) => Center(
-          child: SizedBox(
-            width: 370,
-            height: 700,
-            child: Swipeder(controller: controller, cardWidgets: cardWidgets),
-          ),
+        builder: (context, snapshot) => Column(
+          children: [
+            Expanded(
+              child: Container(
+                width: 411,
+                child: Center(
+                  child: Swipeder(
+                    controller: controller,
+                    cardWidgets: cardWidgets,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -60,7 +68,7 @@ class _Newwayreview extends State<Newwayreview> {
 }
 
 //chaange this to swipable stack
-class Swipeder extends StatelessWidget {
+class Swipeder extends StatefulWidget {
   const Swipeder({
     super.key,
     required this.controller,
@@ -71,21 +79,177 @@ class Swipeder extends StatelessWidget {
   final List<Widget>? cardWidgets;
 
   @override
+  State<Swipeder> createState() => _SwipederState();
+}
+
+class _SwipederState extends State<Swipeder> {
+  bool right = false;
+  @override
   Widget build(BuildContext context) {
-    return SwipableStack(
-      controller: controller,
-      detectableSwipeDirections: const {
-        SwipeDirection.right,
-        SwipeDirection.left,
-      },
-      onSwipeCompleted: (index, direction) {},
-      builder: (context, properties) {
-        if (cardWidgets == null || cardWidgets!.isEmpty) {
-          return SizedBox();
-        }
-        final itemIndex = (properties.index) % cardWidgets!.length;
-        return Card(child: cardWidgets?[itemIndex]);
-      },
+    return Stack(
+      children: [
+        SwipableStack(
+          controller: widget.controller,
+          horizontalSwipeThreshold: 0.1,
+          verticalSwipeThreshold: 0.3,
+          detectableSwipeDirections: const {
+            SwipeDirection.right,
+            SwipeDirection.left,
+          },
+          swipeAssistDuration: Duration(milliseconds: 100),
+          stackClipBehaviour: Clip.none,
+          swipeAnchor: SwipeAnchor.bottom,
+          overlayBuilder: (context, properties) {
+            final opacity = min(properties.swipeProgress, 1.0);
+
+            switch (properties.direction) {
+              case SwipeDirection.right:
+                return Opacity(
+                  opacity: opacity,
+                  child: CardLabel(
+                    color: Colors.redAccent,
+                    right: true,
+                    value: "Hard",
+                  ),
+                );
+              case SwipeDirection.left:
+                return Opacity(
+                  opacity: opacity,
+                  child: CardLabel(
+                    color: Colors.teal,
+                    right: false,
+                    value: "easy",
+                  ),
+                );
+              default:
+                return Text("data");
+            }
+          },
+          builder: (context, properties) {
+            if (widget.cardWidgets == null || widget.cardWidgets!.isEmpty) {
+              return SizedBox();
+            }
+            final itemIndex = (properties.index) % widget.cardWidgets!.length;
+            return Stack(
+              children: [Card(child: widget.cardWidgets?[itemIndex])],
+            );
+          },
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            padding: EdgeInsets.only(bottom: 30),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    widget.controller.next(swipeDirection: SwipeDirection.left);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    padding: EdgeInsets.all(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      Text(
+                        "Easy",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 23,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    widget.controller.rewind();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    padding: EdgeInsets.all(20),
+                    shadowColor: Colors.blueGrey
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.replay, color: Colors.teal, size: 30),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    widget.controller.next(
+                      swipeDirection: SwipeDirection.right,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: EdgeInsets.all(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.whatshot, color: Colors.white, size: 30),
+                      Text(
+                        "Hard",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 23,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CardLabel extends StatelessWidget {
+  final Color color;
+  final bool right;
+  final String value;
+  const CardLabel({
+    super.key,
+    required this.color,
+    required this.right,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: right ? Alignment.topLeft : Alignment.topRight,
+      child: Transform.rotate(
+        angle: right ? -pi / 8 : pi / 8,
+        child: Container(
+          margin: EdgeInsets.all(50.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: color, width: 4),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 38,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:totoki/business/Flashcard.dart';
 import 'package:totoki/screen/review/reviewbasicflashcard/newwayreview.dart';
+import 'package:totoki/screen/review/reviewblankword/blankwordscreen.dart';
 import 'package:totoki/screen/reviewscreen.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -43,7 +44,8 @@ class _CardListScreenState extends State<CardListScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               NavPageBtn(label: "learn this deck",screenBuilder: () => ReviewSreen(deckId: widget.deckId!),),
-              NavPageBtn(label: "review", screenBuilder: ()=>Newwayreview(deckId: widget.deckId!))
+              NavPageBtn(label: "review", screenBuilder: ()=>Newwayreview(deckId: widget.deckId!)),
+              NavPageBtn(label: "blank word", screenBuilder: ()=>BlankWordScreen())
             ],
           ),
         ],
@@ -328,7 +330,7 @@ class TitleAndValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value.isNotEmpty) {
+    if (value!='') {
       return Text.rich(
         TextSpan(
           children: [

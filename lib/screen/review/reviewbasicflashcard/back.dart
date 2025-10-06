@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:swipable_stack/swipable_stack.dart';
 import 'package:totoki/business/Flashcard.dart';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flip_card/flip_card.dart';
 import 'newwayreview.dart';
 class BackSide extends StatefulWidget {
   final Flashcard card;
@@ -18,7 +15,11 @@ class BackSide extends StatefulWidget {
 class BackSideState extends State<BackSide> {
   void playSound(String media,String path) async {
     String soundPath = '/data/user/0/com.example.totoki/app_flutter/anki/$media/$path';
-    await audio.play(DeviceFileSource(soundPath));
+    try{
+      await audio.play(DeviceFileSource(soundPath));
+    }catch(e){
+      print(e);
+    }
   }
 
   @override
@@ -188,7 +189,7 @@ class BackSideState extends State<BackSide> {
             ),
             if (widget.card.synonyms != null)
               Container(
-                width: 400,
+                height: 50,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
@@ -198,7 +199,7 @@ class BackSideState extends State<BackSide> {
                   borderRadius: BorderRadius.circular(8),
                   child: Image.file(
                     File('$dir/${widget.card.synonyms}'),
-                    fit: BoxFit.fitWidth, // Đảm bảo hình ảnh vừa với chiều rộng
+                    fit: BoxFit.fitHeight, // Đảm bảo hình ảnh vừa với chiều rộng
                   ),
                 ),
               ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:totoki/screen/auth/auth_screen.dart';
 import 'business/Flashcard.dart';
 import 'business/Deck.dart';
 import 'package:totoki/screen/deckwelcome.dart';

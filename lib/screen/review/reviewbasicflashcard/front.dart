@@ -1,10 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:swipable_stack/swipable_stack.dart';
-import 'package:totoki/business/Flashcard.dart';
-import 'dart:io';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flip_card/flip_card.dart';
 import 'newwayreview.dart';
 
 class FrontSide extends StatelessWidget {
@@ -28,6 +22,7 @@ class FrontSide extends StatelessWidget {
             color: Color.fromARGB(255, 167, 14, 77),
           ),
           overflow: TextOverflow.clip,
+          textAlign: TextAlign.center,
         ),
       ),
     );

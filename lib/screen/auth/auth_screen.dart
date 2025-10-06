@@ -23,7 +23,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
 
   Color teal = Colors.teal;
-  Color color2 = Color(0x407076);
+  Color color2 = Color(0x00407076);
 
   Future<void> SumbitAuthForm() async {
     setState(() {
@@ -42,13 +42,11 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text.trim(),
         );
       }
-      if (UserCredential != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MainNavigation()),
-        );
-      }
-    } on FirebaseAuthException catch (error) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MainNavigation()),
+      );
+        } on FirebaseAuthException catch (error) {
       setState(() {
         _messageErr = error.message;
       });
