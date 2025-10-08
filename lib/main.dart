@@ -23,6 +23,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => Cardmodel()),
         ChangeNotifierProvider.value(value: deckModel),
         ChangeNotifierProvider.value(value: cardModel),
       ],

@@ -45,7 +45,7 @@ class _CardListScreenState extends State<CardListScreen> {
             children: [
               NavPageBtn(label: "learn this deck",screenBuilder: () => ReviewSreen(deckId: widget.deckId!),),
               NavPageBtn(label: "review", screenBuilder: ()=>Newwayreview(deckId: widget.deckId!)),
-              NavPageBtn(label: "blank word", screenBuilder: ()=>BlankWordScreen())
+              NavPageBtn(label: "blank word", screenBuilder: ()=>BlankWordScreen(deck_id: widget.deckId!,))
             ],
           ),
         ],
@@ -228,17 +228,17 @@ class CardInformation extends StatelessWidget {
           children: [
             SoundTitle(
               title: "sound",
-              value: '$dir/${card.sound}',
+              value: card.sound != null ? '$dir/${card.sound}' : '',
               icon: const Icon(Icons.volume_up),
             ),
             SoundTitle(
               title: "u sound",
-              value: '$dir/${card.usageSound}',
+              value: card.usageSound != null ? '$dir/${card.usageSound}' : '',
               icon: const Icon(Icons.volume_up),
             ),
             SoundTitle(
               title: "def sound",
-              value: '$dir/${card.defSound}',
+              value: card.defSound != null ? '$dir/${card.defSound}' : '',
               icon: const Icon(Icons.volume_up),
             ),
           ],
@@ -287,12 +287,13 @@ class SoundTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value.isNotEmpty) {
+    if (value!=''||value.isNotEmpty) {
       return Column(
         children: [
           IconButton(
             icon: icon,
             onPressed: () async {
+
               await audio.play(DeviceFileSource(value));
             },
           ),
