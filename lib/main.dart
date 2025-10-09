@@ -1,17 +1,17 @@
+import 'dart:ui' as ui;
+
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:flame_tiled/flame_tiled.dart' as ft;
+import 'package:flame_audio/flame_audio.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
-import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
-import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dart';
-import 'package:mygame/components/Menu/flashcard/screen/profilescreen/accountscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
-import 'package:provider/provider.dart';
 import 'ui/health.dart';
+import 'ui/experience.dart';
 import 'components/tiledobject.dart';
 import 'components/collisionmap.dart';
 import 'components/enemy_wander.dart';
@@ -30,60 +30,44 @@ import 'package:mygame/components/Menu/pausebutton.dart';
 
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart';
+import 'audio/audio_manager.dart';   
+import 'ui/settings_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  //flash card provider config
-   final deckModel = Deckmodel();
-  await deckModel.fetchDecks();
-
-  final cardModel = Cardmodel();
-
-  WidgetsFlutterBinding.ensureInitialized();
-
   runApp(
-    MultiProvider(
-       providers: [
-        ChangeNotifierProvider(create: (_) => Cardmodel()),
-        ChangeNotifierProvider.value(value: deckModel),
-        ChangeNotifierProvider.value(value: cardModel),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(fontFamily: 'MyFont'),
-        home: GameWidget(
-          game: MyGame(),
-          overlayBuilderMap: {
-            DialogOverlay.id: (context, game) {
-              final g = game as MyGame;
-              return DialogOverlay(manager: g.dialogManager);
-            },
-            ReturnButton.id: (context, game) {
-              final g = game as MyGame;
-              return ReturnButton(actions: g.rightActions);
-            },
-            "MainMenu": (context, game) {
-              return MainMenu(game: game as MyGame);
-            },
-            "PauseButton": (context, game) {
-              return PauseButton(game: game as MyGame);
-            },
-            "PauseMenu": (context, game) {
-              return PauseMenu(game: game as MyGame);
-            },
-            "Profile": (context, game) {
-              return Account();
-            },
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(fontFamily: 'MyFont'),
+      home: GameWidget(
+        game: MyGame(),
+        overlayBuilderMap: {
+          DialogOverlay.id: (context, game) {
+            final g = game as MyGame;
+            return DialogOverlay(manager: g.dialogManager);
           },
-          initialActiveOverlays: const ["Profile",'PauseButton', 'MainMenu', ],
-        ),
+          ReturnButton.id: (context, game) {
+            final g = game as MyGame;
+            return ReturnButton(actions: g.rightActions);
+          },
+          "MainMenu":(context,game){
+            return MainMenu(game: game as MyGame);
+          },
+          "PauseButton":(context,game){
+            return PauseButton(game: game as MyGame);
+          },
+          "PauseMenu":(context,game){
+            return PauseMenu(game: game as MyGame);
+          }
+        },
+        initialActiveOverlays: const ['PauseButton','MainMenu'],
       ),
     ),
   );
@@ -96,10 +80,10 @@ class MyGame extends FlameGame
   BattleScene? _battleScene;
   bool _inBattle = false;
   Vector2? _savedJoystickPos;
-  bool _hudWasAttached = false;
 
   late World world;
   late Health heartsHud;
+  late ExperienceBar expHud;
   late ft.TiledComponent map;
   late Rect mapBounds;
   final PositionComponent hudRoot = PositionComponent(priority: 100000);
@@ -130,19 +114,24 @@ class MyGame extends FlameGame
 
     final collision = Collision(map: map, parent: world);
     await collision.loadLayer("collision");
+
     final mapW = map.tileMap.map.width * 16.0;
     final mapH = map.tileMap.map.height * 16.0;
     mapBounds = Rect.fromLTWH(0, 0, mapW, mapH);
+
     player = Player(position: Vector2(310, 138));
     await world.add(player);
+
     gameCamera = CameraComponent(world: world, hudComponents: []);
     await add(gameCamera);
     gameCamera.viewfinder.zoom = 2.5;
     gameCamera.follow(player, maxSpeed: 5000);
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
+
     hudRoot.size = size;
     await gameCamera.viewport.add(hudRoot);
+
     joystick = JoystickComponent(
       knob: CircleComponent(
         radius: 30,
@@ -156,10 +145,17 @@ class MyGame extends FlameGame
     );
     await hudRoot.add(joystick!);
     player.joystick = joystick;
+
     await showAreaTitle('Overworld');
+
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
+      // Keep settings button visible on top
+      if (overlays.isActive(SettingsOverlay.id)) {
+        overlays.remove(SettingsOverlay.id);
+        overlays.add(SettingsOverlay.id);
+      }
     };
 
     heartsHud = Health(
@@ -169,9 +165,17 @@ class MyGame extends FlameGame
       emptyHeartAsset: 'hp/empty_heart.png',
       heartSize: 32,
       spacing: 6,
-      margin: const EdgeInsets.only(left: 16, top: 16),
+      margin: const EdgeInsets.only(left: 8, top: 4),  
     );
     await hudRoot.add(heartsHud);
+
+    expHud = ExperienceBar(
+      margin: const EdgeInsets.only(left: 8, top: 40),
+      onLevelUp: (lv) async {
+        await showAreaTitle('Level Up! Lv $lv');
+      },
+    );
+    await hudRoot.add(expHud);
 
     dialogManager.onRequestCloseOverlay = () {
       if (overlays.isActive(DialogOverlay.id)) {
@@ -179,6 +183,11 @@ class MyGame extends FlameGame
       }
       _lockControls(false);
     };
+
+    await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+
+    // Ensure settings button is visible by default
+    overlays.add(SettingsOverlay.id);
   }
 
   @override
@@ -208,6 +217,7 @@ class MyGame extends FlameGame
     if (mapFile == 'map.tmx') {
       final loader = TiledObjectLoader(map, world);
       await loader.loadLayer("house");
+
       final npc1 = Npc(
         position: Vector2(660, 112),
         manager: dialogManager,
@@ -266,51 +276,50 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: EnemyType.normal,
-        ),
-      );
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: EnemyType.strong,
-        ),
-      );
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.normal, 
+      ));
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: EnemyType.miniboss,
-        ),
-      );
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.strong, 
+      ));
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: EnemyType.boss,
-        ),
-      );
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.miniboss, 
+      ));
+
+      await world.add(EnemyWander(
+        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+        spritePath: 'Joanna.png',
+        speed: 35,
+        triggerRadius: 40,
+        enemyType: EnemyType.boss, 
+      ));
     }
   }
 
   Future<void> enterBattle({required EnemyType enemyType}) async {
     if (_inBattle) return;
     _inBattle = true;
+
+    // Hide settings overlay during battle
+    if (overlays.isActive(SettingsOverlay.id)) {
+      overlays.remove(SettingsOverlay.id);
+    }
+
     world.removeFromParent();
     gameCamera.removeFromParent();
 
@@ -323,6 +332,10 @@ class MyGame extends FlameGame
     }
 
     heartsHud.removeFromParent();
+
+    // pause nhạc nền khi vào battle
+    await AudioManager.instance.pauseBgm();
+
     _battleScene = BattleScene(
       onEnd: (result) => exitBattle(result),
       enemyType: enemyType,
@@ -332,6 +345,9 @@ class MyGame extends FlameGame
   }
 
   void exitBattle(BattleResult result) {
+    final remainHearts =
+        _battleScene?.heroHealth.currentHearts ?? heartsHud.currentHearts;
+
     _battleScene?.removeFromParent();
     _battleScene = null;
     _inBattle = false;
@@ -340,8 +356,11 @@ class MyGame extends FlameGame
     add(gameCamera);
 
     hudRoot.add(heartsHud);
-    if (_battleScene != null) {
-      heartsHud.setCurrent(_battleScene!.heroHealth.currentHearts);
+    heartsHud.setCurrent(remainHearts);
+
+    // Cộng XP nếu thắng
+    if (result.outcome == 'win' && result.xpGained > 0) {
+      expHud.addXp(result.xpGained);
     }
 
     if (joystick != null) {
@@ -354,6 +373,14 @@ class MyGame extends FlameGame
     if (result.outcome == 'lose') {
       heartsHud.refill();
       player.position = Vector2(310, 138);
+    }
+
+    // continue nhạc nền khi thoát battle
+    AudioManager.instance.resumeBgm();
+
+    // Restore settings overlay after battle
+    if (!overlays.isActive(SettingsOverlay.id)) {
+      overlays.add(SettingsOverlay.id);
     }
   }
 
@@ -368,6 +395,7 @@ class MyGame extends FlameGame
     final newWorld = World();
     await add(newWorld);
     world = newWorld;
+
     map = await ft.TiledComponent.load(
       mapFile,
       Vector2.all(tileSize),
@@ -375,9 +403,12 @@ class MyGame extends FlameGame
       priority: 0,
     );
     await world.add(map);
+
     await _initMapObjects(mapFile);
+
     final collision = Collision(map: map, parent: world);
     await collision.loadLayer("collision");
+
     final mapW = map.tileMap.map.width * tileSize;
     final mapH = map.tileMap.map.height * tileSize;
     mapBounds = Rect.fromLTWH(0, 0, mapW, mapH);
@@ -391,28 +422,34 @@ class MyGame extends FlameGame
     } else {
       finalSpawn = spawn;
     }
+
     finalSpawn = Vector2(
       finalSpawn.x.clamp(0, mapW - player.size.x).toDouble(),
       finalSpawn.y.clamp(0, mapH - player.size.y).toDouble(),
     );
+
     if (player.parent != null) player.removeFromParent();
     player = Player(position: finalSpawn);
     await world.add(player);
+
     gameCamera.world = world;
     gameCamera.follow(player, maxSpeed: 5000);
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
+
     if (joystick != null && joystick!.parent == null) {
       await hudRoot.add(joystick!);
     }
     player.joystick = joystick;
+
     await showAreaTitle(
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'Undead_land.tmx'
-          ? 'Welcome to Undead Island'
-          : 'Overworld',
+              ? 'Welcome to Undead Island'
+              : 'Overworld',
     );
+
     if (mapFile == 'houseinterior.tmx') {
       await world.add(
         Coin(
