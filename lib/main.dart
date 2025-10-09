@@ -24,6 +24,7 @@ import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
 import 'audio/audio_manager.dart';   
+import 'ui/settings_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +36,7 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // khoi tao audio manager lan 1
+  // khoi tao audio manager lan 1 fix
   await AudioManager.instance.init();
 
   runApp(
@@ -52,6 +53,9 @@ void main() async {
           ReturnButton.id: (context, game) {
             final g = game as MyGame;
             return ReturnButton(actions: g.rightActions);
+          },
+          SettingsOverlay.id: (context, game) {
+            return SettingsOverlay(audio: AudioManager.instance);
           },
         },
       ),
@@ -135,6 +139,11 @@ class MyGame extends FlameGame
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
+      // Keep settings button visible on top
+      if (overlays.isActive(SettingsOverlay.id)) {
+        overlays.remove(SettingsOverlay.id);
+        overlays.add(SettingsOverlay.id);
+      }
     };
 
     heartsHud = Health(
@@ -164,6 +173,9 @@ class MyGame extends FlameGame
     };
 
     await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+
+    // Ensure settings button is visible by default
+    overlays.add(SettingsOverlay.id);
   }
 
   @override

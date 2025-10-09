@@ -58,6 +58,7 @@ class AudioManager {
 
   String? get currentBgm => _currentBgm;
   bool get bgmEnabled => _bgmEnabled;
+  double get bgmVolume => _bgmVolume;
 
   // sfx
   Future<void> playSfx(String asset, {double? volume}) async {
@@ -73,4 +74,7 @@ class AudioManager {
   void setSfxVolume(double v) {
     _sfxVolume = v.clamp(0.0, 1.0).toDouble();
   }
+
+  bool get sfxEnabled => _sfxEnabled;
+  double get sfxVolume => _sfxVolume;
 }
