@@ -23,15 +23,20 @@ import 'components/npc.dart';
 import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
+import 'audio/audio_manager.dart';   
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
+
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+  // khoi tao audio manager lan 1
+  await AudioManager.instance.init();
 
   runApp(
     MaterialApp(
@@ -139,12 +144,12 @@ class MyGame extends FlameGame
       emptyHeartAsset: 'hp/empty_heart.png',
       heartSize: 32,
       spacing: 6,
-      margin: const EdgeInsets.only(left: 16, top: 16),
+      margin: const EdgeInsets.only(left: 8, top: 4),  
     );
     await hudRoot.add(heartsHud);
 
-    // vị trí thanh kinh nghiệm
     expHud = ExperienceBar(
+      margin: const EdgeInsets.only(left: 8, top: 40),
       onLevelUp: (lv) async {
         await showAreaTitle('Level Up! Lv $lv');
       },
@@ -157,6 +162,8 @@ class MyGame extends FlameGame
       }
       _lockControls(false);
     };
+
+    await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
   }
 
   @override
@@ -296,6 +303,9 @@ class MyGame extends FlameGame
 
     heartsHud.removeFromParent();
 
+    // pause nhạc nền khi vào battle
+    await AudioManager.instance.pauseBgm();
+
     _battleScene = BattleScene(
       onEnd: (result) => exitBattle(result),
       enemyType: enemyType,
@@ -304,39 +314,40 @@ class MyGame extends FlameGame
     _battleScene!.heroHealth.setCurrent(heartsHud.currentHearts);
   }
 
- void exitBattle(BattleResult result) {
-  // luu mau trước khi hủy battle
-  final remainHearts =
-      _battleScene?.heroHealth.currentHearts ?? heartsHud.currentHearts;
+  void exitBattle(BattleResult result) {
+    final remainHearts =
+        _battleScene?.heroHealth.currentHearts ?? heartsHud.currentHearts;
 
-  _battleScene?.removeFromParent();
-  _battleScene = null;
-  _inBattle = false;
+    _battleScene?.removeFromParent();
+    _battleScene = null;
+    _inBattle = false;
 
-  add(world);
-  add(gameCamera);
+    add(world);
+    add(gameCamera);
 
-  hudRoot.add(heartsHud);
-  heartsHud.setCurrent(remainHearts);
+    hudRoot.add(heartsHud);
+    heartsHud.setCurrent(remainHearts);
 
-  // cộng xp nếu thắng và có xpgained
-  if (result.outcome == 'win' && result.xpGained > 0) {
-    expHud.addXp(result.xpGained);
-  }
-
-  if (joystick != null) {
-    if (_savedJoystickPos != null) {
-      joystick!.position = _savedJoystickPos!;
+    // Cộng XP nếu thắng
+    if (result.outcome == 'win' && result.xpGained > 0) {
+      expHud.addXp(result.xpGained);
     }
-    player.joystick = joystick;
-  }
 
-  if (result.outcome == 'lose') {
-    heartsHud.refill();
-    player.position = Vector2(310, 138);
-  }
-}
+    if (joystick != null) {
+      if (_savedJoystickPos != null) {
+        joystick!.position = _savedJoystickPos!;
+      }
+      player.joystick = joystick;
+    }
 
+    if (result.outcome == 'lose') {
+      heartsHud.refill();
+      player.position = Vector2(310, 138);
+    }
+
+    // continue nhạc nền khi thoát battle
+    AudioManager.instance.resumeBgm();
+  }
 
   Future<void> loadMap(
     String mapFile, {
