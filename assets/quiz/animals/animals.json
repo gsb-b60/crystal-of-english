@@ -1,0 +1,54 @@
+{
+  "topic": "animals",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "text",
+      "prompt": "The only mammal that lays eggs is the ___.",
+      "options": ["platypus", "kangaroo", "bat", "hedgehog"],
+      "correctIndex": 0
+    },
+    {
+      "id": "q2",
+      "type": "text_sound",
+      "prompt": "Which animal below can fly?",
+      "options": ["platypus", "kangaroo", "bat", "hedgehog"],
+      "correctIndex": 2,
+      "sound": "quiz/animals/sounds/bat.mp3"
+    },
+    {
+      "id": "q3",
+      "type": "image_sound",
+      "prompt": "What animal is this?",
+      "options": ["lion", "tiger", "bear", "wolf"],
+      "correctIndex": 0,
+      "image": "quiz/animals/images/lion.png",
+      "sound": "quiz/animals/sounds/lion.mp3"
+    },
+    {
+      "id": "q4",
+      "type": "sound",
+      "prompt": "What animal do you hear?",
+      "options": ["tiger", "panda", "zebra", "skunk"],
+      "correctIndex": 2,
+      "sound": "quiz/animals/sounds/zebra.mp3"
+    },
+    {
+      "id": "q5",
+      "type": "image_sound",
+      "prompt": "What animal is this?",
+      "options": ["lion", "tiger", "bear", "wolf"],
+      "correctIndex": 3,
+      "image": "quiz/animals/images/wolf.png",
+      "sound": "quiz/animals/sounds/wolf.mp3"
+    },
+    {
+      "id": "q6",
+      "type": "sound_fill",
+      "prompt": "This is the sound of a ___.",
+      "options": ["lion", "tiger", "bear", "wolf"],
+      "correctIndex": 0,
+      "sound": "quiz/animals/sounds/lion.mp3"
+    }
+  ]
+}

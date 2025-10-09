@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flame: ^1.31.0
   flame_tiled: ^3.0.6
+  flame_audio: ^2.1.8
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +77,15 @@ flutter:
     - assets/images/battlebackground/
     - assets/images/characters/maincharacter/
     - assets/images/characters/
+    - assets/quiz/animals/animals.json
+    - assets/quiz/animals/images/lion.png
+    - assets/quiz/animals/images/wolf.png
+    - assets/quiz/animals/sounds/
+    - assets/quiz/job/job.json
+    - assets/quiz/job/sounds/
+    - assets/quiz/job/images/
+
+
 
 
 
