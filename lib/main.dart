@@ -10,7 +10,6 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
-
 import 'ui/health.dart';
 import 'ui/experience.dart';
 import 'components/tiledobject.dart';
@@ -28,6 +27,10 @@ import 'dart:ui' as ui;
 import 'package:flame_tiled/flame_tiled.dart' as ft;
 import 'package:mygame/components/Menu/mainmenu.dart';
 import 'package:mygame/components/Menu/pausebutton.dart';
+import 'package:provider/provider.dart';
+import 'components/Menu/flashcard/business/Deck.dart';
+import 'components/Menu/flashcard/business/Flashcard.dart';
+import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart';
@@ -37,15 +40,11 @@ import 'ui/settings_overlay.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-
-  // khoi tao audio manager lan 1 fix
-  await AudioManager.instance.init();
 
   runApp(
     MaterialApp(
@@ -70,7 +69,40 @@ void main() async {
           },
           "PauseMenu":(context,game){
             return PauseMenu(game: game as MyGame);
-          }
+          },
+          // Overlay to host Flashcards screens
+          'Flashcards': (context, game) {
+            final g = game as MyGame;
+            return Material(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Scaffold(
+                  backgroundColor: Colors.white,
+                  appBar: AppBar(
+                    title: const Text('Flashcards'),
+                    leading: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        g.overlays.remove('Flashcards');
+                        g.resumeEngine();
+                      },
+                    ),
+                  ),
+                  body: MultiProvider(
+                    providers: [
+                      ChangeNotifierProvider<Deckmodel>(
+                        create: (_) => Deckmodel()..fetchDecks(),
+                      ),
+                      ChangeNotifierProvider<Cardmodel>(
+                        create: (_) => Cardmodel(),
+                      ),
+                    ],
+                    child: const DeckListScreen(),
+                  ),
+                ),
+              ),
+            );
+          },
           SettingsOverlay.id: (context, game) {
             return SettingsOverlay(audio: AudioManager.instance);
           },
@@ -80,6 +112,8 @@ void main() async {
     ),
   );
 }
+
+
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -282,12 +316,13 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
+
       await world.add(EnemyWander(
         patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.normal,
+        enemyType: EnemyType.normal, 
       ));
 
       await world.add(EnemyWander(
@@ -295,7 +330,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.strong,
+        enemyType: EnemyType.strong, 
       ));
 
       await world.add(EnemyWander(
@@ -303,7 +338,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.miniboss,
+        enemyType: EnemyType.miniboss, 
       ));
 
       await world.add(EnemyWander(
@@ -311,7 +346,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.boss,
+        enemyType: EnemyType.boss, 
       ));
     }
   }
@@ -462,6 +497,19 @@ class MyGame extends FlameGame
           interactRadius: 140,
           onCollected: () async {
             await loadMap('map.tmx', spawn: Vector2(657, 133));
+          },
+        ),
+      );
+      // Flashcards event coin at fixed position (334, 329)
+      await world.add(
+        Coin(
+          position: Vector2(334, 329),
+          interactRadius: 60,
+          persistent: true,
+          onCollected: () {
+            // Pause game and open flashcards overlay
+            pauseEngine();
+            overlays.add('Flashcards');
           },
         ),
       );

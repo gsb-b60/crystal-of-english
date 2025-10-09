@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/setting.dart';
 import 'package:mygame/main.dart';
+import 'package:provider/provider.dart';
+import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
+import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
 class MainMenu extends StatelessWidget {
   final MyGame game;
@@ -45,7 +49,7 @@ class MenuNav extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(height: 120, child: Image.asset("assets/menu/game_name.png")),
+        Container(height: 140, child: Image.asset("assets/menu/game_name.png")),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.zero, // bỏ padding mặc định
@@ -57,19 +61,52 @@ class MenuNav extends StatelessWidget {
             game.resumeEngine(); // chạy game tiếp
           },
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/NewGame.png"),
+          ),
+        ),
+        // Flashcards entry
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider<Deckmodel>(
+                      create: (_) => Deckmodel()..fetchDecks(),
+                    ),
+                    ChangeNotifierProvider<Cardmodel>(
+                      create: (_) => Cardmodel(),
+                    ),
+                  ],
+                  child: const DeckListScreen(),
+                ),
+              ),
+            );
+          },
+          child: Container(
+            height: 40,
+            child: Image.asset("assets/menu/Flashcards.png", package: null, errorBuilder: (c, e, s) {
+              // Fallback text if asset missing
+              return const Center(child: Text('Flashcards', style: TextStyle(color: Colors.white)));
+            }),
           ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero, // bỏ padding mặc định
-            backgroundColor: Colors.transparent, // nền trong suốt
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent, 
             shadowColor: Colors.transparent,
           ),
           onPressed: () {},
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/Continue.png"),
           ),
         ),
@@ -84,7 +121,7 @@ class MenuNav extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (context)=>Setting(game: game)));
           },
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/Settings.png"),
           ),
         ),
@@ -98,7 +135,7 @@ class MenuNav extends StatelessWidget {
             game.pauseEngine();
           },
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/Exit.png"),
           ),
         ),
