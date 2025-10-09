@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mygame/components/Menu/pausemenu.dart';
 import 'ui/health.dart';
 import 'components/tiledobject.dart';
 import 'components/collisionmap.dart';
@@ -18,6 +19,9 @@ import 'ui/return_button.dart';
 import 'ui/area_title.dart';
 import 'dart:ui' as ui;
 import 'package:flame_tiled/flame_tiled.dart' as ft;
+import 'package:mygame/components/Menu/mainmenu.dart';
+import 'package:mygame/components/Menu/pausebutton.dart';
+
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart';
 
@@ -45,7 +49,17 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
             final g = game as MyGame;
             return ReturnButton(actions: g.rightActions);
           },
+          "MainMenu":(context,game){
+            return MainMenu(game: game as MyGame);
+          },
+          "PauseButton":(context,game){
+            return PauseButton(game: game as MyGame);
+          },
+          "PauseMenu":(context,game){
+            return PauseMenu(game: game as MyGame);
+          }
         },
+        initialActiveOverlays: const ['PauseButton','MainMenu'],
       ),
     ),
   );

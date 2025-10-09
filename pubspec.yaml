@@ -77,6 +77,9 @@ flutter:
     - assets/images/battlebackground/
     - assets/images/characters/maincharacter/
     - assets/images/characters/
+    - assets/menu/
+    - assets/menu/pauseMenu/
+    - assets/
     - assets/quiz/animals/animals.json
     - assets/quiz/animals/images/lion.png
     - assets/quiz/animals/images/wolf.png
