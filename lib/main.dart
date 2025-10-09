@@ -4,7 +4,13 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
+import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dart';
+import 'package:mygame/components/Menu/flashcard/screen/profilescreen/accountscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
+import 'package:provider/provider.dart';
 import 'ui/health.dart';
 import 'components/tiledobject.dart';
 import 'components/collisionmap.dart';
@@ -28,42 +34,62 @@ import 'package:flutter/services.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
+  //flash card provider config
+   final deckModel = Deckmodel();
+  await deckModel.fetchDecks();
+
+  final cardModel = Cardmodel();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'MyFont'),
-      home: GameWidget(
-        game: MyGame(),
-        overlayBuilderMap: {
-          DialogOverlay.id: (context, game) {
-            final g = game as MyGame;
-            return DialogOverlay(manager: g.dialogManager);
+    MultiProvider(
+       providers: [
+        ChangeNotifierProvider(create: (_) => Cardmodel()),
+        ChangeNotifierProvider.value(value: deckModel),
+        ChangeNotifierProvider.value(value: cardModel),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'MyFont'),
+        home: GameWidget(
+          game: MyGame(),
+          overlayBuilderMap: {
+            DialogOverlay.id: (context, game) {
+              final g = game as MyGame;
+              return DialogOverlay(manager: g.dialogManager);
+            },
+            ReturnButton.id: (context, game) {
+              final g = game as MyGame;
+              return ReturnButton(actions: g.rightActions);
+            },
+            "MainMenu": (context, game) {
+              return MainMenu(game: game as MyGame);
+            },
+            "PauseButton": (context, game) {
+              return PauseButton(game: game as MyGame);
+            },
+            "PauseMenu": (context, game) {
+              return PauseMenu(game: game as MyGame);
+            },
+            "Profile": (context, game) {
+              return Account();
+            },
           },
-          ReturnButton.id: (context, game) {
-            final g = game as MyGame;
-            return ReturnButton(actions: g.rightActions);
-          },
-          "MainMenu":(context,game){
-            return MainMenu(game: game as MyGame);
-          },
-          "PauseButton":(context,game){
-            return PauseButton(game: game as MyGame);
-          },
-          "PauseMenu":(context,game){
-            return PauseMenu(game: game as MyGame);
-          }
-        },
-        initialActiveOverlays: const ['PauseButton','MainMenu'],
+          initialActiveOverlays: const ["Profile",'PauseButton', 'MainMenu', ],
+        ),
       ),
     ),
   );
 }
+
+
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -240,38 +266,45 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.normal,
+        ),
+      );
 
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.normal, 
-      ));
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.strong,
+        ),
+      );
 
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.strong, 
-      ));
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.miniboss,
+        ),
+      );
 
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.miniboss, 
-      ));
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.boss, 
-      ));
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.boss,
+        ),
+      );
     }
   }
 
