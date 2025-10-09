@@ -302,6 +302,11 @@ class MyGame extends FlameGame
     if (_inBattle) return;
     _inBattle = true;
 
+    // Hide settings overlay during battle
+    if (overlays.isActive(SettingsOverlay.id)) {
+      overlays.remove(SettingsOverlay.id);
+    }
+
     world.removeFromParent();
     gameCamera.removeFromParent();
 
@@ -359,6 +364,11 @@ class MyGame extends FlameGame
 
     // continue nhạc nền khi thoát battle
     AudioManager.instance.resumeBgm();
+
+    // Restore settings overlay after battle
+    if (!overlays.isActive(SettingsOverlay.id)) {
+      overlays.add(SettingsOverlay.id);
+    }
   }
 
   Future<void> loadMap(
