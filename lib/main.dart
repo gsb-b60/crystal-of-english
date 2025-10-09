@@ -10,7 +10,6 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
-
 import 'ui/health.dart';
 import 'ui/experience.dart';
 import 'components/tiledobject.dart';
@@ -37,15 +36,11 @@ import 'ui/settings_overlay.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-
-  // khoi tao audio manager lan 1 fix
-  await AudioManager.instance.init();
 
   runApp(
     MaterialApp(
@@ -71,15 +66,14 @@ void main() async {
           "PauseMenu":(context,game){
             return PauseMenu(game: game as MyGame);
           }
-          SettingsOverlay.id: (context, game) {
-            return SettingsOverlay(audio: AudioManager.instance);
-          },
         },
         initialActiveOverlays: const ['PauseButton','MainMenu'],
       ),
     ),
   );
 }
+
+
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -282,12 +276,13 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
+
       await world.add(EnemyWander(
         patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.normal,
+        enemyType: EnemyType.normal, 
       ));
 
       await world.add(EnemyWander(
@@ -295,7 +290,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.strong,
+        enemyType: EnemyType.strong, 
       ));
 
       await world.add(EnemyWander(
@@ -303,7 +298,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.miniboss,
+        enemyType: EnemyType.miniboss, 
       ));
 
       await world.add(EnemyWander(
@@ -311,7 +306,7 @@ class MyGame extends FlameGame
         spritePath: 'Joanna.png',
         speed: 35,
         triggerRadius: 40,
-        enemyType: EnemyType.boss,
+        enemyType: EnemyType.boss, 
       ));
     }
   }

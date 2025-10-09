@@ -45,7 +45,7 @@ class MenuNav extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(height: 120, child: Image.asset("assets/menu/game_name.png")),
+        Container(height: 140, child: Image.asset("assets/menu/game_name.png")),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.zero, // bỏ padding mặc định
@@ -57,19 +57,19 @@ class MenuNav extends StatelessWidget {
             game.resumeEngine(); // chạy game tiếp
           },
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/NewGame.png"),
           ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero, // bỏ padding mặc định
-            backgroundColor: Colors.transparent, // nền trong suốt
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent, 
             shadowColor: Colors.transparent,
           ),
           onPressed: () {},
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/Continue.png"),
           ),
         ),
@@ -84,7 +84,7 @@ class MenuNav extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (context)=>Setting(game: game)));
           },
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/Settings.png"),
           ),
         ),
@@ -98,7 +98,7 @@ class MenuNav extends StatelessWidget {
             game.pauseEngine();
           },
           child: Container(
-            height: 30,
+            height: 40,
             child: Image.asset("assets/menu/Exit.png"),
           ),
         ),
