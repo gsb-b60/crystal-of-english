@@ -87,7 +87,7 @@ flutter:
     - assets/quiz/job/job.json
     - assets/quiz/job/sounds/
     - assets/quiz/job/images/
-
+    - assets/audio/bgm_overworld.mp3
 
 
 

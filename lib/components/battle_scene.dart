@@ -4,17 +4,15 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/animation.dart' show Curves;
 import 'package:flutter/material.dart' show EdgeInsets;
+import 'package:flame/sprite.dart' show SpriteSheet;
+import 'package:flame/effects.dart';
 
 import '../components/quiz_panel.dart';
 import '../quiz/quiz_models.dart';
 import '../main.dart' show MyGame;
 import '../ui/health.dart';
 import 'enemy_wander.dart' show EnemyType;
-import 'package:flame/sprite.dart' show SpriteSheet;
-import 'package:flame/effects.dart';
-
 
 const _kHeroIdlePng   = 'characters/maincharacter/Idle.png';
 const _kHeroAttackPng = 'characters/maincharacter/Attack.png';
@@ -26,24 +24,25 @@ final Vector2 _kAttackFrameSize = Vector2(96, 80);
 final Vector2 _kDeadFrameSize   = Vector2(80, 64);
 
 // số frame
-const int _kIdleFrames   = 3;  // Idle
-const int _kAttackFrames = 8;  // Attack
-const int _kDeadFrames   = 8;  // Dead
+const int _kIdleFrames   = 3;
+const int _kAttackFrames = 8;
+const int _kDeadFrames   = 8;
 
-// Tốc độ khung
 const double _kIdleStep   = 0.18;
 const double _kAttackStep = 0.07;
 const double _kDeadStep   = 0.08;
 
 const int _kPostAnswerDelayMs = 800;
 
-
 class BattleResult {
-  final String outcome; // 'win'  'lose'  'escape'
-  BattleResult(this.outcome);
-  static BattleResult win() => BattleResult('win');
-  static BattleResult lose() => BattleResult('lose');
-  static BattleResult escape() => BattleResult('escape');
+  final String outcome; 
+  final int xpGained;
+
+  BattleResult(this.outcome, {this.xpGained = 0});
+
+  static BattleResult win({int xp = 0}) => BattleResult('win', xpGained: xp);
+  static BattleResult lose() => BattleResult('lose', xpGained: 0);
+  static BattleResult escape() => BattleResult('escape', xpGained: 0);
 }
 
 typedef BattleEndCallback = void Function(BattleResult result);
@@ -64,8 +63,7 @@ class HealthWithRightAlign extends Health {
   Future<void> onLoad() async {
     await super.onLoad();
     final w = maxHearts * heartSize + (maxHearts - 1) * spacing;
-    final h = heartSize;
-    size = Vector2(w, h);
+    size = Vector2(w, heartSize);
     for (var i = 0; i < maxHearts; i++) {
       final icon = children.elementAt(i) as SpriteComponent;
       icon.anchor = Anchor.topLeft;
@@ -109,17 +107,26 @@ class BossHealth extends Health {
   }
 }
 
-
 class BattleScene extends Component with HasGameReference<MyGame> {
   final BattleEndCallback onEnd;
   final EnemyType enemyType;
 
   BattleScene({required this.onEnd, required this.enemyType});
 
+  // thưởng XP theo quai
+  int _xpRewardFor(EnemyType t) {
+    switch (t) {
+      case EnemyType.normal:   return 8;
+      case EnemyType.strong:   return 16;
+      case EnemyType.miniboss: return 35;
+      case EnemyType.boss:     return 80;
+    }
+  }
+
   // Hero animation
-  late final PositionComponent heroRoot;        
-  late final SpriteAnimationComponent heroAnim;  
-  late SpriteAnimation _idleAnim;              
+  late final PositionComponent heroRoot;
+  late final SpriteAnimationComponent heroAnim;
+  late SpriteAnimation _idleAnim;
 
   static const double battleScale = 1.8;
   static final Vector2 actorBaseSize = Vector2(48, 48);
@@ -140,9 +147,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
   late List<QuizQuestion> _pool;
   final String _topic = 'job';
   bool _takingTurn = false;
-
   bool _answering = false;
-
   QuizPanel? _panel;
 
   @override
@@ -177,20 +182,20 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await cam.viewport.add(hud);
 
-heroHealth = Health(
-  maxHearts: 5,
-  currentHearts: 5,
-  fullHeartAsset: 'hp/heart.png',
-  emptyHeartAsset: 'hp/empty_heart.png',
-  heartSize: 32,
-  spacing: 6,
-  margin: const EdgeInsets.only(left: 8, top: 4), 
-)
-  ..anchor = Anchor.topLeft
-  ..position = Vector2(8, 4); 
-await hud.add(heroHealth);
+    heroHealth = Health(
+      maxHearts: 5,
+      currentHearts: 5,
+      fullHeartAsset: 'hp/heart.png',
+      emptyHeartAsset: 'hp/empty_heart.png',
+      heartSize: 32,
+      spacing: 6,
+      margin: const EdgeInsets.only(left: 8, top: 4),
+    )
+      ..anchor = Anchor.topLeft
+      ..position = Vector2(8, 4);
+    await hud.add(heroHealth);
 
-    // Health (Enemy)
+    // Enemy health
     final enemyMaxHearts = switch (enemyType) {
       EnemyType.normal => 2,
       EnemyType.strong => 3,
@@ -199,36 +204,35 @@ await hud.add(heroHealth);
     };
 
     enemyHealth = (enemyType == EnemyType.boss)
-    ? BossHealth(
-        maxHearts: enemyMaxHearts,
-        currentHearts: enemyMaxHearts,
-        fullHeartAsset: 'hp/heart.png',
-        emptyHeartAsset: 'hp/empty_heart.png',
-        heartSize: 32,
-        spacing: 6,
-        margin: const EdgeInsets.only(right: 8, top: 4), 
-      )
-    : HealthWithRightAlign(
-        maxHearts: enemyMaxHearts,
-        currentHearts: enemyMaxHearts,
-        fullHeartAsset: 'hp/heart.png',
-        emptyHeartAsset: 'hp/empty_heart.png',
-        heartSize: 32,
-        spacing: 6,
-        margin: const EdgeInsets.only(right: 8, top: 4), 
-      );
+        ? BossHealth(
+            maxHearts: enemyMaxHearts,
+            currentHearts: enemyMaxHearts,
+            fullHeartAsset: 'hp/heart.png',
+            emptyHeartAsset: 'hp/empty_heart.png',
+            heartSize: 32,
+            spacing: 6,
+            margin: const EdgeInsets.only(right: 8, top: 4),
+          )
+        : HealthWithRightAlign(
+            maxHearts: enemyMaxHearts,
+            currentHearts: enemyMaxHearts,
+            fullHeartAsset: 'hp/heart.png',
+            emptyHeartAsset: 'hp/empty_heart.png',
+            heartSize: 32,
+            spacing: 6,
+            margin: const EdgeInsets.only(right: 8, top: 4),
+          );
 
-enemyHealth
-  ..anchor = Anchor.topRight
-  ..position = Vector2(screenSize.x - 8, 4); 
-await hud.add(enemyHealth);
+    enemyHealth
+      ..anchor = Anchor.topRight
+      ..position = Vector2(screenSize.x - 8, 4);
+    await hud.add(enemyHealth);
 
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
-    final baselineY = panelTop - (8 * battleScale);  
+    final baselineY = panelTop - (8 * battleScale);
     final double halfGap = baseGap * battleScale;
     final Vector2 actorSize = actorBaseSize * battleScale;
-
     final heroDisplaySize = actorSize;
 
     final ui.Image idleImg   = await game.images.load(_kHeroIdlePng);
@@ -250,7 +254,7 @@ await hud.add(enemyHealth);
     heroRoot = PositionComponent(
       size: heroDisplaySize,
       anchor: Anchor.bottomCenter,
-      position: Vector2(centerX - 70 * battleScale, baselineY + 77),  
+      position: Vector2(centerX - 70 * battleScale, baselineY + 77),
       priority: 10,
     );
 
@@ -296,73 +300,73 @@ await hud.add(enemyHealth);
     await _nextTurn(attackSheet, deadSheet);
   }
 
-  Future<void> _nextTurn(SpriteSheet attackSheet, SpriteSheet deadSheet) async {
-    if (_takingTurn) return;
-    _takingTurn = true;
+ Future<void> _nextTurn(SpriteSheet attackSheet, SpriteSheet deadSheet) async {
+  if (_takingTurn) return;
+  _takingTurn = true;
 
-    if (_pool.isEmpty) {
-      onEnd(BattleResult.win());
-      return;
-    }
-
-    final q = _pool.removeAt(0);
-
-    _panel?.removeFromParent();  
-    _answering = false;       
-
-    _panel = QuizPanel(
-      question: q,
-      onAnswer: (isCorrect) async {
-        if (_answering) return;  
-        _answering = true;
-
-        if (isCorrect) {
-          await _playHeroAttackOnce(attackSheet);  
-          enemyHealth.damage(1);
-          await _hitFx(enemy.position);
-
-          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
-
-          // end
-          _panel?.removeFromParent();
-          _panel = null;
-
-          if (enemyHealth.isDead) {
-            onEnd(BattleResult.win());
-            return;
-          }
-
-          _takingTurn = false;
-          await _nextTurn(attackSheet, deadSheet);
-        } else {
-          heroHealth.damage(1);
-          await _hitFx(heroRoot.position);
-
-          if (heroHealth.isDead) {
-            await _playHeroDeadOnce(deadSheet);  
-            await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
-            _panel?.removeFromParent();
-            _panel = null;
-            onEnd(BattleResult.lose());
-            return;
-          }
-
-          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
-
-          _panel?.removeFromParent();
-          _panel = null;
-
-          _takingTurn = false;
-          await _nextTurn(attackSheet, deadSheet);
-        }
-      },
-    );
-
-    await hud.add(_panel!);
+  if (_pool.isEmpty) {
+    onEnd(BattleResult.win());
+    return;
   }
 
-  // animation helper
+  final q = _pool.removeAt(0);
 
+  _panel?.removeFromParent();
+  _answering = false;
+
+  _panel = QuizPanel(
+    question: q,
+    onAnswer: (isCorrect) async {
+      if (_answering) return;
+      _answering = true;
+
+      if (isCorrect) {
+        await _playHeroAttackOnce(attackSheet);
+        enemyHealth.damage(1);
+        await _hitFx(enemy.position);
+
+        await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+
+        _panel?.removeFromParent();
+        _panel = null;
+
+        if (enemyHealth.isDead) {
+          final xp = _xpRewardFor(enemyType);
+          onEnd(BattleResult.win(xp: xp));
+          return;
+        }
+
+        _takingTurn = false;
+        await _nextTurn(attackSheet, deadSheet);
+      } else {
+        heroHealth.damage(1);
+        await _hitFx(heroRoot.position);
+
+        if (heroHealth.isDead) {
+          await _playHeroDeadOnce(deadSheet);
+          await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+          _panel?.removeFromParent();
+          _panel = null;
+          onEnd(BattleResult.lose());
+          return;
+        }
+
+        await Future.delayed(const Duration(milliseconds: _kPostAnswerDelayMs));
+
+        _panel?.removeFromParent();
+        _panel = null;
+
+        _takingTurn = false;
+        await _nextTurn(attackSheet, deadSheet);
+      }
+    },
+  );
+
+  await hud.add(_panel!);
+}
+
+
+  // animation helper
   Future<void> _playHeroAttackOnce(SpriteSheet sheet) async {
     final anim = sheet.createAnimation(
       row: 0,
@@ -375,7 +379,7 @@ await hud.add(enemyHealth);
     final durMs = (_kAttackFrames * _kAttackStep * 1000).round();
     await Future.delayed(Duration(milliseconds: durMs));
     if (heroAnim.isMounted) {
-      heroAnim.animation = _idleAnim;  
+      heroAnim.animation = _idleAnim;
     }
   }
 
@@ -392,8 +396,7 @@ await hud.add(enemyHealth);
     await Future.delayed(Duration(milliseconds: durMs));
   }
 
-  // combat
-
+  // combat fx
   Future<void> _hitFx(Vector2 at) async {
     final fx = CircleComponent(
       radius: 8 * battleScale,
@@ -422,8 +425,6 @@ await hud.add(enemyHealth);
     );
   }
 }
-
-
 
 class TextButtonHud extends PositionComponent with TapCallbacks {
   final String label;
