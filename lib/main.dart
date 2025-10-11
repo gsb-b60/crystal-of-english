@@ -9,7 +9,12 @@ import 'package:flame_audio/flame_audio.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
+import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/screen/profilescreen/accountscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
+import 'package:mygame/components/bookshell/fakecoin.dart';
+import 'package:provider/provider.dart';
 import 'ui/health.dart';
 import 'ui/experience.dart';
 import 'components/tiledobject.dart';
@@ -30,50 +35,77 @@ import 'package:mygame/components/Menu/pausebutton.dart';
 
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart';
-import 'audio/audio_manager.dart';   
+import 'audio/audio_manager.dart';
 import 'ui/settings_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
+  final deckModel = Deckmodel();
+  await deckModel.fetchDecks();
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'MyFont'),
-      home: GameWidget(
-        game: MyGame(),
-        overlayBuilderMap: {
-          DialogOverlay.id: (context, game) {
-            final g = game as MyGame;
-            return DialogOverlay(manager: g.dialogManager);
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => Cardmodel()),
+        ChangeNotifierProvider.value(value: deckModel),
+        // ChangeNotifierProvider.value(value: cardModel),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'MyFont'),
+        home: GameWidget(
+          game: MyGame(),
+          overlayBuilderMap: {
+            DialogOverlay.id: (context, game) {
+              final g = game as MyGame;
+              return DialogOverlay(manager: g.dialogManager);
+            },
+            ReturnButton.id: (context, game) {
+              final g = game as MyGame;
+              return ReturnButton(actions: g.rightActions);
+            },
+            "MainMenu": (context, game) {
+              return MainMenu(game: game as MyGame);
+            },
+            "PauseButton": (context, game) {
+              return PauseButton(game: game as MyGame);
+            },
+            "PauseMenu": (context, game) {
+              return PauseMenu(game: game as MyGame);
+            },
+            "Account": (context, game) {
+              return Account();
+            },
+            "BookShell": (context, game) {
+              game as MyGame;
+              return Stack(
+                children: [
+                  ProfileSreen(),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        game.overlays.remove("BookShell");
+                      },
+                      child: Text("Back to game"),
+                    ),
+                  ),
+                ],
+              );
+            },
           },
-          ReturnButton.id: (context, game) {
-            final g = game as MyGame;
-            return ReturnButton(actions: g.rightActions);
-          },
-          "MainMenu":(context,game){
-            return MainMenu(game: game as MyGame);
-          },
-          "PauseButton":(context,game){
-            return PauseButton(game: game as MyGame);
-          },
-          "PauseMenu":(context,game){
-            return PauseMenu(game: game as MyGame);
-          }
-        },
-        initialActiveOverlays: const ['PauseButton','MainMenu'],
+          initialActiveOverlays: const ['PauseButton', 'MainMenu', 'Account'],
+        ),
       ),
     ),
   );
 }
-
-
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -165,7 +197,7 @@ class MyGame extends FlameGame
       emptyHeartAsset: 'hp/empty_heart.png',
       heartSize: 32,
       spacing: 6,
-      margin: const EdgeInsets.only(left: 8, top: 4),  
+      margin: const EdgeInsets.only(left: 8, top: 4),
     );
     await hudRoot.add(heartsHud);
 
@@ -187,7 +219,7 @@ class MyGame extends FlameGame
     await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
 
     // Ensure settings button is visible by default
-    overlays.add(SettingsOverlay.id);
+    //overlays.add(SettingsOverlay.id);
   }
 
   @override
@@ -276,38 +308,45 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.normal,
+        ),
+      );
 
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.normal, 
-      ));
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.strong,
+        ),
+      );
 
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.strong, 
-      ));
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.miniboss,
+        ),
+      );
 
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.miniboss, 
-      ));
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.boss, 
-      ));
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.boss,
+        ),
+      );
     }
   }
 
@@ -446,8 +485,8 @@ class MyGame extends FlameGame
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'Undead_land.tmx'
-              ? 'Welcome to Undead Island'
-              : 'Overworld',
+          ? 'Welcome to Undead Island'
+          : 'Overworld',
     );
 
     if (mapFile == 'houseinterior.tmx') {
@@ -456,7 +495,17 @@ class MyGame extends FlameGame
           position: finalSpawn.clone(),
           interactRadius: 140,
           onCollected: () async {
-            await loadMap('map.tmx', spawn: Vector2(657, 133));
+            await loadMap('map.tmx', spawn: Vector2(657, 135));
+          },
+        ),
+      );
+      await world.add(
+        Fakecoin(
+          position: Vector2(367, 175),
+          interactRadius: 140,
+          onCollected: () {
+            print("I tap it");
+            overlays.add("BookShell");
           },
         ),
       );
