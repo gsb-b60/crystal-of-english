@@ -59,67 +59,64 @@ void main() async {
   final deckModel = Deckmodel();
   await deckModel.fetchDecks();
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'MyFont'),
-      home: GameWidget(
-        game: MyGame(),
-        overlayBuilderMap: {
-          DialogOverlay.id: (context, game) {
-            final g = game as MyGame;
-            return DialogOverlay(manager: g.dialogManager);
-          },
-          ReturnButton.id: (context, game) {
-            final g = game as MyGame;
-            return ReturnButton(actions: g.rightActions);
-          },
-          "MainMenu": (context, game) {
-            return MainMenu(game: game as MyGame);
-          },
-          "PauseButton": (context, game) {
-            return PauseButton(game: game as MyGame);
-          },
-          "PauseMenu": (context, game) {
-            return PauseMenu(game: game as MyGame);
-          },
-          // Overlay to host Flashcards screens
-          'Flashcards': (context, game) {
-            final g = game as MyGame;
-            return Material(
-              color: Colors.black54,
-              child: SafeArea(
-                child: Scaffold(
-                  backgroundColor: Colors.white,
-                  appBar: AppBar(
-                    title: const Text('Flashcards'),
-                    leading: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        g.overlays.remove('Flashcards');
-                        g.resumeEngine();
-                      },
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => Cardmodel()),
+        ChangeNotifierProvider.value(value: deckModel),
+        //ChangeNotifierProvider.value(value: cardModel),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'MyFont'),
+        home: GameWidget(
+          game: MyGame(),
+          overlayBuilderMap: {
+            DialogOverlay.id: (context, game) {
+              final g = game as MyGame;
+              return DialogOverlay(manager: g.dialogManager);
+            },
+            ReturnButton.id: (context, game) {
+              final g = game as MyGame;
+              return ReturnButton(actions: g.rightActions);
+            },
+            "MainMenu": (context, game) {
+              return MainMenu(game: game as MyGame);
+            },
+            "PauseButton": (context, game) {
+              return PauseButton(game: game as MyGame);
+            },
+            "PauseMenu": (context, game) {
+              return PauseMenu(game: game as MyGame);
+            },
+            // Overlay to host Flashcards screens
+            'Flashcards': (context, game) {
+              final g = game as MyGame;
+              return Material(
+                color: Colors.black54,
+                child: SafeArea(
+                  child: Scaffold(
+                    backgroundColor: Colors.white,
+                    appBar: AppBar(
+                      title: const Text('Flashcards'),
+                      leading: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          g.overlays.remove('Flashcards');
+                          g.resumeEngine();
+                        },
+                      ),
                     ),
-                  ),
-                  body: MultiProvider(
-                    providers: [
-                      ChangeNotifierProvider<Deckmodel>(
-                        create: (_) => Deckmodel()..fetchDecks(),
-                      ),
-                      ChangeNotifierProvider<Cardmodel>(
-                        create: (_) => Cardmodel(),
-                      ),
-                    ],
-                    child: const DeckListScreen(),
+                    body: const DeckListScreen(),
                   ),
                 ),
-              ),
-            );
+              );
+            },
+            SettingsOverlay.id: (context, game) {
+              return SettingsOverlay(audio: AudioManager.instance);
+            },
           },
-          SettingsOverlay.id: (context, game) {
-            return SettingsOverlay(audio: AudioManager.instance);
-          },
-        },
-        initialActiveOverlays: const ['PauseButton', 'MainMenu'],
+          initialActiveOverlays: const ['PauseButton', 'MainMenu'],
+        ),
       ),
     ),
   );
