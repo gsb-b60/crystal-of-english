@@ -9,6 +9,7 @@ import 'package:flame_audio/flame_audio.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
 import 'ui/health.dart';
 import 'ui/experience.dart';
@@ -45,6 +46,9 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+  // Initialize audio (safe on web), but don't autoplay until user gesture
+  await AudioManager.instance.init();
 
   runApp(
     MaterialApp(
@@ -224,7 +228,10 @@ class MyGame extends FlameGame
       _lockControls(false);
     };
 
-    await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+    // On web, defer autoplay until user interaction (MainMenu button)
+    if (!kIsWeb) {
+      await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+    }
 
     // Ensure settings button is visible by default
     overlays.add(SettingsOverlay.id);
