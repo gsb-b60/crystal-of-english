@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../state/inventory.dart';
 
 class InventoryPanel extends StatelessWidget {
   final VoidCallback onClose;
@@ -58,26 +59,44 @@ class InventoryPanel extends StatelessWidget {
               padding: const EdgeInsets.all(12.0),
               child: SizedBox(
                 height: gridHeight,
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: spacing,
-                    mainAxisSpacing: spacing,
-                    childAspectRatio: 1,
-                  ),
-                  itemCount: totalSlots,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.black26),
+                child: AnimatedBuilder(
+                  animation: Inventory.instance,
+                  builder: (context, _) {
+                    final items = Inventory.instance.items;
+                    return GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: spacing,
+                        mainAxisSpacing: spacing,
+                        childAspectRatio: 1,
                       ),
-                      child: const Center(
-                        child: Text('', style: TextStyle(color: Colors.black54)),
-                      ),
+                      itemCount: totalSlots,
+                      itemBuilder: (context, index) {
+                        final item = index < items.length ? items[index] : null;
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.black26),
+                          ),
+                          child: item == null
+                              ? const SizedBox.shrink()
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(item.icon, size: 22, color: Colors.black87),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.name,
+                                      style: const TextStyle(fontSize: 11, color: Colors.black87),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                        );
+                      },
                     );
                   },
                 ),

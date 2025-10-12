@@ -38,6 +38,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart';
 import 'audio/audio_manager.dart';   
 import 'ui/settings_overlay.dart';
+import 'ui/shop_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -109,6 +110,15 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
           },
           SettingsOverlay.id: (context, game) {
             return SettingsOverlay(audio: AudioManager.instance);
+          },
+          ShopOverlay.id: (context, game) {
+            final g = game as MyGame;
+            return ShopOverlay(
+              onClose: () async {
+                g.overlays.remove(ShopOverlay.id);
+                await g.showAreaTitle('Cảm ơn bạn đã mua hàng');
+              },
+            );
           },
         },
         initialActiveOverlays: const ['PauseButton','MainMenu', SettingsOverlay.id],
@@ -351,6 +361,35 @@ class MyGame extends FlameGame
         triggerRadius: 40,
         enemyType: EnemyType.boss, 
       ));
+
+      final shopNpc = Npc(
+        position: Vector2(312, 342),
+        manager: dialogManager,
+        interactLines: const ['Xin chào!', 'Bạn muốn mua gì không?'],
+        interactOrderMode: InteractOrderMode.alwaysFromStart,
+        interactPrompt: 'Chọn hành động:',
+        interactChoices: [
+          DialogueChoice(
+            'Mua vật phẩm',
+            onSelected: () async {
+              dialogManager.close();
+              overlays.add(ShopOverlay.id);
+            },
+          ),
+          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
+        ],
+        idleLines: const ['Giá rẻ như bèo!', 'Đồ mới về đây!'],
+        enableIdleChatter: true,
+        spriteAsset: 'Eleonore.png',
+        srcPosition: Vector2(0, 0),
+        srcSize: Vector2(64, 64),
+        size: Vector2(40, 40),
+        avatarAsset: 'assets/images/Eleonore_avatar.png',
+        avatarDisplaySize: const Size(162, 162),
+        interactRadius: 28,
+        zPriority: 20,
+      );
+      await world.add(shopNpc);
     }
   }
 
@@ -401,7 +440,6 @@ class MyGame extends FlameGame
     hudRoot.add(heartsHud);
     heartsHud.setCurrent(remainHearts);
 
-    // Cộng XP nếu thắng
     if (result.outcome == 'win' && result.xpGained > 0) {
       expHud.addXp(result.xpGained);
     }

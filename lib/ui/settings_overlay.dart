@@ -45,7 +45,6 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Settings button
                     Material(
                       color: Colors.black.withOpacity(0.35),
                       borderRadius: BorderRadius.circular(10),
@@ -59,7 +58,6 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Inventory button below
                     Material(
                       color: Colors.black.withOpacity(0.35),
                       borderRadius: BorderRadius.circular(10),
