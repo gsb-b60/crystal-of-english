@@ -7,10 +7,12 @@ import '../main.dart';
 class Coin extends SpriteAnimationComponent with TapCallbacks {
   final VoidCallback onCollected;
   final double interactRadius;
+  final bool persistent;
   Coin({
     required Vector2 position,
     required this.onCollected,
-    this.interactRadius = 50.0,  
+    this.interactRadius = 50.0,
+    this.persistent = false,
   }) : super(
          position: position,
          size: Vector2(16, 16),
@@ -40,7 +42,9 @@ class Coin extends SpriteAnimationComponent with TapCallbacks {
 
     if (distance <= interactRadius) {
       onCollected(); 
-      removeFromParent();  
+      if (!persistent) {
+        removeFromParent();
+      }
       return true;  
     }
 
