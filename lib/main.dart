@@ -48,7 +48,6 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Initialize audio (safe on web), but don't autoplay until user gesture
   await AudioManager.instance.init();
 
   runApp(
@@ -195,7 +194,6 @@ class MyGame extends FlameGame
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
-      // Keep settings button visible on top
       if (overlays.isActive(SettingsOverlay.id)) {
         overlays.remove(SettingsOverlay.id);
         overlays.add(SettingsOverlay.id);
@@ -228,12 +226,10 @@ class MyGame extends FlameGame
       _lockControls(false);
     };
 
-    // On web, defer autoplay until user interaction (MainMenu button)
     if (!kIsWeb) {
       await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
     }
 
-    // Ensure settings button is visible by default
     overlays.add(SettingsOverlay.id);
   }
 
@@ -507,14 +503,12 @@ class MyGame extends FlameGame
           },
         ),
       );
-      // Flashcards event coin at fixed position (334, 329)
       await world.add(
         Coin(
           position: Vector2(334, 329),
           interactRadius: 60,
           persistent: true,
           onCollected: () {
-            // Pause game and open flashcards overlay
             pauseEngine();
             overlays.add('Flashcards');
           },
@@ -531,7 +525,6 @@ class MyGame extends FlameGame
         ),
       );
     } else if (mapFile == 'map.tmx') {
-      // Main map: coin to go to shop
       await world.add(
         Coin(
           position: Vector2(362, 280),
@@ -542,7 +535,6 @@ class MyGame extends FlameGame
         ),
       );
     } else if (mapFile == 'shop.tmx') {
-      // Shop map: coin to return to main map
       await world.add(
         Coin(
           position: finalSpawn.clone(),
