@@ -5,7 +5,6 @@ import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame_tiled/flame_tiled.dart' as ft;
-import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
 
 import 'package:flutter/material.dart';
@@ -17,6 +16,7 @@ import 'ui/experience.dart';
 import 'components/tiledobject.dart';
 import 'components/collisionmap.dart';
 import 'components/enemy_wander.dart';
+import 'enemy.dart';
 import 'components/battle_scene.dart';
 import 'player.dart';
 import 'dialog/dialog_manager.dart';
@@ -25,8 +25,7 @@ import 'components/npc.dart';
 import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
-import 'dart:ui' as ui;
-import 'package:flame_tiled/flame_tiled.dart' as ft;
+// duplicate imports removed
 import 'package:mygame/components/Menu/mainmenu.dart';
 import 'package:mygame/components/Menu/pausebutton.dart';
 import 'package:provider/provider.dart';
@@ -34,21 +33,19 @@ import 'components/Menu/flashcard/business/Deck.dart';
 import 'components/Menu/flashcard/business/Flashcard.dart';
 import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
-import 'package:flame_audio/flame_audio.dart';
-import 'package:flutter/services.dart';
-import 'audio/audio_manager.dart';   
+import 'audio/audio_manager.dart';
 import 'ui/settings_overlay.dart';
-import 'ui/shop_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
-await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
+  // Initialize audio (safe on web), but don't autoplay until user gesture
   await AudioManager.instance.init();
 
   runApp(
@@ -66,13 +63,13 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
             final g = game as MyGame;
             return ReturnButton(actions: g.rightActions);
           },
-          "MainMenu":(context,game){
+          "MainMenu": (context, game) {
             return MainMenu(game: game as MyGame);
           },
-          "PauseButton":(context,game){
+          "PauseButton": (context, game) {
             return PauseButton(game: game as MyGame);
           },
-          "PauseMenu":(context,game){
+          "PauseMenu": (context, game) {
             return PauseMenu(game: game as MyGame);
           },
           // Overlay to host Flashcards screens
@@ -111,22 +108,12 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
           SettingsOverlay.id: (context, game) {
             return SettingsOverlay(audio: AudioManager.instance);
           },
-          ShopOverlay.id: (context, game) {
-            final g = game as MyGame;
-            return ShopOverlay(
-              onClose: () async {
-                g.overlays.remove(ShopOverlay.id);
-                await g.showAreaTitle('Cảm ơn bạn đã mua hàng');
-              },
-            );
-          },
         },
-        initialActiveOverlays: const ['PauseButton','MainMenu', SettingsOverlay.id],
+        initialActiveOverlays: const ['PauseButton', 'MainMenu'],
       ),
     ),
   );
 }
-
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -204,6 +191,7 @@ class MyGame extends FlameGame
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
+      // Keep settings button visible on top
       if (overlays.isActive(SettingsOverlay.id)) {
         overlays.remove(SettingsOverlay.id);
         overlays.add(SettingsOverlay.id);
@@ -217,7 +205,7 @@ class MyGame extends FlameGame
       emptyHeartAsset: 'hp/empty_heart.png',
       heartSize: 32,
       spacing: 6,
-      margin: const EdgeInsets.only(left: 8, top: 4),  
+      margin: const EdgeInsets.only(left: 8, top: 4),
     );
     await hudRoot.add(heartsHud);
 
@@ -236,10 +224,15 @@ class MyGame extends FlameGame
       _lockControls(false);
     };
 
+    // On web, defer autoplay until user interaction (MainMenu button)
     if (!kIsWeb) {
-      await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+      await AudioManager.instance.playBgm(
+        'audio/bgm_overworld.mp3',
+        volume: 0.4,
+      );
     }
 
+    // Ensure settings button is visible by default
     overlays.add(SettingsOverlay.id);
   }
 
@@ -329,67 +322,42 @@ class MyGame extends FlameGame
       );
       await world.add(npc2);
 
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.normal, 
-      ));
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.strong, 
-      ));
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.miniboss, 
-      ));
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.boss, 
-      ));
-
-      final shopNpc = Npc(
-        position: Vector2(312, 342),
-        manager: dialogManager,
-        interactLines: const ['Xin chào!', 'Bạn muốn mua gì không?'],
-        interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Chọn hành động:',
-        interactChoices: [
-          DialogueChoice(
-            'Mua vật phẩm',
-            onSelected: () async {
-              dialogManager.close();
-              overlays.add(ShopOverlay.id);
-            },
-          ),
-          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
-        ],
-        idleLines: const ['Giá rẻ như bèo!', 'Đồ mới về đây!'],
-        enableIdleChatter: true,
-        spriteAsset: 'Eleonore.png',
-        srcPosition: Vector2(0, 0),
-        srcSize: Vector2(64, 64),
-        size: Vector2(40, 40),
-        avatarAsset: 'assets/images/Eleonore_avatar.png',
-        avatarDisplaySize: const Size(162, 162),
-        interactRadius: 28,
-        zPriority: 20,
+      // Create NPCs that walk around the map
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(300, 550, 160, 120),
+          speed: 25,
+          triggerRadius: 40,
+          enemyType: EnemyType.normal,
+        ),
       );
-      await world.add(shopNpc);
+
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          speed: 30,
+          triggerRadius: 40,
+          enemyType: EnemyType.strong,
+        ),
+      );
+
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.miniboss,
+        ),
+      );
+
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          speed: 20,
+          triggerRadius: 40,
+          enemyType: EnemyType.boss,
+        ),
+      );
     }
   }
 
@@ -440,6 +408,7 @@ class MyGame extends FlameGame
     hudRoot.add(heartsHud);
     heartsHud.setCurrent(remainHearts);
 
+    // Cộng XP nếu thắng
     if (result.outcome == 'win' && result.xpGained > 0) {
       expHud.addXp(result.xpGained);
     }
@@ -527,8 +496,8 @@ class MyGame extends FlameGame
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'Undead_land.tmx'
-              ? 'Welcome to Undead Island'
-              : 'Overworld',
+          ? 'Welcome to Undead Island'
+          : 'Overworld',
     );
 
     if (mapFile == 'houseinterior.tmx') {
@@ -541,12 +510,14 @@ class MyGame extends FlameGame
           },
         ),
       );
+      // Flashcards event coin at fixed position (334, 329)
       await world.add(
         Coin(
           position: Vector2(334, 329),
           interactRadius: 60,
           persistent: true,
           onCollected: () {
+            // Pause game and open flashcards overlay
             pauseEngine();
             overlays.add('Flashcards');
           },
@@ -559,26 +530,6 @@ class MyGame extends FlameGame
           interactRadius: 140,
           onCollected: () async {
             await loadMap('map.tmx', spawn: Vector2(955, 672));
-          },
-        ),
-      );
-    } else if (mapFile == 'map.tmx') {
-      await world.add(
-        Coin(
-          position: Vector2(362, 280),
-          interactRadius: 80,
-          onCollected: () async {
-            await loadMap('shop.tmx', spawn: Vector2(335, 200));
-          },
-        ),
-      );
-    } else if (mapFile == 'shop.tmx') {
-      await world.add(
-        Coin(
-          position: finalSpawn.clone(),
-          interactRadius: 140,
-          onCollected: () async {
-            await loadMap('map.tmx', spawn: Vector2(362, 280));
           },
         ),
       );
