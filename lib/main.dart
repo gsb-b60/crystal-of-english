@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame_tiled/flame_tiled.dart' as ft;
+import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
 
 import 'package:flutter/material.dart';
@@ -111,12 +112,11 @@ await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
             return SettingsOverlay(audio: AudioManager.instance);
           },
         },
-        initialActiveOverlays: const ['PauseButton','MainMenu'],
+        initialActiveOverlays: const ['PauseButton','MainMenu', SettingsOverlay.id],
       ),
     ),
   );
 }
-
 
 
 class MyGame extends FlameGame
@@ -527,6 +527,28 @@ class MyGame extends FlameGame
           interactRadius: 140,
           onCollected: () async {
             await loadMap('map.tmx', spawn: Vector2(955, 672));
+          },
+        ),
+      );
+    } else if (mapFile == 'map.tmx') {
+      // Main map: coin to go to shop
+      await world.add(
+        Coin(
+          position: Vector2(362, 280),
+          interactRadius: 80,
+          onCollected: () async {
+            await loadMap('shop.tmx', spawn: Vector2(335, 200));
+          },
+        ),
+      );
+    } else if (mapFile == 'shop.tmx') {
+      // Shop map: coin to return to main map
+      await world.add(
+        Coin(
+          position: finalSpawn.clone(),
+          interactRadius: 140,
+          onCollected: () async {
+            await loadMap('map.tmx', spawn: Vector2(362, 280));
           },
         ),
       );
