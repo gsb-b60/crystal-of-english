@@ -61,8 +61,10 @@ class MenuNav extends StatelessWidget {
           onPressed: () async {
             if (kIsWeb) {
               // Start BGM on a user gesture to satisfy autoplay policy
-              await AudioManager.instance
-                  .playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+              await AudioManager.instance.playBgm(
+                'audio/bgm_overworld.mp3',
+                volume: 0.4,
+              );
             }
             game.overlays.remove('MainMenu'); // ẩn menu
             game.resumeEngine(); // chạy game tiếp
@@ -99,16 +101,25 @@ class MenuNav extends StatelessWidget {
           },
           child: Container(
             height: 40,
-            child: Image.asset("assets/menu/Flashcards.png", package: null, errorBuilder: (c, e, s) {
-              // Fallback text if asset missing
-              return const Center(child: Text('Flashcards', style: TextStyle(color: Colors.white)));
-            }),
+            child: Image.asset(
+              "assets/menu/Flashcards.png",
+              package: null,
+              errorBuilder: (c, e, s) {
+                // Fallback text if asset missing
+                return const Center(
+                  child: Text(
+                    'Flashcards',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              },
+            ),
           ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.zero,
-            backgroundColor: Colors.transparent, 
+            backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
           ),
           onPressed: () {},
@@ -125,7 +136,10 @@ class MenuNav extends StatelessWidget {
             shadowColor: Colors.transparent,
           ),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>Setting(game: game)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Setting(game: game)),
+            );
           },
           child: Container(
             height: 40,
