@@ -172,11 +172,16 @@ class Cardmodel with ChangeNotifier {
   }
 
   Future<List<Flashcard>> getDueCards(int deckId) async {
-    final now = DateTime.now();
-    final cards = await _dbhelper.getCardForDeck(deckId);
-    return cards
-        .where((c) => c.due != null && !c.due!.isAfter(now))
-        .toList(growable: false);
+    final db = await _dbhelper.database;
+    final now = DateTime.now().toIso8601String();
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cards',
+      where: 'deck_id=? and due<=?',
+      whereArgs: [deckId, now],
+    );
+    return List.generate(maps.length, (i) {
+      return Flashcard.fromMap(maps[i]);
+    });
   }
 
   Future<void> updateCardAfterReview(
@@ -219,3 +224,4 @@ class Cardmodel with ChangeNotifier {
     return result;
   }
 }       
+
