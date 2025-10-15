@@ -3,7 +3,10 @@ import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:file_picker/file_picker.dart';
+// Local stub to allow building without the file_picker plugin.
+// Replace with: import 'package:file_picker/file_picker.dart';
+// when the dependency is available and pub get has been run.
+import 'file_picker_stub.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:archive/archive.dart' as archive;
