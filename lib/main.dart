@@ -578,6 +578,30 @@ class MyGame extends FlameGame
           },
         ),
       );
+    } else if (mapFile == 'map.tmx') {
+      // Main map: coin to go to shop
+      await world.add(
+        Coin(
+          position: Vector2(362, 280),
+          interactRadius: 80,
+          persistent: true,
+          onCollected: () async {
+            await loadMap('shop.tmx', spawn: Vector2(120, 120));
+          },
+        ),
+      );
+    } else if (mapFile == 'shop.tmx') {
+      // Shop map: coin to return to main map
+      await world.add(
+        Coin(
+          position: Vector2(120, 120),
+          interactRadius: 80,
+          persistent: true,
+          onCollected: () async {
+            await loadMap('map.tmx', spawn: Vector2(362, 280));
+          },
+        ),
+      );
     }
   }
 }

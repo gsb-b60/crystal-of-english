@@ -104,6 +104,7 @@ flutter:
     - assets/quiz/job/sounds/
     - assets/quiz/job/images/
     - assets/audio/bgm_overworld.mp3
+    - assets/maps/shop.tmx
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

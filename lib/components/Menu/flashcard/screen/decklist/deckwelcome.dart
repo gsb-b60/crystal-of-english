@@ -3,6 +3,7 @@ import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
 import 'package:provider/provider.dart';
 
 import 'cardlistscreen.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 
 class DeckListScreen extends StatefulWidget {
   const DeckListScreen({super.key});
@@ -20,7 +21,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
         title: const Text("My Decks"),
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 60), // FIXED
+            padding: EdgeInsets.only(right: 60), 
             child: IconButton(
               onPressed: 
               () {
@@ -48,8 +49,10 @@ class _DeckListScreenState extends State<DeckListScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  CardListScreen(deckId: deck.id),
+                              builder: (context) => ChangeNotifierProvider<Cardmodel>(
+                                create: (_) => Cardmodel(),
+                                child: CardListScreen(deckId: deck.id),
+                              ),
                             ),
                           );
                         },
