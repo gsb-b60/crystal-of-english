@@ -314,7 +314,7 @@ class MyGame extends FlameGame
             'Vào đảo undead',
             onSelected: () async {
               dialogManager.close();
-              await loadMap('Undead_land.tmx', spawn: Vector2(354, 102));
+              await loadMap('dungeon.tmx', spawn: Vector2(2100, 1095));
             },
           ),
           DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
@@ -331,50 +331,6 @@ class MyGame extends FlameGame
         zPriority: 20,
       );
       await world.add(npc2);
-
-      // Create NPCs that walk around the map
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(300, 550, 160, 120),
-          speed: 25,
-          triggerRadius: 40,
-          enemyType: EnemyType.normal,
-        ),
-      );
-
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-          speed: 30,
-          triggerRadius: 40,
-          enemyType: EnemyType.strong,
-        ),
-      );
-
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: EnemyType.miniboss,
-        ),
-      );
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.miniboss, 
-      ));
-
-      await world.add(EnemyWander(
-        patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-        spritePath: 'Joanna.png',
-        speed: 35,
-        triggerRadius: 40,
-        enemyType: EnemyType.boss, 
-      ));
 
       final shopNpc = Npc(
         position: Vector2(312, 342),
@@ -405,8 +361,63 @@ class MyGame extends FlameGame
       );
       await world.add(shopNpc);
     }
-  }
+    else if (mapFile == 'dungeon.tmx') {
+      // Add enemies for the dungeon map
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(1600, 755, 160, 120),
+          speed: 30,
+          triggerRadius: 48,
+          enemyType: EnemyType.normal,
+        ),
+      );
 
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(1700, 575, 160, 120),
+          speed: 28,
+          triggerRadius: 48,
+          enemyType: EnemyType.strong,
+        ),
+      );
+
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(400, 450, 160, 120),
+          speed: 32,
+          triggerRadius: 48,
+          enemyType: EnemyType.miniboss,
+        ),
+      );
+
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(825, 585, 160, 120),
+          speed: 20,
+          triggerRadius: 60,
+          enemyType: EnemyType.boss,
+        ),
+      );
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(450, 950, 160, 120),
+          speed: 30,
+          triggerRadius: 48,
+          enemyType: EnemyType.normal,
+        ),
+      );
+
+      await world.add(
+        Enemy(
+          patrolRect: ui.Rect.fromLTWH(1250, 850, 160, 120),
+          speed: 28,
+          triggerRadius: 48,
+          enemyType: EnemyType.strong,
+        ),
+      );
+    }
+  }
+  
   Future<void> enterBattle({required EnemyType enemyType}) async {
     if (_inBattle) return;
     _inBattle = true;
@@ -467,7 +478,7 @@ class MyGame extends FlameGame
 
     if (result.outcome == 'lose') {
       heartsHud.refill();
-      player.position = Vector2(310, 138);
+      player.position = Vector2(2100, 1095);
     }
 
     // continue nhạc nền khi thoát battle
@@ -540,7 +551,7 @@ class MyGame extends FlameGame
     await showAreaTitle(
       mapFile == 'houseinterior.tmx'
           ? 'Library'
-          : mapFile == 'Undead_land.tmx'
+          : mapFile == 'dungeon.tmx'
           ? 'Welcome to Undead Island'
           : 'Overworld',
     );
@@ -568,7 +579,7 @@ class MyGame extends FlameGame
           },
         ),
       );
-    } else if (mapFile == 'Undead_land.tmx') {
+    } else if (mapFile == 'dungeon.tmx') {
       await world.add(
         Coin(
           position: finalSpawn.clone(),

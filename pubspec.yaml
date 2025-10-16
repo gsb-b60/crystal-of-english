@@ -73,6 +73,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/maps/
+    - assets/9-Slice/
     - assets/tiles/
     - assets/tiles/Animation/
     - assets/tiles/Art/water/
@@ -89,9 +90,14 @@ flutter:
     - assets/images/characters/enemy/
     - assets/images/characters/enemy/at_main/
     - assets/images/characters/enemy/at_main/orc/
-    - assets/images/characters/enemy/at_main/slime/
+    - assets/images/characters/enemy/at_main/orc2/
     - assets/images/characters/enemy/at_main/vampire/
     - assets/images/characters/enemy/at_main/plant/
+    - assets/images/characters/enemy/at_battle/
+    - assets/images/characters/enemy/at_battle/orc/
+    - assets/images/characters/enemy/at_battle/orc2/
+    - assets/images/characters/enemy/at_battle/vampire/
+    - assets/images/characters/enemy/at_battle/plant/
     - assets/images/characters/
     - assets/menu/
     - assets/menu/pauseMenu/
