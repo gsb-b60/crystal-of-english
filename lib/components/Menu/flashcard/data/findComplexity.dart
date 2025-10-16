@@ -21,7 +21,6 @@ int countSyllables(String word) {
   word = word.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
   if (word.isEmpty) return 0;
 
-  // Remove silent 'e' at the end
   if (word.endsWith('e')) {
     word = word.substring(0, word.length - 1);
   }

@@ -1,5 +1,4 @@
-// Minimal stub for file picking to keep the project compiling when
-// the 'file_picker' plugin isn't available. All methods return null.
+
 
 enum FileType { any, custom }
 

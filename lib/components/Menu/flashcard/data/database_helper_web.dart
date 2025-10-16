@@ -59,7 +59,6 @@ class DatabaseHelper {
     return c.id!;
   }
 
-  // --- No-op / demo methods on web ---
   Future<String?> pickApkgFile() async => null;
   Future<String?> pickAndCopyFile() async => '';
   Future<String?> unzipApkgFile(String apkgFilePath) async => null;

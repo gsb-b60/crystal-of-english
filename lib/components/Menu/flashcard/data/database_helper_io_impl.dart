@@ -27,7 +27,55 @@ class DatabaseHelper {
   _initDatabase() async {
     String path = await getDatabasesPath();
     String databasePath = join(path, 'learning_card.db');
-    return await openDatabase(databasePath, version: 1, onCreate: _onCreate);
+    final db = await openDatabase(
+      databasePath,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
+
+    try {
+      final pragma = await db.rawQuery("PRAGMA table_info(cards)");
+      final existing = <String>{};
+      for (final row in pragma) {
+        final name = row['name'] as String?;
+        if (name != null) existing.add(name);
+      }
+
+      final Map<String, String> expected = {
+        'complexity': 'ALTER TABLE cards ADD COLUMN complexity INTEGER DEFAULT 1',
+        'synonyms': 'ALTER TABLE cards ADD COLUMN synonyms TEXT',
+        'defSound': 'ALTER TABLE cards ADD COLUMN defSound TEXT',
+        'usageSound': 'ALTER TABLE cards ADD COLUMN usageSound TEXT',
+      };
+
+      for (final entry in expected.entries) {
+        if (!existing.contains(entry.key)) {
+          try {
+            await db.execute(entry.value);
+            print('Added missing column `${entry.key}` to cards table at runtime');
+          } catch (e) {
+            print('Failed to add column ${entry.key}: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('Runtime schema reconciliation failed: $e');
+    }
+
+    return db;
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      try {
+        await db.execute(
+          'ALTER TABLE cards ADD COLUMN complexity INTEGER DEFAULT 1',
+        );
+      } catch (e) {
+        print('onUpgrade: add complexity failed or already applied: $e');
+      }
+    }
   }
 
   Future _onCreate(Database db, int version) async {
@@ -330,5 +378,23 @@ class DatabaseHelper {
     final dbPath = await unzipApkgFile(outPath);
     if (dbPath == null) return;
     await importDataFromAnki(dbPath);
+  }
+
+  Future<List<Map<String, Object?>>> getCardsTableInfo() async {
+    final db = await database;
+    final info = await db.rawQuery('PRAGMA table_info(cards)');
+    return List<Map<String, Object?>>.from(info);
+  }
+
+  Future<void> deleteLearningCardDatabase() async {
+    try {
+      final databasesPath = await getDatabasesPath();
+      final dbPath = join(databasesPath, 'learning_card.db');
+      await deleteDatabase(dbPath);
+      _database = null;
+      print('Deleted learning_card.db at $dbPath');
+    } catch (e) {
+      print('Failed to delete learning_card.db: $e');
+    }
   }
 }

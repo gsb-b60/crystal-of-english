@@ -67,7 +67,7 @@ Flashcard? mapRowToFlashcard(Map<String, Object?> row, int deckId) {
       }
       break;
     case 3:
-      // Cloze
+      
       break;
     default:
       print(

@@ -113,7 +113,9 @@ class FlashCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dir = '/data/user/0/com.example.mygame/app_flutter/anki/${media!}';
+    final String? dir = (media != null && media!.isNotEmpty)
+        ? '/data/user/0/com.example.mygame/app_flutter/anki/${media!}'
+        : null;
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
@@ -122,10 +124,10 @@ class FlashCardItem extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            PictureHolder(path: card.img != null ? '$dir/${card.img}' : null),
+            PictureHolder(path: (dir != null && card.img != null) ? '$dir/${card.img}' : null),
             IPAandWord(card: card),
             CardInformation(card: card, dir: dir),
-            PictureHolder(path: card.synonyms != null ? '$dir/${card.synonyms}' : null),
+            PictureHolder(path: (dir != null && card.synonyms != null) ? '$dir/${card.synonyms}' : null),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -191,7 +193,7 @@ class CardInformation extends StatelessWidget {
   const CardInformation({super.key, required this.card, required this.dir});
 
   final Flashcard card;
-  final String dir;
+  final String? dir;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +216,6 @@ class CardInformation extends StatelessWidget {
               ),
               TitleAndValue(title: "Usage Sound", value: card.usageSound ?? ''),
               const SizedBox(height: 6),
-              // Review info: interval / reps / due date
               if (card.due != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 6),
@@ -230,17 +231,17 @@ class CardInformation extends StatelessWidget {
           children: [
             SoundTitle(
               title: "sound",
-              value: card.sound != null ? '$dir/${card.sound}' : '',
+              value: (dir != null && card.sound != null) ? '$dir/${card.sound}' : '',
               icon: const Icon(Icons.volume_up),
             ),
             SoundTitle(
               title: "u sound",
-              value: card.usageSound != null ? '$dir/${card.usageSound}' : '',
+              value: (dir != null && card.usageSound != null) ? '$dir/${card.usageSound}' : '',
               icon: const Icon(Icons.volume_up),
             ),
             SoundTitle(
               title: "def sound",
-              value: card.defSound != null ? '$dir/${card.defSound}' : '',
+              value: (dir != null && card.defSound != null) ? '$dir/${card.defSound}' : '',
               icon: const Icon(Icons.volume_up),
             ),
           ],
@@ -262,11 +263,10 @@ class PictureHolder extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: ClipRRect(
-          // Bọc trong ClipRRect để làm tròn góc ảnh
           borderRadius: BorderRadius.circular(8),
           child: Image.file(
             File(path!),
-            fit: BoxFit.fitWidth, // Đảm bảo hình ảnh vừa với chiều rộng
+            fit: BoxFit.fitWidth, 
           ),
         ),
       );
