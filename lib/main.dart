@@ -10,7 +10,11 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
+import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/screen/profilescreen/accountscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
+import 'package:provider/provider.dart';
 import 'ui/health.dart';
 import 'ui/experience.dart';
 import 'components/tiledobject.dart';
@@ -49,77 +53,77 @@ void main() async {
   // Initialize audio (safe on web), but don't autoplay until user gesture
   await AudioManager.instance.init();
 
+  final deckModel = Deckmodel();
+  await deckModel.fetchDecks();
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'MyFont'),
-      home: GameWidget(
-        game: MyGame(),
-        overlayBuilderMap: {
-          DialogOverlay.id: (context, game) {
-            final g = game as MyGame;
-            return DialogOverlay(manager: g.dialogManager);
-          },
-          ReturnButton.id: (context, game) {
-            final g = game as MyGame;
-            return ReturnButton(actions: g.rightActions);
-          },
-          "MainMenu": (context, game) {
-            return MainMenu(game: game as MyGame);
-          },
-          "PauseButton": (context, game) {
-            return PauseButton(game: game as MyGame);
-          },
-          "PauseMenu": (context, game) {
-            return PauseMenu(game: game as MyGame);
-          },
-          // Overlay to host Flashcards screens
-          'Flashcards': (context, game) {
-            final g = game as MyGame;
-            return Material(
-              color: Colors.black54,
-              child: SafeArea(
-                child: Scaffold(
-                  backgroundColor: Colors.white,
-                  appBar: AppBar(
-                    title: const Text('Flashcards'),
-                    leading: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        g.overlays.remove('Flashcards');
-                        g.resumeEngine();
-                      },
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => Cardmodel()),
+        ChangeNotifierProvider.value(value: deckModel),
+        //ChangeNotifierProvider.value(value: cardModel),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'MyFont'),
+        home: GameWidget(
+          game: MyGame(),
+          overlayBuilderMap: {
+            DialogOverlay.id: (context, game) {
+              final g = game as MyGame;
+              return DialogOverlay(manager: g.dialogManager);
+            },
+            ReturnButton.id: (context, game) {
+              final g = game as MyGame;
+              return ReturnButton(actions: g.rightActions);
+            },
+            "MainMenu": (context, game) {
+              return MainMenu(game: game as MyGame);
+            },
+            "PauseButton": (context, game) {
+              return PauseButton(game: game as MyGame);
+            },
+            "PauseMenu": (context, game) {
+              return PauseMenu(game: game as MyGame);
+            },
+            // Overlay to host Flashcards screens
+            'Flashcards': (context, game) {
+              final g = game as MyGame;
+              return Material(
+                color: Colors.black54,
+                child: SafeArea(
+                  child: Scaffold(
+                    backgroundColor: Colors.white,
+                    appBar: AppBar(
+                      title: const Text('Flashcards'),
+                      leading: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          g.overlays.remove('Flashcards');
+                          g.resumeEngine();
+                        },
+                      ),
                     ),
-                  ),
-                  body: MultiProvider(
-                    providers: [
-                      ChangeNotifierProvider<Deckmodel>(
-                        create: (_) => Deckmodel()..fetchDecks(),
-                      ),
-                      ChangeNotifierProvider<Cardmodel>(
-                        create: (_) => Cardmodel(),
-                      ),
-                    ],
-                    child: const DeckListScreen(),
+                    body: const DeckListScreen(),
                   ),
                 ),
-              ),
-            );
+              );
+            },
+            SettingsOverlay.id: (context, game) {
+              return SettingsOverlay(audio: AudioManager.instance);
+            },
+            ShopOverlay.id: (context, game) {
+              final g = game as MyGame;
+              return ShopOverlay(
+                onClose: () async {
+                  g.overlays.remove(ShopOverlay.id);
+                  await g.showAreaTitle('Cảm ơn bạn đã mua hàng');
+                },
+              );
+            },
           },
-          SettingsOverlay.id: (context, game) {
-            return SettingsOverlay(audio: AudioManager.instance);
-          },
-          ShopOverlay.id: (context, game) {
-            final g = game as MyGame;
-            return ShopOverlay(
-              onClose: () async {
-                g.overlays.remove(ShopOverlay.id);
-                await g.showAreaTitle('Cảm ơn bạn đã mua hàng');
-              },
-            );
-          },
-        },
-        initialActiveOverlays: const ['PauseButton', 'MainMenu'],
+
+          initialActiveOverlays: const ['PauseButton', 'MainMenu'],
+        ),
       ),
     ),
   );
@@ -243,7 +247,7 @@ class MyGame extends FlameGame
     }
 
     // Ensure settings button is visible by default
-    overlays.add(SettingsOverlay.id);
+    //overlays.add(SettingsOverlay.id);
   }
 
   @override
@@ -358,8 +362,54 @@ class MyGame extends FlameGame
         avatarDisplaySize: const Size(162, 162),
         interactRadius: 28,
         zPriority: 20,
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.normal,
+        ),
       );
-      await world.add(shopNpc);
+
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.strong,
+        ),
+      );
+
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.miniboss,
+        ),
+      );
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.miniboss,
+        ),
+      );
+
+      await world.add(
+        EnemyWander(
+          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+          spritePath: 'Joanna.png',
+          speed: 35,
+          triggerRadius: 40,
+          enemyType: EnemyType.boss,
+        ),
+      );
     }
     else if (mapFile == 'dungeon.tmx') {
       // Add enemies for the dungeon map
@@ -562,7 +612,7 @@ class MyGame extends FlameGame
           position: finalSpawn.clone(),
           interactRadius: 140,
           onCollected: () async {
-            await loadMap('map.tmx', spawn: Vector2(657, 133));
+            await loadMap('map.tmx', spawn: Vector2(657, 135));
           },
         ),
       );
@@ -586,6 +636,30 @@ class MyGame extends FlameGame
           interactRadius: 140,
           onCollected: () async {
             await loadMap('map.tmx', spawn: Vector2(955, 672));
+          },
+        ),
+      );
+    } else if (mapFile == 'map.tmx') {
+      // Main map: coin to go to shop
+      await world.add(
+        Coin(
+          position: Vector2(362, 280),
+          interactRadius: 80,
+          persistent: true,
+          onCollected: () async {
+            await loadMap('shop.tmx', spawn: Vector2(120, 120));
+          },
+        ),
+      );
+    } else if (mapFile == 'shop.tmx') {
+      // Shop map: coin to return to main map
+      await world.add(
+        Coin(
+          position: Vector2(120, 120),
+          interactRadius: 80,
+          persistent: true,
+          onCollected: () async {
+            await loadMap('map.tmx', spawn: Vector2(362, 280));
           },
         ),
       );

@@ -90,10 +90,14 @@ class NavPageBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
+        final cardModel = Provider.of<Cardmodel>(context, listen: false);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => screenBuilder(),
+            builder: (context) => ChangeNotifierProvider<Cardmodel>.value(
+              value: cardModel,
+              child: screenBuilder(),
+            ),
           ),
         );
       },
