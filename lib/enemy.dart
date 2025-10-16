@@ -42,11 +42,13 @@ class Enemy extends PositionComponent with HasGameRef<MyGame> {
       case EnemyType.strong:
         return 'characters/enemy/at_main/plant/';
       case EnemyType.miniboss:
-        return 'characters/enemy/at_main/slime/';
+        return 'characters/enemy/at_main/orc2/';
       case EnemyType.boss:
         return 'characters/enemy/at_main/vampire/';
     }
   }
+
+
 
   final Random _rng = Random();
   bool _triggered = false;

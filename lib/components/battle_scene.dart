@@ -4,36 +4,37 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/animation.dart' show Curves;
 import 'package:flutter/material.dart' show EdgeInsets;
 import 'package:flame/sprite.dart' show SpriteSheet;
-import 'package:flame/effects.dart';
 
 import '../components/quiz_panel.dart';
 import '../quiz/quiz_models.dart';
 import '../main.dart' show MyGame;
 import '../ui/health.dart';
 import 'enemy_wander.dart' show EnemyType;
-import 'package:flame/sprite.dart' show SpriteSheet;
 import 'package:flame/effects.dart';
 
 const _kHeroIdlePng = 'characters/maincharacter/Idle.png';
 const _kHeroAttackPng = 'characters/maincharacter/Attack.png';
 const _kHeroDeadPng = 'characters/maincharacter/Dead.png';
+const _kHeroHurtPng = 'characters/maincharacter/Hurt.png';
 
 // frame size
 final Vector2 _kIdleFrameSize = Vector2(64, 64);
 final Vector2 _kAttackFrameSize = Vector2(96, 80);
 final Vector2 _kDeadFrameSize = Vector2(80, 64);
+final Vector2 _kHurtFrameSize = Vector2(64, 64);
 
 // số frame
-const int _kIdleFrames = 3;
+const int _kIdleFrames = 4;
 const int _kAttackFrames = 8;
 const int _kDeadFrames = 8;
+const int _kHurtFrames = 4;
 
 const double _kIdleStep = 0.18;
 const double _kAttackStep = 0.07;
 const double _kDeadStep = 0.08;
+const double _kHurtStep = 0.07;
 
 const int _kPostAnswerDelayMs = 800;
 
@@ -146,9 +147,15 @@ class BattleScene extends Component with HasGameReference<MyGame> {
   late Health heroHealth;
   late Health enemyHealth;
 
-  late SpriteComponent enemy;
+  late PositionComponent enemy;
   late PositionComponent heroShadow;
   late PositionComponent enemyShadow;
+  // enemy battle animation
+  late SpriteAnimationComponent enemyAnim;
+  late SpriteAnimation _enemyIdleAnim;
+  SpriteAnimation? _enemyAttackAnim;
+  SpriteAnimation? _enemyHurtAnim;
+  SpriteAnimation? _enemyDeathAnim;
 
   late final QuizRepository _quizRepo;
   late List<QuizQuestion> _pool;
@@ -248,6 +255,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     final ui.Image idleImg = await game.images.load(_kHeroIdlePng);
     final ui.Image attackImg = await game.images.load(_kHeroAttackPng);
     final ui.Image deadImg = await game.images.load(_kHeroDeadPng);
+  final ui.Image hurtImg = await game.images.load(_kHeroHurtPng);
 
     final idleSheet = SpriteSheet(image: idleImg, srcSize: _kIdleFrameSize);
     final attackSheet = SpriteSheet(
@@ -290,14 +298,66 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await hud.add(heroShadow);
 
-    enemy = SpriteComponent(
-      sprite: await Sprite.load('Joanna.png'),
-      size: actorSize,
-      anchor: Anchor.bottomCenter,
-      position: Vector2(centerX + halfGap, baselineY),
-      priority: 10,
-    )..scale = Vector2(-1, 1);
-    await hud.add(enemy);
+    // Load enemy battle animations based on enemy type
+    final String enemyFolder = switch (enemyType) {
+      EnemyType.normal => 'characters/enemy/at_battle/orc/',
+      EnemyType.strong => 'characters/enemy/at_battle/plant/',
+      EnemyType.miniboss => 'characters/enemy/at_battle/orc2/',
+      EnemyType.boss => 'characters/enemy/at_battle/vampire/',
+    };
+
+    // Helper to create animation from a single-row sprite sheet png
+    SpriteAnimation _createAnimFromSheet(ui.Image img, Vector2 frameSize,
+        double step, int frames,
+        {bool loop = true}) {
+      final sheet = SpriteSheet(image: img, srcSize: frameSize);
+      return sheet.createAnimation(row: 0, from: 0, to: frames - 1, stepTime: step, loop: loop);
+    }
+
+    // Load all enemy battle pngs (idle, attack, hurt, death). If any missing,
+    // fall back to a single static Joanna.png sprite.
+    try {
+      final ui.Image eIdle = await game.images.load('${enemyFolder}idle.png');
+      final ui.Image eAttack = await game.images.load('${enemyFolder}attack.png');
+      final ui.Image eHurt = await game.images.load('${enemyFolder}hurt.png');
+      final ui.Image eDeath = await game.images.load('${enemyFolder}death.png');
+
+      // Infer frame sizes: attempt to use same sizing as hero's idle/hurt/attack/dead
+      // We'll assume each sheet's frame height equals width (square frames) or use hero sizes
+      final Vector2 eIdleFrame = Vector2(eIdle.height.toDouble(), eIdle.height.toDouble());
+      final Vector2 eAttackFrame = Vector2(eAttack.height.toDouble(), eAttack.height.toDouble());
+      final Vector2 eHurtFrame = Vector2(eHurt.height.toDouble(), eHurt.height.toDouble());
+      final Vector2 eDeathFrame = Vector2(eDeath.height.toDouble(), eDeath.height.toDouble());
+
+      // Create animations
+      _enemyIdleAnim = _createAnimFromSheet(eIdle, eIdleFrame, _kIdleStep, (eIdle.width / eIdleFrame.x).floor());
+      _enemyAttackAnim = _createAnimFromSheet(eAttack, eAttackFrame, _kAttackStep, (eAttack.width / eAttackFrame.x).floor(), loop: false);
+      _enemyHurtAnim = _createAnimFromSheet(eHurt, eHurtFrame, _kHurtStep, (eHurt.width / eHurtFrame.x).floor(), loop: false);
+      _enemyDeathAnim = _createAnimFromSheet(eDeath, eDeathFrame, _kDeadStep, (eDeath.width / eDeathFrame.x).floor(), loop: false);
+
+      enemyAnim = SpriteAnimationComponent(
+        animation: _enemyIdleAnim,
+        size: actorSize,
+        anchor: Anchor.bottomCenter,
+        position: Vector2(centerX + halfGap, baselineY),
+        priority: 10,
+      )..scale = Vector2(1, 1);
+      // set common reference so older code using `enemy` still works
+      enemy = enemyAnim;
+      await hud.add(enemyAnim);
+    } catch (e) {
+      // Fallback: keep the old Joanna static sprite so app doesn't crash if assets missing
+      enemy = SpriteComponent(
+        sprite: await Sprite.load('Joanna.png'),
+        size: actorSize,
+        anchor: Anchor.bottomCenter,
+        position: Vector2(centerX + halfGap, baselineY),
+        priority: 10,
+      )..scale = Vector2(1, 1);
+      await hud.add(enemy);
+      // ensure enemyAnim references exist to avoid null checks later
+      _enemyIdleAnim = _idleAnim;
+    }
 
     enemyShadow = _shadowAt(
       enemy.position,
@@ -310,10 +370,15 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     // Load quiz & start turn
     _quizRepo = QuizRepository();
     _pool = await _quizRepo.loadTopic(_topic);
-    await _nextTurn(attackSheet, deadSheet);
+    final hurtSheet = SpriteSheet(image: hurtImg, srcSize: _kHurtFrameSize);
+    await _nextTurn(attackSheet, deadSheet, hurtSheet);
   }
 
-  Future<void> _nextTurn(SpriteSheet attackSheet, SpriteSheet deadSheet) async {
+  Future<void> _nextTurn(
+    SpriteSheet attackSheet,
+    SpriteSheet deadSheet,
+    SpriteSheet hurtSheet,
+  ) async {
     if (_takingTurn) return;
     _takingTurn = true;
 
@@ -338,6 +403,9 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           enemyHealth.damage(1);
           await _hitFx(enemy.position);
 
+          // play enemy hurt animation if available
+          await _playEnemyHurtOnce();
+
           await Future.delayed(
             const Duration(milliseconds: _kPostAnswerDelayMs),
           );
@@ -346,16 +414,23 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           _panel = null;
 
           if (enemyHealth.isDead) {
+            // play death animation
+            await _playEnemyDeathOnce();
             final xp = _xpRewardFor(enemyType);
             onEnd(BattleResult.win(xp: xp));
             return;
           }
 
           _takingTurn = false;
-          await _nextTurn(attackSheet, deadSheet);
+          await _nextTurn(attackSheet, deadSheet, hurtSheet);
         } else {
           heroHealth.damage(1);
           await _hitFx(heroRoot.position);
+          // play hurt animation on hero
+          await _playHeroHurtOnce(hurtSheet);
+
+          // enemy attacks when player is incorrect
+          await _playEnemyAttackOnce();
 
           if (heroHealth.isDead) {
             await _playHeroDeadOnce(deadSheet);
@@ -376,7 +451,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           _panel = null;
 
           _takingTurn = false;
-          await _nextTurn(attackSheet, deadSheet);
+          await _nextTurn(attackSheet, deadSheet, hurtSheet);
         }
       },
     );
@@ -401,6 +476,22 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     }
   }
 
+  Future<void> _playHeroHurtOnce(SpriteSheet sheet) async {
+    final anim = sheet.createAnimation(
+      row: 0,
+      from: 0,
+      to: _kHurtFrames - 1,
+      stepTime: _kHurtStep,
+      loop: false,
+    );
+    heroAnim.animation = anim;
+    final durMs = (_kHurtFrames * _kHurtStep * 1000).round();
+    await Future.delayed(Duration(milliseconds: durMs));
+    if (heroAnim.isMounted) {
+      heroAnim.animation = _idleAnim;
+    }
+  }
+
   Future<void> _playHeroDeadOnce(SpriteSheet sheet) async {
     final anim = sheet.createAnimation(
       row: 0,
@@ -412,6 +503,40 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     heroAnim.animation = anim;
     final durMs = (_kDeadFrames * _kDeadStep * 1000).round();
     await Future.delayed(Duration(milliseconds: durMs));
+  }
+
+  // Enemy animation helpers
+  Future<void> _playEnemyAnimationOnce(SpriteAnimation? anim, int frameCount, double step) async {
+    if (anim == null) return;
+    if (enemyAnim.isMounted) {
+      enemyAnim.animation = anim;
+      final durMs = (frameCount * step * 1000).round();
+      await Future.delayed(Duration(milliseconds: durMs));
+      if (enemyAnim.isMounted) {
+        // restore idle unless this was death (we leave death as final pose)
+        if (anim != _enemyDeathAnim) {
+          enemyAnim.animation = _enemyIdleAnim;
+        }
+      }
+    }
+  }
+
+  Future<void> _playEnemyAttackOnce() async {
+    if (_enemyAttackAnim == null) return;
+    final frames = (_enemyAttackAnim!.frames.length);
+    await _playEnemyAnimationOnce(_enemyAttackAnim, frames, _kAttackStep);
+  }
+
+  Future<void> _playEnemyHurtOnce() async {
+    if (_enemyHurtAnim == null) return;
+    final frames = (_enemyHurtAnim!.frames.length);
+    await _playEnemyAnimationOnce(_enemyHurtAnim, frames, _kHurtStep);
+  }
+
+  Future<void> _playEnemyDeathOnce() async {
+    if (_enemyDeathAnim == null) return;
+    final frames = (_enemyDeathAnim!.frames.length);
+    await _playEnemyAnimationOnce(_enemyDeathAnim, frames, _kDeadStep);
   }
 
   // combat fx
