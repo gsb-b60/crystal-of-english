@@ -12,7 +12,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
-import 'package:mygame/components/Menu/flashcard/screen/profilescreen/accountscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
 import 'package:provider/provider.dart';
 import 'ui/health.dart';
@@ -29,17 +28,14 @@ import 'components/npc.dart';
 import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
-// duplicate imports removed
 import 'package:mygame/components/Menu/mainmenu.dart';
 import 'package:mygame/components/Menu/pausebutton.dart';
-import 'package:provider/provider.dart';
-import 'components/Menu/flashcard/business/Deck.dart';
-import 'components/Menu/flashcard/business/Flashcard.dart';
 import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
 import 'audio/audio_manager.dart';
 import 'ui/settings_overlay.dart';
 import 'ui/shop_overlay.dart';
+import 'state/inventory.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +46,6 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Initialize audio (safe on web), but don't autoplay until user gesture
   await AudioManager.instance.init();
 
   final deckModel = Deckmodel();
@@ -60,7 +55,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => Cardmodel()),
         ChangeNotifierProvider.value(value: deckModel),
-        //ChangeNotifierProvider.value(value: cardModel),
+        ChangeNotifierProvider.value(value: Inventory.instance),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -85,7 +80,6 @@ void main() async {
             "PauseMenu": (context, game) {
               return PauseMenu(game: game as MyGame);
             },
-            // Overlay to host Flashcards screens
             'Flashcards': (context, game) {
               final g = game as MyGame;
               return Material(
@@ -238,16 +232,13 @@ class MyGame extends FlameGame
       _lockControls(false);
     };
 
-    // On web, defer autoplay until user interaction (MainMenu button)
     if (!kIsWeb) {
       await AudioManager.instance.playBgm(
         'audio/bgm_overworld.mp3',
         volume: 0.4,
       );
     }
-
-    // Ensure settings button is visible by default
-    //overlays.add(SettingsOverlay.id);
+    overlays.add(SettingsOverlay.id);
   }
 
   @override
@@ -361,7 +352,8 @@ class MyGame extends FlameGame
         avatarAsset: 'assets/images/Eleonore_avatar.png',
         avatarDisplaySize: const Size(162, 162),
         interactRadius: 28,
-        zPriority: 20,
+        zPriority: 20,);
+      await world.add(shopNpc);
       await world.add(
         EnemyWander(
           patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
@@ -412,7 +404,6 @@ class MyGame extends FlameGame
       );
     }
     else if (mapFile == 'dungeon.tmx') {
-      // Add enemies for the dungeon map
       await world.add(
         Enemy(
           patrolRect: ui.Rect.fromLTWH(1600, 755, 160, 120),
@@ -472,7 +463,6 @@ class MyGame extends FlameGame
     if (_inBattle) return;
     _inBattle = true;
 
-    // Hide settings overlay during battle
     if (overlays.isActive(SettingsOverlay.id)) {
       overlays.remove(SettingsOverlay.id);
     }
@@ -616,14 +606,12 @@ class MyGame extends FlameGame
           },
         ),
       );
-      // Flashcards event coin at fixed position (334, 329)
       await world.add(
         Coin(
           position: Vector2(334, 329),
           interactRadius: 60,
           persistent: true,
           onCollected: () {
-            // Pause game and open flashcards overlay
             pauseEngine();
             overlays.add('Flashcards');
           },
@@ -640,7 +628,6 @@ class MyGame extends FlameGame
         ),
       );
     } else if (mapFile == 'map.tmx') {
-      // Main map: coin to go to shop
       await world.add(
         Coin(
           position: Vector2(362, 280),
@@ -652,7 +639,6 @@ class MyGame extends FlameGame
         ),
       );
     } else if (mapFile == 'shop.tmx') {
-      // Shop map: coin to return to main map
       await world.add(
         Coin(
           position: Vector2(120, 120),
