@@ -16,6 +16,7 @@ import 'package:mygame/components/Menu/pausemenu.dart';
 import 'package:provider/provider.dart';
 import 'ui/health.dart';
 import 'ui/experience.dart';
+import 'ui/gold_hud.dart';
 import 'components/tiledobject.dart';
 import 'components/collisionmap.dart';
 import 'components/enemy_wander.dart';
@@ -132,6 +133,7 @@ class MyGame extends FlameGame
   late World world;
   late Health heartsHud;
   late ExperienceBar expHud;
+  late GoldHud goldHud;
   late ft.TiledComponent map;
   late Rect mapBounds;
   final PositionComponent hudRoot = PositionComponent(priority: 100000);
@@ -224,6 +226,9 @@ class MyGame extends FlameGame
       },
     );
     await hudRoot.add(expHud);
+
+    goldHud = GoldHud(margin: const EdgeInsets.only(left: 8, top: 56));
+    await hudRoot.add(goldHud);
 
     dialogManager.onRequestCloseOverlay = () {
       if (overlays.isActive(DialogOverlay.id)) {
@@ -505,8 +510,13 @@ class MyGame extends FlameGame
     hudRoot.add(heartsHud);
     heartsHud.setCurrent(remainHearts);
 
-    if (result.outcome == 'win' && result.xpGained > 0) {
-      expHud.addXp(result.xpGained);
+    if (result.outcome == 'win') {
+      if (result.xpGained > 0) { expHud.addXp(result.xpGained); }
+
+
+      if (result.goldGained > 0) { goldHud.addGold(result.goldGained); }
+
+
     }
 
     if (joystick != null) {
@@ -652,3 +662,7 @@ class MyGame extends FlameGame
     }
   }
 }
+
+
+
+
