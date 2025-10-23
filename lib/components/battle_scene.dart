@@ -41,12 +41,13 @@ const int _kPostAnswerDelayMs = 800;
 class BattleResult {
   final String outcome;
   final int xpGained;
+  final int goldGained;
 
-  BattleResult(this.outcome, {this.xpGained = 0});
+  BattleResult(this.outcome, {this.xpGained = 0, this.goldGained = 0});
 
-  static BattleResult win({int xp = 0}) => BattleResult('win', xpGained: xp);
-  static BattleResult lose() => BattleResult('lose', xpGained: 0);
-  static BattleResult escape() => BattleResult('escape', xpGained: 0);
+  static BattleResult win({int xp = 0, int gold = 0}) => BattleResult('win', xpGained: xp, goldGained: gold);
+  static BattleResult lose() => BattleResult('lose', xpGained: 0, goldGained: 0);
+  static BattleResult escape() => BattleResult('escape', xpGained: 0, goldGained: 0);
 }
 
 typedef BattleEndCallback = void Function(BattleResult result);
@@ -128,6 +129,22 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         return 35;
       case EnemyType.boss:
         return 80;
+    }
+  }
+
+    final Random _rng = Random();
+
+  int _goldRewardFor(EnemyType t) {
+    // Randomized gold drop per enemy type
+    switch (t) {
+      case EnemyType.normal:
+        return 3 + _rng.nextInt(6); // 3..8
+      case EnemyType.strong:
+        return 8 + _rng.nextInt(8); // 8..15
+      case EnemyType.miniboss:
+        return 15 + _rng.nextInt(16); // 15..30
+      case EnemyType.boss:
+        return 30 + _rng.nextInt(31); // 30..60
     }
   }
 
@@ -298,7 +315,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     );
     await hud.add(heroShadow);
 
-    // Load enemy battle animations based on enemy type
     final String enemyFolder = switch (enemyType) {
       EnemyType.normal => 'characters/enemy/at_battle/orc/',
       EnemyType.strong => 'characters/enemy/at_battle/plant/',
@@ -322,8 +338,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       final ui.Image eHurt = await game.images.load('${enemyFolder}hurt.png');
       final ui.Image eDeath = await game.images.load('${enemyFolder}death.png');
 
-      // Infer frame sizes: attempt to use same sizing as hero's idle/hurt/attack/dead
-      // We'll assume each sheet's frame height equals width (square frames) or use hero sizes
       final Vector2 eIdleFrame = Vector2(eIdle.height.toDouble(), eIdle.height.toDouble());
       final Vector2 eAttackFrame = Vector2(eAttack.height.toDouble(), eAttack.height.toDouble());
       final Vector2 eHurtFrame = Vector2(eHurt.height.toDouble(), eHurt.height.toDouble());
@@ -342,11 +356,9 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         position: Vector2(centerX + halfGap, baselineY),
         priority: 10,
       )..scale = Vector2(1, 1);
-      // set common reference so older code using `enemy` still works
       enemy = enemyAnim;
       await hud.add(enemyAnim);
     } catch (e) {
-      // Fallback: keep the old Joanna static sprite so app doesn't crash if assets missing
       enemy = SpriteComponent(
         sprite: await Sprite.load('Joanna.png'),
         size: actorSize,
@@ -355,7 +367,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         priority: 10,
       )..scale = Vector2(1, 1);
       await hud.add(enemy);
-      // ensure enemyAnim references exist to avoid null checks later
       _enemyIdleAnim = _idleAnim;
     }
 
@@ -403,7 +414,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           enemyHealth.damage(1);
           await _hitFx(enemy.position);
 
-          // play enemy hurt animation if available
           await _playEnemyHurtOnce();
 
           await Future.delayed(
@@ -417,7 +427,8 @@ class BattleScene extends Component with HasGameReference<MyGame> {
             // play death animation
             await _playEnemyDeathOnce();
             final xp = _xpRewardFor(enemyType);
-            onEnd(BattleResult.win(xp: xp));
+            final gold = _goldRewardFor(enemyType);
+            onEnd(BattleResult.win(xp: xp, gold: gold));
             return;
           }
 
@@ -426,10 +437,8 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         } else {
           heroHealth.damage(1);
           await _hitFx(heroRoot.position);
-          // play hurt animation on hero
           await _playHeroHurtOnce(hurtSheet);
 
-          // enemy attacks when player is incorrect
           await _playEnemyAttackOnce();
 
           if (heroHealth.isDead) {
@@ -505,7 +514,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     await Future.delayed(Duration(milliseconds: durMs));
   }
 
-  // Enemy animation helpers
+  // Enemy animation helpes
   Future<void> _playEnemyAnimationOnce(SpriteAnimation? anim, int frameCount, double step) async {
     if (anim == null) return;
     if (enemyAnim.isMounted) {
@@ -513,7 +522,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       final durMs = (frameCount * step * 1000).round();
       await Future.delayed(Duration(milliseconds: durMs));
       if (enemyAnim.isMounted) {
-        // restore idle unless this was death (we leave death as final pose)
         if (anim != _enemyDeathAnim) {
           enemyAnim.animation = _enemyIdleAnim;
         }
@@ -627,3 +635,9 @@ class _ShadowOval extends PositionComponent {
     canvas.drawOval(rect, paint);
   }
 }
+
+
+
+
+
+
