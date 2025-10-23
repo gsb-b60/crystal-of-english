@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/screen/cardlevel/cardlevelscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
 import 'package:provider/provider.dart';
 import 'ui/health.dart';
@@ -102,6 +103,9 @@ void main() async {
                   ),
                 ),
               );
+            },
+            'CardLevelScreen': (context, game) {
+              return Cardlevelscreen(game: game as MyGame);
             },
             SettingsOverlay.id: (context, game) {
               return SettingsOverlay(audio: AudioManager.instance);
@@ -285,7 +289,7 @@ class MyGame extends FlameGame
           DialogueChoice(
             'Start Card Training',
             onSelected: () {
-              
+              overlays.add('CardLevelScreen');
             },
           ),
           DialogueChoice('Not Right Now', onSelected: dialogManager.close),
