@@ -114,6 +114,7 @@ flutter:
     - assets/maps/shop.tmx
     - assets/anki-deck/
     - assets/images/shop/gold.png
+    - assets/level-titan/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
