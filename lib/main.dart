@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
-import 'package:mygame/components/Menu/flashcard/screen/cardlevel/cardlevelscreen.dart';
+import 'package:mygame/vocab/screen/cardlevel/cardlevelscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
 import 'package:provider/provider.dart';
 import 'ui/health.dart';
@@ -61,6 +61,7 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        // ⚠️ Bảo đảm font 'MyFont' có hỗ trợ tiếng Việt (VD: Noto Sans/Roboto).
         theme: ThemeData(fontFamily: 'MyFont'),
         home: GameWidget(
           game: MyGame(),
@@ -89,7 +90,11 @@ void main() async {
                 child: SafeArea(
                   child: Scaffold(
                     backgroundColor: Colors.white,
+                    extendBodyBehindAppBar: true,
                     appBar: AppBar(
+                      backgroundColor:
+                          Colors.transparent, 
+                      elevation: 0,
                       title: const Text('Flashcards'),
                       leading: IconButton(
                         icon: const Icon(Icons.close),
@@ -104,11 +109,20 @@ void main() async {
                 ),
               );
             },
-                        'CardLevelScreen': (context, game) {
+            'CardLevelScreen': (context, game) {
               return Cardlevelscreen(game: game as MyGame);
             },
             SettingsOverlay.id: (context, game) {
-              return SettingsOverlay(audio: AudioManager.instance, onUseItem: (item) { final g = game as MyGame; if (item.name.toLowerCase() == 'image1') { g.heartsHud.heal(1); Inventory.instance.remove(item); } });
+              return SettingsOverlay(
+                audio: AudioManager.instance,
+                onUseItem: (item) {
+                  final g = game as MyGame;
+                  if (item.name.toLowerCase() == 'image1') {
+                    g.heartsHud.heal(1);
+                    Inventory.instance.remove(item);
+                  }
+                },
+              );
             },
             ShopOverlay.id: (context, game) {
               final g = game as MyGame;
@@ -214,7 +228,7 @@ class MyGame extends FlameGame
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
-      // Keep settings button visible on top
+      // Giữ nút cài đặt nổi trên cùng
       if (overlays.isActive(SettingsOverlay.id)) {
         overlays.remove(SettingsOverlay.id);
         overlays.add(SettingsOverlay.id);
@@ -290,19 +304,19 @@ class MyGame extends FlameGame
       final wisemanNPC = Npc(
         position: Vector2(52, 90),
         manager: dialogManager,
-        interactLines: const ['Winter is comming!', 'Dont go to the north.'],
+        interactLines: const ['Winter is coming!', 'Don\'t go to the north.'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'You cant fight with that body, train with me!',
+        interactPrompt: 'You can\'t fight with that body, train with me!',
         interactChoices: [
           DialogueChoice(
-            'Start Card Training',
+            'Bắt đầu luyện thẻ',
             onSelected: () {
               overlays.add('CardLevelScreen');
             },
           ),
-          DialogueChoice('Not Right Now', onSelected: dialogManager.close),
+          DialogueChoice('Để sau', onSelected: dialogManager.close),
         ],
-        idleLines: const ['You know nothing, Jon Snow', 'Why Would A Girl See Blood And Collapse?'],
+        idleLines: const ['You know nothing, Jon Snow', 'Why would a girl see blood and collapse?'],
         enableIdleChatter: true,
         spriteAsset: 'chihiro.png',
         srcPosition: Vector2(0, 0),
@@ -311,26 +325,27 @@ class MyGame extends FlameGame
         avatarAsset: 'assets/images/Eleonore_avatar.png',
         avatarDisplaySize: const Size(162, 162),
         interactRadius: 28,
-        zPriority: 20,);
+        zPriority: 20,
+      );
       await world.add(wisemanNPC);
 
       final npc1 = Npc(
         position: Vector2(660, 112),
         manager: dialogManager,
-        interactLines: ['Xin chÃ o!', 'Báº¡n cáº§n gÃ¬?'],
+        interactLines: const ['Xin chào!', 'Bạn cần gì?'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Báº¡n muá»‘n lÃ m gÃ¬?',
+        interactPrompt: 'Bạn muốn làm gì?',
         interactChoices: [
           DialogueChoice(
-            'VÃ o thÆ° viá»‡n',
+            'Vào thư viện',
             onSelected: () async {
               dialogManager.close();
               await loadMap('houseinterior.tmx', spawn: Vector2(182, 172));
             },
           ),
-          DialogueChoice('Táº¡m biá»‡t', onSelected: dialogManager.close),
+          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
         ],
-        idleLines: ['Hmm...', 'Nghe nÃ³i phÃ­a báº¯c cÃ³ kho bÃ¡u.'],
+        idleLines: const ['Hmm...', 'Nghe nói phía bắc có kho báu.'],
         enableIdleChatter: true,
         spriteAsset: 'Eleonore.png',
         srcPosition: Vector2(0, 0),
@@ -346,20 +361,20 @@ class MyGame extends FlameGame
       final npc2 = Npc(
         position: Vector2(876, 560),
         manager: dialogManager,
-        interactLines: ['Xin chÃ o!', 'Báº¡n cáº§n gÃ¬?'],
+        interactLines: const ['Xin chào!', 'Bạn cần gì?'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Xin chÃ o!, Báº¡n cáº§n gÃ¬?',
+        interactPrompt: 'Xin chào! Bạn cần gì?',
         interactChoices: [
           DialogueChoice(
-            'VÃ o Ä‘áº£o undead',
+            'Vào đảo Undead',
             onSelected: () async {
               dialogManager.close();
-              await loadMap('dungeon.tmx', spawn: Vector2(2100, 1095));
+              await loadMap('dungeon.tmx', spawn: Vector2(1260, 650));
             },
           ),
-          DialogueChoice('Táº¡m biá»‡t', onSelected: dialogManager.close),
+          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
         ],
-        idleLines: ['Hmm...', 'Nghe nÃ³i phÃ­a báº¯c cÃ³ kho bÃ¡u.'],
+        idleLines: const ['Hmm...', 'Nghe nói phía bắc có kho báu.'],
         enableIdleChatter: true,
         spriteAsset: 'Joanna.png',
         srcPosition: Vector2(0, 0),
@@ -375,20 +390,20 @@ class MyGame extends FlameGame
       final shopNpc = Npc(
         position: Vector2(312, 342),
         manager: dialogManager,
-        interactLines: const ['Xin chÃ o!', 'Báº¡n muá»‘n mua gÃ¬ khÃ´ng?'],
+        interactLines: const ['Xin chào!', 'Bạn muốn mua gì không?'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Chá»n hÃ nh Ä‘á»™ng:',
+        interactPrompt: 'Chọn hành động:',
         interactChoices: [
           DialogueChoice(
-            'Mua váº­t pháº©m',
+            'Mua vật phẩm',
             onSelected: () async {
               dialogManager.close();
               overlays.add(ShopOverlay.id);
             },
           ),
-          DialogueChoice('Táº¡m biá»‡t', onSelected: dialogManager.close),
+          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
         ],
-        idleLines: const ['GiÃ¡ ráº» nhÆ° bÃ¨o!', 'Äá»“ má»›i vá» Ä‘Ã¢y!'],
+        idleLines: const ['Giá rẻ như bèo!', 'Đồ mới về đây!'],
         enableIdleChatter: true,
         spriteAsset: 'Eleonore.png',
         srcPosition: Vector2(0, 0),
@@ -397,10 +412,9 @@ class MyGame extends FlameGame
         avatarAsset: 'assets/images/Eleonore_avatar.png',
         avatarDisplaySize: const Size(162, 162),
         interactRadius: 28,
-        zPriority: 20,);
+        zPriority: 20,
+      );
       await world.add(shopNpc);
-
-
 
       await world.add(
         EnemyWander(
@@ -450,11 +464,10 @@ class MyGame extends FlameGame
           enemyType: EnemyType.boss,
         ),
       );
-    }
-    else if (mapFile == 'dungeon.tmx') {
+    } else if (mapFile == 'dungeon.tmx') {
       await world.add(
         Enemy(
-          patrolRect: ui.Rect.fromLTWH(1600, 755, 160, 120),
+          patrolRect: ui.Rect.fromLTWH(970, 465, 80, 60),
           speed: 30,
           triggerRadius: 48,
           enemyType: EnemyType.normal,
@@ -463,7 +476,7 @@ class MyGame extends FlameGame
 
       await world.add(
         Enemy(
-          patrolRect: ui.Rect.fromLTWH(1700, 575, 160, 120),
+          patrolRect: ui.Rect.fromLTWH(1035, 300, 80, 60),
           speed: 28,
           triggerRadius: 48,
           enemyType: EnemyType.strong,
@@ -472,7 +485,7 @@ class MyGame extends FlameGame
 
       await world.add(
         Enemy(
-          patrolRect: ui.Rect.fromLTWH(400, 450, 160, 120),
+          patrolRect: ui.Rect.fromLTWH(230, 530, 80, 60),
           speed: 32,
           triggerRadius: 48,
           enemyType: EnemyType.miniboss,
@@ -481,7 +494,7 @@ class MyGame extends FlameGame
 
       await world.add(
         Enemy(
-          patrolRect: ui.Rect.fromLTWH(825, 585, 160, 120),
+          patrolRect: ui.Rect.fromLTWH(265, 300, 80, 60),
           speed: 20,
           triggerRadius: 60,
           enemyType: EnemyType.boss,
@@ -489,7 +502,7 @@ class MyGame extends FlameGame
       );
       await world.add(
         Enemy(
-          patrolRect: ui.Rect.fromLTWH(450, 950, 160, 120),
+          patrolRect: ui.Rect.fromLTWH(500, 375, 80, 60),
           speed: 30,
           triggerRadius: 48,
           enemyType: EnemyType.normal,
@@ -498,7 +511,7 @@ class MyGame extends FlameGame
 
       await world.add(
         Enemy(
-          patrolRect: ui.Rect.fromLTWH(1250, 850, 160, 120),
+          patrolRect: ui.Rect.fromLTWH(745, 485, 80, 60),
           speed: 28,
           triggerRadius: 48,
           enemyType: EnemyType.strong,
@@ -506,7 +519,7 @@ class MyGame extends FlameGame
       );
     }
   }
-  
+
   Future<void> enterBattle({required EnemyType enemyType}) async {
     if (_inBattle) return;
     _inBattle = true;
@@ -528,7 +541,7 @@ class MyGame extends FlameGame
 
     heartsHud.removeFromParent();
 
-    // pause nháº¡c ná»n khi vÃ o battle
+    // Tạm dừng nhạc nền khi vào trận chiến
     await AudioManager.instance.pauseBgm();
 
     _battleScene = BattleScene(
@@ -554,12 +567,12 @@ class MyGame extends FlameGame
     heartsHud.setCurrent(remainHearts);
 
     if (result.outcome == 'win') {
-      if (result.xpGained > 0) { expHud.addXp(result.xpGained); }
-
-
-      if (result.goldGained > 0) { goldHud.addGold(result.goldGained); }
-
-
+      if (result.xpGained > 0) {
+        expHud.addXp(result.xpGained);
+      }
+      if (result.goldGained > 0) {
+        goldHud.addGold(result.goldGained);
+      }
     }
 
     if (joystick != null) {
@@ -571,13 +584,13 @@ class MyGame extends FlameGame
 
     if (result.outcome == 'lose') {
       heartsHud.refill();
-      player.position = Vector2(2100, 1095);
+      player.position = Vector2(1255, 655);
     }
 
-    // continue nháº¡c ná»n khi thoÃ¡t battle
+    // Tiếp tục nhạc nền khi thoát trận chiến
     AudioManager.instance.resumeBgm();
 
-    // Restore settings overlay after battle
+    // Khôi phục overlay cài đặt sau trận
     if (!overlays.isActive(SettingsOverlay.id)) {
       overlays.add(SettingsOverlay.id);
     }
@@ -595,13 +608,25 @@ class MyGame extends FlameGame
     await add(newWorld);
     world = newWorld;
 
-    map = await ft.TiledComponent.load(
-      mapFile,
-      Vector2.all(tileSize),
-      prefix: 'assets/maps/',
-      priority: 0,
-    );
-    await world.add(map);
+    // Set scale for dungeon.tmx
+    if (mapFile == 'dungeon.tmx') {
+      map = await ft.TiledComponent.load(
+        mapFile,
+        Vector2.all(tileSize),
+        prefix: 'assets/maps/',
+        priority: 0,
+      );
+      map.scale = Vector2.all(0.6);
+      await world.add(map);
+    } else {
+      map = await ft.TiledComponent.load(
+        mapFile,
+        Vector2.all(tileSize),
+        prefix: 'assets/maps/',
+        priority: 0,
+      );
+      await world.add(map);
+    }
 
     await _initMapObjects(mapFile);
 
@@ -645,8 +670,8 @@ class MyGame extends FlameGame
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'dungeon.tmx'
-          ? 'Welcome to Undead Island'
-          : 'Overworld',
+              ? 'Welcome to Undead Island'
+              : 'Overworld',
     );
 
     if (mapFile == 'houseinterior.tmx') {
@@ -705,12 +730,3 @@ class MyGame extends FlameGame
     }
   }
 }
-
-
-
-
-
-
-
-
-
