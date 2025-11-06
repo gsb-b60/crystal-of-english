@@ -3,14 +3,14 @@ import '../state/inventory.dart';
 
 class InventoryPanel extends StatelessWidget {
   final VoidCallback onClose;
-  final int totalSlots;
   final int columns;
+  final void Function(GameItem item)? onUseItem;
 
   const InventoryPanel({
     super.key,
     required this.onClose,
-    this.totalSlots = 20,
     this.columns = 5,
+    this.onUseItem,
   });
 
   @override
@@ -19,16 +19,8 @@ class InventoryPanel extends StatelessWidget {
     final spacing = 8.0;
     final gridPadding = 12.0;
     final panelWidth = size.width * 0.4;
-    final gridWidth = panelWidth - gridPadding * 2;
-    final cellSize = ((gridWidth - (columns - 1) * spacing) / columns)
-        .floorToDouble();
-    final rows = (totalSlots + columns - 1) ~/ columns; // expect 4
-    final gridHeight = (rows * cellSize + (rows - 1) * spacing)
-        .floorToDouble();
-    final headerApprox = 48.0 + 12.0 + 1.0; 
-    final panelHeight = (gridHeight + gridPadding * 2 + headerApprox)
-        .floorToDouble()
-        .clamp(0.0, (size.height * 0.9).floorToDouble());
+    // Cap panel height to 90% of screen to avoid overflow. Grid inside will scroll if needed.
+    final panelHeight = (size.height * 0.9).floorToDouble();
 
     return Material(
       color: Colors.white.withOpacity(0.98),
@@ -55,17 +47,17 @@ class InventoryPanel extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: SizedBox(
-                height: gridHeight,
+            // Grid area takes remaining space and scrolls if overflowing
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
                 child: AnimatedBuilder(
                   animation: Inventory.instance,
                   builder: (context, _) {
                     final items = Inventory.instance.items;
+                    final totalSlots = Inventory.instance.capacity;
                     return GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
+                      physics: const AlwaysScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: columns,
                         crossAxisSpacing: spacing,
@@ -75,7 +67,7 @@ class InventoryPanel extends StatelessWidget {
                       itemCount: totalSlots,
                       itemBuilder: (context, index) {
                         final item = index < items.length ? items[index] : null;
-                        return Container(
+                        final tileContent = Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -86,7 +78,15 @@ class InventoryPanel extends StatelessWidget {
                               : Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(item.icon, size: 22, color: Colors.black87),
+                                    Flexible(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4),
+                                        child: Image.asset(
+                                          item.imageAssetPath,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
                                     Text(
                                       item.name,
@@ -96,6 +96,33 @@ class InventoryPanel extends StatelessWidget {
                                   ],
                                 ),
                         );
+                        if (item != null && onUseItem != null) {
+                          return InkWell(
+                            onTap: () async {
+                              final ok = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: Text('Sử dụng ${item.name}?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('Hủy'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Sử dụng'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (ok == true) {
+                                onUseItem!(item);
+                              }
+                            },
+                            child: tileContent,
+                          );
+                        }
+                        return tileContent;
                       },
                     );
                   },
