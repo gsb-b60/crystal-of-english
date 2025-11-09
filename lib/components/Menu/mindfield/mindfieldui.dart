@@ -1,0 +1,371 @@
+import 'package:flutter/material.dart';
+
+class MindFeildUI extends StatefulWidget {
+  const MindFeildUI({super.key});
+
+  @override
+  State<MindFeildUI> createState() => _MindFeildUIState();
+}
+
+class _MindFeildUIState extends State<MindFeildUI> {
+  List<String> options = ['apple', 'banana', 'orange'];
+  int? selectedIndex;
+  bool isChecked = false;
+  bool right = false;
+  bool answered = false;
+  int rightAnswerIndex = 1;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color.fromRGBO(18, 32, 35, 1),
+      appBar: AppBar(
+        leading: Row(
+          children: [
+            SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: Color.fromRGBO(84, 103, 110, 1),
+                size: 30,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+        title: LinearProgressIndicator(
+          value: 0.5,
+          backgroundColor: Color.fromRGBO(53, 70, 78, 1),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Color.fromRGBO(149, 211, 50, 1),
+          ),
+          minHeight: 18,
+          borderRadius: BorderRadius.circular(9),
+        ),
+        backgroundColor: Color.fromRGBO(18, 32, 35, 1),
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Row(
+                children: [
+                  SizedBox(width: 40),
+                  Text(
+                    "Select the correct answer",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                height: 150,
+                width: 650,
+
+                child: Center(
+                  child: Text(
+                    "the action of stopping and catching something or someone before that thing or person is able to reach a particular place: ",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 150,
+                width: 750,
+                child: Row(
+                  children: [
+                    ListView.builder(
+                      itemCount: options.length,
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return Center(
+                          child: ChoiceBtn(
+                            value: options[index],
+                            isSelected: selectedIndex == index,
+                            onPressed: () {
+                              setState(() {
+                                selectedIndex = index;
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(width: 50),
+                    CheckBtn(
+                      isChecked: selectedIndex != null,
+                      onCheck: () {
+                        setState(() {
+                          if (selectedIndex == rightAnswerIndex) {
+                            right = true;
+                          } else {
+                            right = false;
+                          }
+                          answered = true;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutCubic,
+            bottom: answered ? 0 : -MediaQuery.of(context).size.height,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height,
+            child: ReviewScreen(right: right),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ReviewScreen extends StatelessWidget {
+  const ReviewScreen({super.key, required this.right});
+
+  final bool right;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SizedBox(
+        width: double.infinity,
+        height: right ? 250 : 350,
+        child: Container(
+          color: Color.fromRGBO(33, 46, 54, 1),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Row(
+                children: [
+                  SizedBox(width: 30),
+                  Icon(
+                    right ? Icons.check_circle_rounded : Icons.cancel,
+                    color: right
+                        ? Color.fromRGBO(120, 186, 49, 1)
+                        : Color.fromRGBO(199, 73, 73, 1),
+                    size: 40,
+                  ),
+                  SizedBox(width: 20),
+                  Text(
+                    right ? "Great job!" : "Incorrect",
+                    style: TextStyle(
+                      color: right
+                          ? Color.fromRGBO(120, 186, 49, 1)
+                          : Color.fromRGBO(199, 73, 73, 1),
+                      fontSize: 50,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+              if (!right)
+                Row(
+                  children: [
+                    SizedBox(width: 40),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Correct answer:",
+                          style: TextStyle(
+                            color: Color.fromRGBO(199, 73, 73, 1),
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          "interception /ˌɪntɚˈsɛpʃən/",
+                          style: TextStyle(
+                            color: Color.fromRGBO(217, 81, 76, 1),
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              Stack(
+                children: [
+                  SizedBox(
+                    width: 650,
+                    height: 80,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        elevation: right ? 10 : 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: right
+                            ? Color.fromRGBO(149, 211, 50, 1)
+                            : Color.fromRGBO(239, 87, 82, 1),
+                      ),
+                      child: Text(
+                        right ? "CONTINUE" : "GOT IT",
+                        style: TextStyle(
+                          color: Color.fromRGBO(18, 32, 35, 1),
+                          fontSize: 50,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: right
+                                ? const Color.fromRGBO(121, 186, 4, 1)
+                                : Color.fromRGBO(216, 69, 75, 1),
+                            width: 6,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChoiceBtn extends StatelessWidget {
+  String value;
+  bool isSelected;
+  VoidCallback? onPressed;
+  ChoiceBtn({
+    super.key,
+    required this.isSelected,
+    required this.value,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: 150,
+        height: 70,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            side: BorderSide(
+              color: isSelected
+                  ? Color.fromRGBO(96, 132, 34, 1)
+                  : Color.fromRGBO(53, 70, 78, 1),
+              width: 4,
+            ),
+            backgroundColor: isSelected
+                ? Color.fromRGBO(33, 46, 54, 1)
+                : Color.fromRGBO(18, 32, 35, 1),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: isSelected ? Color.fromRGBO(96, 132, 34, 1) : Colors.white,
+              fontSize: 28,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CheckBtn extends StatelessWidget {
+  bool isChecked;
+  VoidCallback? onCheck;
+  CheckBtn({super.key, required this.isChecked, required this.onCheck});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            width: 150,
+            height: 70,
+            child: ElevatedButton(
+              onPressed: () {
+                print("click1");
+                if (isChecked) {
+                  print("click2");
+                  onCheck?.call();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                elevation: isChecked ? 10 : 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: isChecked
+                    ? Color.fromRGBO(149, 211, 50, 1)
+                    : Color.fromRGBO(53, 70, 78, 1),
+              ),
+
+              child: Text(
+                "Check",
+                style: TextStyle(
+                  color: Color.fromRGBO(18, 32, 35, 1),
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedContainer(
+                transform: isChecked
+                    ? Matrix4.translationValues(0, 0, 0)
+                    : Matrix4.translationValues(0, 10, 0),
+                duration: Duration(milliseconds: 100),
+                curve: Curves.bounceIn,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isChecked
+                          ? const Color.fromRGBO(121, 186, 4, 1)
+                          : Colors.transparent,
+                      width: 6,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
