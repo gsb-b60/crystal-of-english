@@ -158,6 +158,7 @@ class MyGame extends FlameGame
   BattleScene? _battleScene;
   bool _inBattle = false;
   Vector2? _savedJoystickPos;
+  String currentMapFile = 'map.tmx';
 
   @override
   late World world;
@@ -189,6 +190,8 @@ class MyGame extends FlameGame
       priority: 0,
     );
     await world.add(map);
+    // initial current map value
+    currentMapFile = 'map.tmx';
 
     await _initMapObjects('map.tmx');
 
@@ -553,6 +556,21 @@ class MyGame extends FlameGame
     if (_inBattle) return;
     _inBattle = true;
 
+    // autosave before entering battle
+    try {
+      await PlayerProfile.instance.saveSnapshot(
+        mapFile: currentMapFile,
+        posX: player.position.x,
+        posY: player.position.y,
+        hearts: heartsHud.currentHearts,
+        xp: expHud.xp,
+        gold: goldHud.gold,
+        slot: 1,
+      );
+    } catch (e) {
+      print('autosave before battle failed: $e');
+    }
+
     if (overlays.isActive(SettingsOverlay.id)) {
       overlays.remove(SettingsOverlay.id);
     }
@@ -631,6 +649,21 @@ class MyGame extends FlameGame
     Vector2? spawnTile,
     double tileSize = 16,
   }) async {
+    // autosave current state before switching maps
+    try {
+      await PlayerProfile.instance.saveSnapshot(
+        mapFile: currentMapFile,
+        posX: player.position.x,
+        posY: player.position.y,
+        hearts: heartsHud.currentHearts,
+        xp: expHud.xp,
+        gold: goldHud.gold,
+        slot: 1,
+      );
+    } catch (e) {
+      print('autosave before loadMap failed: $e');
+    }
+
     if (world.parent != null) world.removeFromParent();
 
     final newWorld = World();
@@ -756,6 +789,22 @@ class MyGame extends FlameGame
           },
         ),
       );
+    }
+
+    // update current map pointer and autosave after successful load
+    currentMapFile = mapFile;
+    try {
+      await PlayerProfile.instance.saveSnapshot(
+        mapFile: currentMapFile,
+        posX: player.position.x,
+        posY: player.position.y,
+        hearts: heartsHud.currentHearts,
+        xp: expHud.xp,
+        gold: goldHud.gold,
+        slot: 1,
+      );
+    } catch (e) {
+      print('autosave after loadMap failed: $e');
     }
   }
 }

@@ -70,5 +70,51 @@ class DatabaseHelper {
   Future<void> processCardForDeck(dynamic a, int b, int c) async {}
   Future<String> MoveMediaFile() async => '';
   Future<String?> getMediaFile(int deckID) async => null;
+
+  // Player profile (web in-memory)
+  final Map<int, Map<String, Object?>> _profiles = {};
+
+  Future<void> savePlayerProfileSlot(
+    int slot, {
+    int? proficiency,
+    int? preferredDeck,
+    String? mapFile,
+    double? posX,
+    double? posY,
+    int? hearts,
+    int? xp,
+    int? gold,
+    String? inventoryJson,
+    Map<String, dynamic>? extra,
+  }) async {
+    _profiles[slot] = {
+      'slot': slot,
+      'proficiency': proficiency,
+      'preferred_deck': preferredDeck,
+      'map_file': mapFile,
+      'pos_x': posX,
+      'pos_y': posY,
+      'hearts': hearts,
+      'xp': xp,
+      'gold': gold,
+      'inventory': inventoryJson,
+      'extra': extra == null ? null : extra.toString(),
+      'saved_at': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  Future<Map<String, Object?>?> loadPlayerProfileSlot(int slot) async {
+    return _profiles[slot];
+  }
+
+  Future<List<Map<String, Object?>>> listPlayerProfileSlots() async {
+    return _profiles.entries
+        .map((e) => Map<String, Object?>.from(e.value))
+        .toList(growable: false);
+  }
+
+  Future<void> deletePlayerProfileSlot(int slot) async {
+    _profiles.remove(slot);
+  }
 }
 

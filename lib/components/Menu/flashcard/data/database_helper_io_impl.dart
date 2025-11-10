@@ -115,6 +115,26 @@ class DatabaseHelper {
         foreign key (deck_id) references decks (id) on delete cascade
       )
 ''');
+
+    // player_profile table: supports multiple save slots (slot is unique)
+    await db.execute('''
+      create table player_profile(
+        id integer primary key autoincrement,
+        slot integer not null,
+        proficiency integer,
+        preferred_deck integer,
+        map_file text,
+        pos_x real,
+        pos_y real,
+        hearts integer,
+        xp integer,
+        gold integer,
+        inventory text,
+        extra text,
+        saved_at integer,
+        unique(slot)
+      )
+    ''');
   }
 
   Future<int> insertDeck(Deck deck) async {
@@ -409,5 +429,61 @@ class DatabaseHelper {
     } catch (e) {
       print('Failed to delete learning_card.db: $e');
     }
+  }
+
+  // --- Player profile save/load helpers ---
+  Future<void> savePlayerProfileSlot(
+    int slot, {
+    int? proficiency,
+    int? preferredDeck,
+    String? mapFile,
+    double? posX,
+    double? posY,
+    int? hearts,
+    int? xp,
+    int? gold,
+    String? inventoryJson,
+    Map<String, dynamic>? extra,
+  }) async {
+    final db = await database;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final row = <String, Object?>{
+      'slot': slot,
+      'proficiency': proficiency,
+      'preferred_deck': preferredDeck,
+      'map_file': mapFile,
+      'pos_x': posX,
+      'pos_y': posY,
+      'hearts': hearts,
+      'xp': xp,
+      'gold': gold,
+      'inventory': inventoryJson,
+      'extra': extra == null ? null : jsonEncode(extra),
+      'saved_at': now,
+    };
+
+    await db.insert(
+      'player_profile',
+      row,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Map<String, Object?>?> loadPlayerProfileSlot(int slot) async {
+    final db = await database;
+    final res = await db.query('player_profile', where: 'slot=?', whereArgs: [slot], limit: 1);
+    if (res.isNotEmpty) return res.first;
+    return null;
+  }
+
+  Future<List<Map<String, Object?>>> listPlayerProfileSlots() async {
+    final db = await database;
+    final res = await db.query('player_profile', orderBy: 'slot asc');
+    return List<Map<String, Object?>>.from(res);
+  }
+
+  Future<void> deletePlayerProfileSlot(int slot) async {
+    final db = await database;
+    await db.delete('player_profile', where: 'slot=?', whereArgs: [slot]);
   }
 }

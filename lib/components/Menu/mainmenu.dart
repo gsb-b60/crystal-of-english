@@ -5,6 +5,7 @@ import 'package:mygame/main.dart';
 // removed unused imports (cleaned up after switching to text labels)
 import 'package:flutter/foundation.dart';
 import 'package:mygame/audio/audio_manager.dart';
+import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
 
 class MainMenu extends StatefulWidget {
   final MyGame game;
@@ -94,6 +95,22 @@ class MenuNav extends StatelessWidget {
           },
           child: const Text(
             'New Game',
+            style: TextStyle(color: Colors.white, fontSize: 24),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Save / Load label
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SaveLoadScreen(game: game)),
+            );
+          },
+          child: const Text(
+            'Save / Load',
             style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
