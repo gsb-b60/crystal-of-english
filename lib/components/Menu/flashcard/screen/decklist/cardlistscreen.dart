@@ -4,8 +4,7 @@ import 'package:mygame/components/Menu/flashcard/screen/blankfill/blankwordscree
 import 'package:mygame/components/Menu/flashcard/screen/flashcard/newwayreview.dart';
 import 'package:mygame/components/Menu/flashcard/screen/mindfield/mindfeild.dart';
 import 'package:mygame/components/Menu/flashcard/screen/phonemix/phonemix.dart';
-import 'package:mygame/main.dart';
-import 'package:mygame/vocab/screen/cardlevel/cardlevelscreen.dart';
+// removed unused imports
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';

@@ -568,7 +568,7 @@ class MyGame extends FlameGame
         slot: 1,
       );
     } catch (e) {
-      print('autosave before battle failed: $e');
+      debugPrint('autosave before battle failed: $e');
     }
 
     if (overlays.isActive(SettingsOverlay.id)) {
@@ -661,7 +661,7 @@ class MyGame extends FlameGame
         slot: 1,
       );
     } catch (e) {
-      print('autosave before loadMap failed: $e');
+      debugPrint('autosave before loadMap failed: $e');
     }
 
     if (world.parent != null) world.removeFromParent();
@@ -804,7 +804,7 @@ class MyGame extends FlameGame
         slot: 1,
       );
     } catch (e) {
-      print('autosave after loadMap failed: $e');
+      debugPrint('autosave after loadMap failed: $e');
     }
   }
 }

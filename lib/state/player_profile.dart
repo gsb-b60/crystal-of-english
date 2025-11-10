@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
 
 /// PlayerProfile: DB-backed profile with simple autosave (slot-based).
@@ -16,7 +17,7 @@ class PlayerProfile {
   int? _gold;
   String? _inventoryJson;
 
-  int _autosaveSlot = 1;
+  final int _autosaveSlot = 1;
 
   static final PlayerProfile instance = PlayerProfile._();
 
@@ -39,7 +40,7 @@ class PlayerProfile {
       }
     } catch (e) {
       // Best-effort: don't crash initialization if DB missing
-      print('PlayerProfile.init load failed: $e');
+      debugPrint('PlayerProfile.init load failed: $e');
     }
   }
 
@@ -131,7 +132,7 @@ class PlayerProfile {
     try {
       await saveToSlot(_autosaveSlot);
     } catch (e) {
-      print('PlayerProfile autosave failed: $e');
+      debugPrint('PlayerProfile autosave failed: $e');
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:sqflite/sqflite.dart';
@@ -53,14 +54,14 @@ class DatabaseHelper {
         if (!existing.contains(entry.key)) {
           try {
             await db.execute(entry.value);
-            print('Added missing column `${entry.key}` to cards table at runtime');
+            debugPrint('Added missing column `${entry.key}` to cards table at runtime');
           } catch (e) {
-            print('Failed to add column ${entry.key}: $e');
+            debugPrint('Failed to add column ${entry.key}: $e');
           }
         }
       }
     } catch (e) {
-      print('Runtime schema reconciliation failed: $e');
+      debugPrint('Runtime schema reconciliation failed: $e');
     }
 
     return db;
@@ -73,7 +74,7 @@ class DatabaseHelper {
           'ALTER TABLE cards ADD COLUMN complexity INTEGER DEFAULT 1',
         );
       } catch (e) {
-        print('onUpgrade: add complexity failed or already applied: $e');
+        debugPrint('onUpgrade: add complexity failed or already applied: $e');
       }
     }
   }
@@ -254,7 +255,7 @@ class DatabaseHelper {
         },
       );
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     for (final file in zipArchive) {
@@ -272,14 +273,14 @@ class DatabaseHelper {
   Future<Directory> CreateUnZipFolder() async {
     final dir = await getApplicationDocumentsDirectory();
     final myAppFolder = Directory('${dir.path}/anki');
-    if (!myAppFolder.existsSync()) {
+      if (!myAppFolder.existsSync()) {
       myAppFolder.createSync();
-      print("init folder anki at ${myAppFolder.path}");
+      debugPrint("init folder anki at ${myAppFolder.path}");
     }
     final outputDir = Directory('${dir.path}/anki/unzipAnki');
     if (!outputDir.existsSync()) {
       outputDir.createSync();
-      print("Create new folder at ${outputDir.path}");
+      debugPrint("Create new folder at ${outputDir.path}");
     }
     return outputDir;
   }
@@ -291,7 +292,7 @@ class DatabaseHelper {
     final outputDir = Directory('${dir.path}/anki/$folderName');
     if (!outputDir.existsSync()) {
       outputDir.createSync();
-      print("Create new folder at ${outputDir.path}");
+      debugPrint("Create new folder at ${outputDir.path}");
     }
     return outputDir;
   }
@@ -339,7 +340,7 @@ class DatabaseHelper {
     );
 
     for (final row in cards) {
-      print("model :${row['mid']}");
+  debugPrint("model :${row['mid']}");
       final newCard = mapRowToFlashcard(row, deckId);
       if (newCard != null) {
         insertCard(newCard);
@@ -370,18 +371,18 @@ class DatabaseHelper {
           final newFile = File('${deckDir.path}/${entry.value}');
           await oldFile.copy(newFile.path);
         } else {
-          print('cant find ${oldFile.path}');
+    debugPrint('cant find ${oldFile.path}');
         }
       }
 
       try {
         await outputDir.delete(recursive: true);
-        print("clean unzip ${outputDir.path}");
+  debugPrint("clean unzip ${outputDir.path}");
       } catch (e) {
-        print("delete bug $e");
+  debugPrint("delete bug $e");
       }
     } catch (e) {
-      print('import bug $e');
+      debugPrint('import bug $e');
     }
     final folderName = basename(deckDir.path);
     return folderName;
@@ -425,9 +426,9 @@ class DatabaseHelper {
       final dbPath = join(databasesPath, 'learning_card.db');
       await deleteDatabase(dbPath);
       _database = null;
-      print('Deleted learning_card.db at $dbPath');
+      debugPrint('Deleted learning_card.db at $dbPath');
     } catch (e) {
-      print('Failed to delete learning_card.db: $e');
+      debugPrint('Failed to delete learning_card.db: $e');
     }
   }
 

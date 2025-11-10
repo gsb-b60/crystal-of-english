@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'dialog_manager.dart';
 import '../ui/sprite_slice.dart';
 
@@ -14,9 +15,9 @@ class DialogOverlay extends StatefulWidget {
 class _DialogOverlayState extends State<DialogOverlay> {
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    const panelFactor = 0.30;
-    final panelH = size.height * panelFactor;
+  final size = MediaQuery.of(context).size;
+  const panelFactor = 0.5; // dialog occupies half the screen height
+  final panelH = size.height * panelFactor;
     final manager = widget.manager;
 
     return GestureDetector(
@@ -85,39 +86,95 @@ class _DialogOverlayState extends State<DialogOverlay> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Text trái
+                      // LEFT: question area (half width)
                       Expanded(
-                        child: ValueListenableBuilder<String>(
-                          valueListenable: manager.currentText,
-                          builder: (context, text, _) => SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(minWidth: double.infinity),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  text,
-                                  style: const TextStyle(
-                                       fontFamily: 'MyFont',  
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    height: 1.35,
+                        flex: 1,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: ValueListenableBuilder<String?>(
+                            valueListenable: manager.currentType,
+                            builder: (context, type, _) {
+                              final text = manager.currentText.value;
+                              final imageRaw = manager.currentImage.value;
+                              final soundRaw = manager.currentSound.value;
+                              // default to text if no explicit type
+                              final t = (type ?? 'text').toLowerCase();
+                              if (t == 'image') {
+                                if (imageRaw == null || imageRaw.isEmpty) {
+                                  return Center(child: Text('Image not found', style: TextStyle(color: Colors.white)));
+                                }
+                                return Center(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.asset(
+                                      imageRaw,
+                                      fit: BoxFit.contain,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
                                   ),
-                                  textAlign: TextAlign.left,
-                                ),
-                              ),
-                            ),
+                                );
+                              } else if (t == 'sound') {
+                                return Center(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      if (soundRaw != null && soundRaw.isNotEmpty) FlameAudio.play(soundRaw);
+                                    },
+                                    icon: const Icon(Icons.volume_up),
+                                    label: const Text('Play'),
+                                    style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                  ),
+                                );
+                              } else if (t == 'imagesound' || t == 'image_sound') {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (soundRaw != null && soundRaw.isNotEmpty)
+                                      ElevatedButton.icon(
+                                        onPressed: () => FlameAudio.play(soundRaw),
+                                        icon: const Icon(Icons.volume_up),
+                                        label: const Text('Play'),
+                                        style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                      ),
+                                    const SizedBox(height: 8),
+                                    if (imageRaw != null && imageRaw.isNotEmpty)
+                                      Expanded(
+                                        child: Center(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Image.asset(imageRaw, fit: BoxFit.contain, width: double.infinity, height: double.infinity),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              } else {
+                                // text default: center both horizontally and vertically
+                                return Center(
+                                  child: SingleChildScrollView(
+                                    physics: const BouncingScrollPhysics(),
+                                    child: Text(
+                                      text,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'MyFont',
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ),
                       ),
 
                       const SizedBox(width: 12),
 
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: 140,
-                          maxWidth: size.width * 0.28,
-                        ),
+                      // RIGHT: answers area (half width)
+                      Expanded(
+                        flex: 1,
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -129,17 +186,30 @@ class _DialogOverlayState extends State<DialogOverlay> {
                             valueListenable: manager.currentChoices,
                             builder: (context, choices, _) {
                               if (choices.isEmpty) return const SizedBox.shrink();
-                              return ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                padding: EdgeInsets.zero,
-                                itemCount: choices.length,
-                                itemBuilder: (context, i) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: _ChoiceButton(
-                                    label: choices[i].text,
-                                    onPressed: () => manager.choose(i),
-                                  ),
-                                ),
+                              return Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: choices.map((c) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () => manager.choose(choices.indexOf(c)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: Colors.black,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                        ),
+                                        child: Text(
+                                          c.text,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontSize: 16, height: 1.2),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                               );
                             },
                           ),

@@ -10,7 +10,16 @@ class Portrait {
 class DialogueLine {
   final String text;
   final Portrait? speaker;
-  const DialogueLine(this.text, {this.speaker});
+  final String? type; // 'text'|'image'|'sound'|'imagesound'
+  final String? image;
+  final String? sound;
+  const DialogueLine(
+    this.text, {
+    this.speaker,
+    this.type,
+    this.image,
+    this.sound,
+  });
 }
 
 class DialogueChoice {
@@ -26,6 +35,9 @@ class DialogManager {
       ValueNotifier<List<DialogueChoice>>(<DialogueChoice>[]);
   final ValueNotifier<Portrait?> currentPortrait = ValueNotifier<Portrait?>(null);
   final ValueNotifier<Portrait?> currentRightPortrait = ValueNotifier<Portrait?>(null);
+  final ValueNotifier<String?> currentType = ValueNotifier<String?>(null);
+  final ValueNotifier<String?> currentImage = ValueNotifier<String?>(null);
+  final ValueNotifier<String?> currentSound = ValueNotifier<String?>(null);
   VoidCallback? onRequestOpenOverlay;
   VoidCallback? onRequestCloseOverlay;
 
@@ -36,11 +48,17 @@ class DialogManager {
     Portrait? portrait,
     List<DialogueChoice> choices = const [],
     Portrait? rightPortrait,
+    String? type,
+    String? image,
+    String? sound,
   }) {
     currentText.value = text;
     currentChoices.value = choices;
     currentPortrait.value = portrait ?? currentPortrait.value;
     currentRightPortrait.value = rightPortrait;
+    currentType.value = type;
+    currentImage.value = image;
+    currentSound.value = sound;
 
     if (!_isOpen) {
       _isOpen = true;
@@ -81,6 +99,10 @@ class DialogManager {
     final line = _linear![_cursor];
     currentText.value = line.text;
     if (line.speaker != null) currentPortrait.value = line.speaker;
+  // set optional content fields if provided on the line
+  currentType.value = line.type;
+  currentImage.value = line.image;
+  currentSound.value = line.sound;
     currentChoices.value = const [];  
 
     if (!_isOpen) {

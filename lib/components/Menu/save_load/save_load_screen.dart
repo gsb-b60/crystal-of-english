@@ -62,7 +62,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     await PlayerProfile.instance.loadFromSlot(slot);
     final data = await DatabaseHelper.instance.loadPlayerProfileSlot(slot);
     // if we have a game reference and a map/position, try to teleport there
-    if (widget.game != null && data != null) {
+  if (widget.game != null && data != null) {
       final mapFile = data['map_file'] as String?;
       final px = (data['pos_x'] as num?)?.toDouble();
       final py = (data['pos_y'] as num?)?.toDouble();
@@ -70,7 +70,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         try {
           await widget.game!.loadMap(mapFile, spawn: Vector2(px, py));
         } catch (e) {
-          print('Failed to move game to loaded slot: $e');
+          debugPrint('Failed to move game to loaded slot: $e');
         }
       }
     }
