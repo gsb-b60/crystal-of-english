@@ -3,6 +3,7 @@ import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/screen/blankfill/blankwordscreen.dart';
 import 'package:mygame/components/Menu/flashcard/screen/flashcard/newwayreview.dart';
 import 'package:mygame/components/Menu/flashcard/screen/mindfield/mindfeild.dart';
+import 'package:mygame/components/Menu/flashcard/screen/phonemix/phonemix.dart';
 import 'package:mygame/main.dart';
 import 'package:mygame/vocab/screen/cardlevel/cardlevelscreen.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +50,7 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "review", screenBuilder: ()=>Newwayreview(deckId: widget.deckId!)),
               NavPageBtn(label: "blank word", screenBuilder: ()=>BlankWordScreen(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Mind Field", screenBuilder: ()=>MindFeild(deckID: widget.deckId!,)),
+              NavPageBtn(label: "Phoneme Mix", screenBuilder: ()=>PhoneMix(deckID: widget.deckId!,)),
             ],
           ),
         ],
