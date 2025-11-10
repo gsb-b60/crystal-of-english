@@ -1,5 +1,5 @@
 ...
-setting
+setting-
 sync
 save
 level

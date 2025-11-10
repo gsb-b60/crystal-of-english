@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:mygame/state/player_profile.dart';
 
 final AudioPlayer audio = AudioPlayer();
 
@@ -61,6 +62,15 @@ class _CardListScreenState extends State<CardListScreen> {
   @override
   Widget build(BuildContext context) {
     final cardModel = Provider.of<Cardmodel>(context);
+    // If we have cards for this deck, compute average complexity and save as preferred deck level
+    if (widget.deckId != null && cardModel.card.isNotEmpty) {
+      final complexities = cardModel.card.map((c) => c.complexity ?? 1).toList();
+      if (complexities.isNotEmpty) {
+        final avg = (complexities.reduce((a, b) => a + b) / complexities.length).round();
+        // persist preferred deck level asynchronously to avoid side-effects in build
+        Future.microtask(() => PlayerProfile.instance.setPreferredDeckLevel(avg));
+      }
+    }
     final List<Widget> cardWidgets = cardModel.card.map((card) {
       return FlashCardItem(card: card, media: cardModel.media);
     }).toList();

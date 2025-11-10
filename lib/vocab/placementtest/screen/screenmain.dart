@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/vocab/placementtest/library/placementtest.dart';
+import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/vocab/placementtest/screen/endscreen.dart';
 import 'package:mygame/vocab/placementtest/screen/quizscreen.dart';
 import 'package:mygame/vocab/placementtest/screen/startscreen.dart';
@@ -55,6 +56,31 @@ class _QuizAppState extends State<QuizApp> {
   }
 
   void _onQuizEnd(int finalScore) {
+    // compute proficiency level from percent and persist to PlayerProfile
+    final percent = finalScore / _questions.length;
+    int level;
+    if (percent >= 0.85) {
+      level = 5;
+    } else if (percent >= 0.7) {
+      level = 4;
+    } else if (percent >= 0.5) {
+      level = 3;
+    } else if (percent >= 0.3) {
+      level = 2;
+    } else {
+      level = 1;
+    }
+
+    // persist level (lazy init of PlayerProfile)
+    try {
+      // Lazy import to avoid adding provider here; use shared preferences helper
+      // We import the PlayerProfile class which handles SharedPreferences
+      // NOTE: import added at top
+      PlayerProfile.instance.setProficiencyLevel(level);
+    } catch (e) {
+      // ignore errors—persistence is best-effort
+    }
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

@@ -35,6 +35,7 @@ import 'package:mygame/components/Menu/pausebutton.dart';
 import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
 import 'audio/audio_manager.dart';
+import 'package:mygame/state/player_profile.dart';
 import 'ui/settings_overlay.dart';
 import 'ui/shop_overlay.dart';
 import 'state/inventory.dart';
@@ -49,6 +50,8 @@ void main() async {
   ]);
 
   await AudioManager.instance.init();
+  // initialize persisted player profile (reads saved placement/deck level)
+  await PlayerProfile.instance.init();
 
   final deckModel = Deckmodel();
   await deckModel.fetchDecks();
@@ -297,6 +300,32 @@ class MyGame extends FlameGame
   }
 
   Future<void> _initMapObjects(String mapFile) async {
+    // decide spawn difficulty based on player profile
+    final effectiveLevel = PlayerProfile.instance.effectiveLevel();
+    int _slotCounter = 0;
+
+    EnemyType _enemyForSlot(int level, int slot) {
+      // Simple deterministic mapping: slot used to distribute types
+      // level 1 -> all normal
+      // level 2 -> normal, strong
+      // level 3 -> strong, miniboss
+      // level 4 -> miniboss, strong
+      // level 5 -> miniboss, boss
+      switch (level) {
+        case 1:
+          return EnemyType.normal;
+        case 2:
+          return (slot % 2 == 0) ? EnemyType.normal : EnemyType.strong;
+        case 3:
+          return (slot % 3 == 0) ? EnemyType.miniboss : EnemyType.strong;
+        case 4:
+          return (slot % 2 == 0) ? EnemyType.miniboss : EnemyType.strong;
+        case 5:
+          return (slot % 3 == 0) ? EnemyType.boss : EnemyType.miniboss;
+        default:
+          return EnemyType.normal;
+      }
+    }
     if (mapFile == 'map.tmx') {
       final loader = TiledObjectLoader(map, world);
       await loader.loadLayer("house");
@@ -422,7 +451,7 @@ class MyGame extends FlameGame
           spritePath: 'Joanna.png',
           speed: 35,
           triggerRadius: 40,
-          enemyType: EnemyType.normal,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -432,7 +461,7 @@ class MyGame extends FlameGame
           spritePath: 'Joanna.png',
           speed: 35,
           triggerRadius: 40,
-          enemyType: EnemyType.strong,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -442,7 +471,7 @@ class MyGame extends FlameGame
           spritePath: 'Joanna.png',
           speed: 35,
           triggerRadius: 40,
-          enemyType: EnemyType.miniboss,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
       await world.add(
@@ -451,7 +480,7 @@ class MyGame extends FlameGame
           spritePath: 'Joanna.png',
           speed: 35,
           triggerRadius: 40,
-          enemyType: EnemyType.miniboss,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -461,7 +490,7 @@ class MyGame extends FlameGame
           spritePath: 'Joanna.png',
           speed: 35,
           triggerRadius: 40,
-          enemyType: EnemyType.boss,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
     } else if (mapFile == 'dungeon.tmx') {
@@ -470,7 +499,7 @@ class MyGame extends FlameGame
           patrolRect: ui.Rect.fromLTWH(970, 465, 80, 60),
           speed: 30,
           triggerRadius: 48,
-          enemyType: EnemyType.normal,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -479,7 +508,7 @@ class MyGame extends FlameGame
           patrolRect: ui.Rect.fromLTWH(1035, 300, 80, 60),
           speed: 28,
           triggerRadius: 48,
-          enemyType: EnemyType.strong,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -488,7 +517,7 @@ class MyGame extends FlameGame
           patrolRect: ui.Rect.fromLTWH(230, 530, 80, 60),
           speed: 32,
           triggerRadius: 48,
-          enemyType: EnemyType.miniboss,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -497,7 +526,7 @@ class MyGame extends FlameGame
           patrolRect: ui.Rect.fromLTWH(265, 300, 80, 60),
           speed: 20,
           triggerRadius: 60,
-          enemyType: EnemyType.boss,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
       await world.add(
@@ -505,7 +534,7 @@ class MyGame extends FlameGame
           patrolRect: ui.Rect.fromLTWH(500, 375, 80, 60),
           speed: 30,
           triggerRadius: 48,
-          enemyType: EnemyType.normal,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
 
@@ -514,7 +543,7 @@ class MyGame extends FlameGame
           patrolRect: ui.Rect.fromLTWH(745, 485, 80, 60),
           speed: 28,
           triggerRadius: 48,
-          enemyType: EnemyType.strong,
+          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
         ),
       );
     }
