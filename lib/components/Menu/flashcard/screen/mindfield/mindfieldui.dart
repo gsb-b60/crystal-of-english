@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
+import 'package:path/path.dart';
+import 'package:provider/provider.dart';
+
+import 'mindfieldnoti.dart';
 
 class MindFeildUI extends StatefulWidget {
   const MindFeildUI({super.key});
@@ -8,14 +13,17 @@ class MindFeildUI extends StatefulWidget {
 }
 
 class _MindFeildUIState extends State<MindFeildUI> {
-  List<String> options = ['apple', 'banana', 'orange'];
   int? selectedIndex;
   bool isChecked = false;
   bool right = false;
   bool answered = false;
-  int rightAnswerIndex = 1;
+
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<Mindfieldnoti>();
+    final card = provider.currentCard;
+    final options = provider.getOptionList;
+    final progress=provider.getProgress();
     return Scaffold(
       backgroundColor: Color.fromRGBO(18, 32, 35, 1),
       appBar: AppBar(
@@ -35,7 +43,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
           ],
         ),
         title: LinearProgressIndicator(
-          value: 0.5,
+          value: progress,
           backgroundColor: Color.fromRGBO(53, 70, 78, 1),
           valueColor: AlwaysStoppedAnimation<Color>(
             Color.fromRGBO(149, 211, 50, 1),
@@ -65,10 +73,9 @@ class _MindFeildUIState extends State<MindFeildUI> {
               Container(
                 height: 150,
                 width: 650,
-
                 child: Center(
                   child: Text(
-                    "the action of stopping and catching something or someone before that thing or person is able to reach a particular place: ",
+                    card.meaning ?? "no meaning",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -105,11 +112,9 @@ class _MindFeildUIState extends State<MindFeildUI> {
                       isChecked: selectedIndex != null,
                       onCheck: () {
                         setState(() {
-                          if (selectedIndex == rightAnswerIndex) {
-                            right = true;
-                          } else {
-                            right = false;
-                          }
+                          right = context.read<Mindfieldnoti>().checkAnswer(
+                            selectedIndex!,
+                          );
                           answered = true;
                         });
                       },
@@ -126,7 +131,18 @@ class _MindFeildUIState extends State<MindFeildUI> {
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
-            child: ReviewScreen(right: right),
+            child: ReviewScreen(right: right, card: card, onPressed: () {
+              context.read<Mindfieldnoti>().nextCard();
+              setState(() {
+                answered=false;
+                selectedIndex=null;
+                
+                Future.delayed(Duration(milliseconds: 400),()
+                {
+                  right=false;
+                });
+              });
+            }),
           ),
         ],
       ),
@@ -135,10 +151,15 @@ class _MindFeildUIState extends State<MindFeildUI> {
 }
 
 class ReviewScreen extends StatelessWidget {
-  const ReviewScreen({super.key, required this.right});
-
+  ReviewScreen({
+    super.key,
+    required this.right,
+    required this.card,
+    required this.onPressed,
+  });
   final bool right;
-
+  final Flashcard card;
+  VoidCallback onPressed;
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -190,7 +211,7 @@ class ReviewScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "interception /ˌɪntɚˈsɛpʃən/",
+                          "${card.word} - ${card.ipa}",
                           style: TextStyle(
                             color: Color.fromRGBO(217, 81, 76, 1),
                             fontSize: 34,
@@ -207,7 +228,10 @@ class ReviewScreen extends StatelessWidget {
                     width: 650,
                     height: 80,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        print("object");
+                        onPressed.call();
+                      },
                       style: ElevatedButton.styleFrom(
                         elevation: right ? 10 : 4,
                         shape: RoundedRectangleBorder(
@@ -228,15 +252,17 @@ class ReviewScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border(
-                          bottom: BorderSide(
-                            color: right
-                                ? const Color.fromRGBO(121, 186, 4, 1)
-                                : Color.fromRGBO(216, 69, 75, 1),
-                            width: 6,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: right
+                                  ? const Color.fromRGBO(121, 186, 4, 1)
+                                  : Color.fromRGBO(216, 69, 75, 1),
+                              width: 6,
+                            ),
                           ),
                         ),
                       ),
