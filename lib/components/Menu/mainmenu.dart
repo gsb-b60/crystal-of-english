@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/components/Menu/usersetting/setting.dart';
 import 'package:mygame/main.dart';
-import 'package:provider/provider.dart';
-import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
-import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
-import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dart';
+// removed unused imports (cleaned up after switching to text labels)
 import 'package:flutter/foundation.dart';
 import 'package:mygame/audio/audio_manager.dart';
 
@@ -24,7 +21,8 @@ class _MainMenuState extends State<MainMenu> {
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage("assets/menu/background.jpg"),
+          // use the provided menu image
+          image: AssetImage("assets/menu/menuimage.jpg"),
           fit: BoxFit.cover,
         ),
       ),
@@ -43,7 +41,16 @@ class MenuContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: MenuNav(game: game));
+    // place the menu nav aligned to the left and vertically centered
+    return SizedBox.expand(
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 40.0),
+          child: MenuNav(game: game),
+        ),
+      ),
+    );
   }
 }
 
@@ -56,117 +63,67 @@ class MenuNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(height: 140, child: Image.asset("assets/menu/game_name.png")),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero, // bỏ padding mặc định
-            backgroundColor: Colors.transparent, // nền trong suốt
-            shadowColor: Colors.transparent,
-          ),
-          onPressed: () async {
-            if (kIsWeb) {
-              // Start BGM on a user gesture to satisfy autoplay policy
-              await AudioManager.instance.playBgm(
-                'audio/bgm_overworld.mp3',
-                volume: 0.4,
-              );
-            }
-            game.overlays.remove('MainMenu'); // ẩn menu
-            game.resumeEngine(); // chạy game tiếp
-          },
-          child: SizedBox(
-            height: 40,
-            child: Image.asset("assets/menu/NewGame.png"),
-          ),
-        ),
-        // Flashcards entry
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero,
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MultiProvider(
-                  providers: [
-                    ChangeNotifierProvider<Deckmodel>(
-                      create: (_) => Deckmodel()..fetchDecks(),
-                    ),
-                    ChangeNotifierProvider<Cardmodel>(
-                      create: (_) => Cardmodel(),
-                    ),
-                  ],
-                  child: const DeckListScreen(),
-                ),
+        // simple title (optional image fallback to text if missing)
+        SizedBox(
+          height: 120,
+          child: Image.asset(
+            "assets/menu/game_name.png",
+            errorBuilder: (c, e, s) => const Center(
+              child: Text(
+                'Crystal of English',
+                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
               ),
-            );
-          },
-          child: SizedBox(
-            height: 40,
-            child: Image.asset(
-              "assets/menu/Flashcards.png",
-              package: null,
-              errorBuilder: (c, e, s) {
-                // Fallback text if asset missing
-                return const Center(
-                  child: Text(
-                    'Flashcards',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              },
             ),
           ),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero,
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-          ),
-          onPressed: () {
-            game.overlays.remove('MainMenu'); // ẩn menu
+
+        const SizedBox(height: 20),
+
+        // New Game label
+        GestureDetector(
+          onTap: () async {
+            if (kIsWeb) {
+              await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+            }
+            // hide main menu and start/resume game
+            game.overlays.remove('MainMenu');
             game.resumeEngine();
           },
-          child: SizedBox(
-            height: 40,
-            child: Image.asset("assets/menu/Continue.png"),
+          child: const Text(
+            'New Game',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
 
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero, // bỏ padding mặc định
-            backgroundColor: Colors.transparent, // nền trong suốt
-            shadowColor: Colors.transparent,
-          ),
-          onPressed: () {
+        const SizedBox(height: 16),
+
+        // Options label (placeholder for settings)
+        GestureDetector(
+          onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => UserScreen()),
             );
           },
-          child: SizedBox(
-            height: 40,
-            child: Image.asset("assets/menu/Settings.png"),
+          child: const Text(
+            'Options',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.zero, // bỏ padding mặc định
-            backgroundColor: Colors.transparent, // nền trong suốt
-            shadowColor: Colors.transparent,
-          ),
-          onPressed: () {
+
+        const SizedBox(height: 16),
+
+        // Exit label
+        GestureDetector(
+          onTap: () {
             SystemNavigator.pop();
           },
-          child: SizedBox(
-            height: 40,
-            child: Image.asset("assets/menu/Exit.png"),
+          child: const Text(
+            'Exit',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
       ],
