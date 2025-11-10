@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 
 import 'mindfieldnoti.dart';
@@ -25,7 +25,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
     final options = provider.getOptionList;
     final progress=provider.getProgress();
     return Scaffold(
-      backgroundColor: Color.fromRGBO(18, 32, 35, 1),
+      backgroundColor: AppColor.darkBase,
       appBar: AppBar(
         leading: Row(
           children: [
@@ -33,7 +33,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
             IconButton(
               icon: Icon(
                 Icons.arrow_back_ios,
-                color: Color.fromRGBO(84, 103, 110, 1),
+                color: AppColor.darkBorder,
                 size: 30,
               ),
               onPressed: () {
@@ -44,14 +44,14 @@ class _MindFeildUIState extends State<MindFeildUI> {
         ),
         title: LinearProgressIndicator(
           value: progress,
-          backgroundColor: Color.fromRGBO(53, 70, 78, 1),
+          backgroundColor: AppColor.darkCard,
           valueColor: AlwaysStoppedAnimation<Color>(
-            Color.fromRGBO(149, 211, 50, 1),
+            AppColor.greenPrimary,
           ),
           minHeight: 18,
           borderRadius: BorderRadius.circular(9),
         ),
-        backgroundColor: Color.fromRGBO(18, 32, 35, 1),
+        backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
         children: [
@@ -168,7 +168,7 @@ class ReviewScreen extends StatelessWidget {
         width: double.infinity,
         height: right ? 250 : 350,
         child: Container(
-          color: Color.fromRGBO(33, 46, 54, 1),
+          color: AppColor.darkSurface,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -178,8 +178,8 @@ class ReviewScreen extends StatelessWidget {
                   Icon(
                     right ? Icons.check_circle_rounded : Icons.cancel,
                     color: right
-                        ? Color.fromRGBO(120, 186, 49, 1)
-                        : Color.fromRGBO(199, 73, 73, 1),
+                        ? AppColor.greenBright
+                        : AppColor.redPrimary,
                     size: 40,
                   ),
                   SizedBox(width: 20),
@@ -187,8 +187,8 @@ class ReviewScreen extends StatelessWidget {
                     right ? "Great job!" : "Incorrect",
                     style: TextStyle(
                       color: right
-                          ? Color.fromRGBO(120, 186, 49, 1)
-                          : Color.fromRGBO(199, 73, 73, 1),
+                          ? AppColor.greenBright
+                          : AppColor.redPrimary,
                       fontSize: 50,
                       fontWeight: FontWeight.w900,
                     ),
@@ -205,7 +205,7 @@ class ReviewScreen extends StatelessWidget {
                         Text(
                           "Correct answer:",
                           style: TextStyle(
-                            color: Color.fromRGBO(199, 73, 73, 1),
+                            color: AppColor.redPrimary,
                             fontSize: 34,
                             fontWeight: FontWeight.w700,
                           ),
@@ -213,7 +213,7 @@ class ReviewScreen extends StatelessWidget {
                         Text(
                           "${card.word} - ${card.ipa}",
                           style: TextStyle(
-                            color: Color.fromRGBO(217, 81, 76, 1),
+                            color: AppColor.redAccent,
                             fontSize: 34,
                             fontWeight: FontWeight.w700,
                           ),
@@ -229,7 +229,6 @@ class ReviewScreen extends StatelessWidget {
                     height: 80,
                     child: ElevatedButton(
                       onPressed: () {
-                        print("object");
                         onPressed.call();
                       },
                       style: ElevatedButton.styleFrom(
@@ -238,13 +237,13 @@ class ReviewScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         backgroundColor: right
-                            ? Color.fromRGBO(149, 211, 50, 1)
-                            : Color.fromRGBO(239, 87, 82, 1),
+                            ? AppColor.greenPrimary
+                            : AppColor.redBright,
                       ),
                       child: Text(
                         right ? "CONTINUE" : "GOT IT",
                         style: TextStyle(
-                          color: Color.fromRGBO(18, 32, 35, 1),
+                          color: AppColor.darkBase,
                           fontSize: 50,
                           fontWeight: FontWeight.w900,
                         ),
@@ -259,8 +258,8 @@ class ReviewScreen extends StatelessWidget {
                           border: Border(
                             bottom: BorderSide(
                               color: right
-                                  ? const Color.fromRGBO(121, 186, 4, 1)
-                                  : Color.fromRGBO(216, 69, 75, 1),
+                                  ? AppColor.greenAccent
+                                  : AppColor.redMuted,
                               width: 6,
                             ),
                           ),
@@ -305,18 +304,18 @@ class ChoiceBtn extends StatelessWidget {
             ),
             side: BorderSide(
               color: isSelected
-                  ? Color.fromRGBO(96, 132, 34, 1)
-                  : Color.fromRGBO(53, 70, 78, 1),
+                  ? AppColor.greenMuted
+                  : AppColor.darkCard,
               width: 4,
             ),
             backgroundColor: isSelected
-                ? Color.fromRGBO(33, 46, 54, 1)
-                : Color.fromRGBO(18, 32, 35, 1),
+                ? AppColor.darkSurface
+                : AppColor.darkBase,
           ),
           child: Text(
             value,
             style: TextStyle(
-              color: isSelected ? Color.fromRGBO(96, 132, 34, 1) : Colors.white,
+              color: isSelected ? AppColor.greenMuted: Colors.white,
               fontSize: 28,
             ),
           ),
@@ -342,9 +341,7 @@ class CheckBtn extends StatelessWidget {
             height: 70,
             child: ElevatedButton(
               onPressed: () {
-                print("click1");
                 if (isChecked) {
-                  print("click2");
                   onCheck?.call();
                 }
               },
@@ -354,14 +351,14 @@ class CheckBtn extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 backgroundColor: isChecked
-                    ? Color.fromRGBO(149, 211, 50, 1)
-                    : Color.fromRGBO(53, 70, 78, 1),
+                    ? AppColor.greenPrimary
+                    : AppColor.darkCard,
               ),
 
               child: Text(
                 "Check",
                 style: TextStyle(
-                  color: Color.fromRGBO(18, 32, 35, 1),
+                  color: AppColor.darkBase,
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
                 ),
@@ -381,7 +378,7 @@ class CheckBtn extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: isChecked
-                          ? const Color.fromRGBO(121, 186, 4, 1)
+                          ?  AppColor.greenAccent
                           : Colors.transparent,
                       width: 6,
                     ),
