@@ -105,9 +105,9 @@ class Enemy extends PositionComponent with HasGameRef<MyGame> {
     await add(_spriteComp);
 
     // Spawn at random point within patrol area
-    final x = patrolRect.left + _rng.nextDouble() * patrolRect.width;
-    final y = patrolRect.top + _rng.nextDouble() * patrolRect.height;
-    position = Vector2(x, y);
+  final x = patrolRect.left + _rng.nextDouble() * patrolRect.width;
+  final y = patrolRect.top + _rng.nextDouble() * patrolRect.height + 12; // shift down a bit
+  position = Vector2(x, y);
 
   // Start with moving state so the NPC immediately begins the move->idle loop
   _isMoving = true;
@@ -252,7 +252,7 @@ class Enemy extends PositionComponent with HasGameRef<MyGame> {
         position.y = patrolRect.bottom;
         hitEdge = true;
       } else {
-        position.y = tentative.y;
+    position.y = tentative.y + 0.0; // keep movement
       }
 
       if (hitEdge) {
@@ -292,7 +292,8 @@ class Enemy extends PositionComponent with HasGameRef<MyGame> {
 
       // Keep within patrol bounds just in case
       position.x = position.x.clamp(patrolRect.left, patrolRect.right);
-      position.y = position.y.clamp(patrolRect.top, patrolRect.bottom);
+  // apply a small downward visual offset bound
+  position.y = position.y.clamp(patrolRect.top + 8, patrolRect.bottom + 12);
     }
 
     // Check battle trigger

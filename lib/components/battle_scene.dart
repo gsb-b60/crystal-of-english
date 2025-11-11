@@ -267,7 +267,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
-    final baselineY = panelTop - (8 * battleScale);
+  final baselineY = panelTop - (8 * battleScale);
     final double halfGap = baseGap * battleScale;
     final Vector2 actorSize = actorBaseSize * battleScale;
     final heroDisplaySize = actorSize;
@@ -297,7 +297,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       anchor: Anchor.bottomCenter,
       position: Vector2(
         centerX - 70 * battleScale,
-        baselineY + 50,
+        baselineY + 74, // lower hero a bit so both stand lower on screen
       ), // Move hero higher by 2px
       priority: 10,
     );
@@ -404,7 +404,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         animation: _enemyIdleAnim,
         size: actorSize,
         anchor: Anchor.bottomCenter,
-        position: Vector2(centerX + halfGap, baselineY),
+        position: Vector2(centerX + halfGap, baselineY + 24),
         priority: 10,
       )..scale = Vector2(1.4, 1.4);
       enemy = enemyAnim;

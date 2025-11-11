@@ -58,7 +58,8 @@ class Player extends SpriteComponent
   late final List<List<Sprite>> _frames;
 
   Player({required Vector2 position})
-    : super(position: position, size: Vector2.all(80), anchor: Anchor.center);
+    : super(position: position + Vector2(0, 16), // shift spawn downward
+            size: Vector2.all(80), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
@@ -160,6 +161,10 @@ class Player extends SpriteComponent
     // Apply movement and animate if moving
     if (!velocity.isZero()) {
       position += velocity * d; // update position
+      // Slight downward bias to keep character visually lower if near top
+      if (position.y < 40) {
+        position.y = 40; // prevent too high visual placement
+      }
 
       // Advance animation frame timing
       frameTime += d;
@@ -185,7 +190,8 @@ class Player extends SpriteComponent
 
     // Keep player within map bounds
     position.x = position.x.clamp(0, gameRef.mapBounds.width - size.x);
-    position.y = position.y.clamp(0, gameRef.mapBounds.height - size.y);
+  // Keep a floor margin and a top margin so sprite doesn't sit too high visually
+  position.y = position.y.clamp(32, gameRef.mapBounds.height - size.y - 8);
   }
 
   @override

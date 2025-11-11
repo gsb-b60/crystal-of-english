@@ -716,9 +716,12 @@ class _SmallButton extends PositionComponent with TapCallbacks {
       ..color = const ui.Color(0x33FFFFFF);
     canvas.drawRRect(r, border);
 
-    // Slightly larger label for better readability on phones; scale with panel height hint
-    final fontSize = (size.y * 0.6).clamp(15.0, 24.0);
-    final tp = TextPaint(
+    // Slightly larger label for better readability on phones; ensure horizontal padding
+    double fontSize = (size.y * 0.6).clamp(15.0, 24.0);
+    final minPad = size.y * 0.4; // desired total horizontal padding (left+right)
+
+    // Measure text and shrink font if needed to maintain padding
+    TextPaint meas = TextPaint(
       style: TextStyle(
         color: ui.Color(0xFFF8FAFC),
         fontSize: fontSize,
@@ -726,7 +729,28 @@ class _SmallButton extends PositionComponent with TapCallbacks {
         fontWeight: FontWeight.w600,
       ),
     );
-    tp.render(canvas, label, Vector2(size.x / 2, size.y / 2 - 1), anchor: Anchor.center);
+    var painter = meas.toTextPainter(label);
+    painter.layout();
+    double textW = painter.width;
+    final allowedTextW = (size.x - minPad).clamp(10.0, size.x);
+    if (textW > allowedTextW) {
+      final scale = (allowedTextW / textW).clamp(0.7, 1.0);
+      fontSize = (fontSize * scale).clamp(12.0, 24.0);
+      meas = TextPaint(
+        style: TextStyle(
+          color: ui.Color(0xFFF8FAFC),
+          fontSize: fontSize,
+          height: 1.05,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+    meas.render(
+      canvas,
+      label,
+      Vector2(size.x / 2, size.y / 2 - 1),
+      anchor: Anchor.center,
+    );
   }
 
   @override
