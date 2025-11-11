@@ -496,10 +496,21 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addImageSound({String? imageRaw, String? soundRaw}) async {
-  final btnH = _panelH * 0.05;
-  // Ensure button width is reasonable and within left content area
-  final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
-  final double btnW = (_panelH * 0.22).clamp(100.0, maxLeftContentW).toDouble();
+    final btnH = _panelH * 0.05;
+    // Ensure button width is reasonable, has padding, and stays within the left content area
+    final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
+    final double baseW = _panelH * 0.22;
+    const label = 'Phát âm';
+    final double labelFont = (btnH * 0.6).clamp(15.0, 24.0);
+    final textPaint = TextPaint(
+      style: TextStyle(fontSize: labelFont, fontWeight: FontWeight.w600),
+    );
+    final tp = textPaint.toTextPainter(label);
+    tp.layout();
+    final double textW = tp.width;
+    final double horizPad = btnH * 0.6; // symmetric padding
+    final double minW = textW + horizPad;
+    final double btnW = min(maxLeftContentW, max(100.0, max(baseW, minW)));
     final btnGapBottom = _panelH * 0.025;
 
     if (soundRaw != null && soundRaw.isNotEmpty) {
@@ -560,10 +571,21 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addSoundButtonCentered(String raw) async {
-  // Ensure button width is reasonable and within left content area
-  final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
-  final double btnW = (_panelH * 0.25).clamp(110.0, maxLeftContentW).toDouble();
+    // Ensure button width is reasonable, has padding, and within left content area
+    final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
+    final double baseW = _panelH * 0.25;
     final btnH = _panelH * 0.06;
+    const label = 'Phát âm';
+    final double labelFont = (btnH * 0.6).clamp(15.0, 24.0);
+    final textPaint = TextPaint(
+      style: TextStyle(fontSize: labelFont, fontWeight: FontWeight.w600),
+    );
+    final tp = textPaint.toTextPainter(label);
+    tp.layout();
+    final double textW = tp.width;
+    final double horizPad = btnH * 0.6;
+    final double minW = textW + horizPad;
+    final double btnW = min(maxLeftContentW, max(110.0, max(baseW, minW)));
     final pos = Vector2(_leftW / 2 - btnW / 2, _innerTop);
     await add(
       _SmallButton(
@@ -578,9 +600,20 @@ class QuizPanel extends PositionComponent
     required String prompt,
     required String soundRaw,
   }) async {
-  final btnH = _panelH * 0.05;
-  final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
-  final double btnW = (_panelH * 0.22).clamp(100.0, maxLeftContentW).toDouble();
+    final btnH = _panelH * 0.05;
+    final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
+    final double baseW = _panelH * 0.22;
+    const label = 'Phát âm';
+    final double labelFont = (btnH * 0.6).clamp(15.0, 24.0);
+    final textPaint = TextPaint(
+      style: TextStyle(fontSize: labelFont, fontWeight: FontWeight.w600),
+    );
+    final tp = textPaint.toTextPainter(label);
+    tp.layout();
+    final double textW = tp.width;
+    final double horizPad = btnH * 0.6;
+    final double minW = textW + horizPad;
+    final double btnW = min(maxLeftContentW, max(100.0, max(baseW, minW)));
     final btnGapBottom = _panelH * 0.025;
 
     await add(
@@ -733,7 +766,7 @@ class _AnswerItem extends PositionComponent with TapCallbacks {
   void render(ui.Canvas canvas) {
     final rrect = ui.RRect.fromRectAndRadius(
       ui.Rect.fromLTWH(0, 0, size.x, size.y),
-      ui.Radius.circular(size.y * 0.15),
+      ui.Radius.circular(size.y * 0.22),
     );
 
     final fill = ui.Paint()
