@@ -6,6 +6,7 @@ import 'package:mygame/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/audio/audio_manager.dart';
 import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
+import 'package:mygame/ui/settings_overlay.dart';
 
 class MainMenu extends StatefulWidget {
   final MyGame game;
@@ -17,6 +18,22 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
+  @override
+  void initState() {
+    super.initState();
+    // Hide the settings/inventory overlay while the main menu is visible
+    widget.game.overlays.remove(SettingsOverlay.id);
+  }
+
+  @override
+  void dispose() {
+    // Restore the overlay once the player leaves the menu
+    if (!widget.game.overlays.isActive(SettingsOverlay.id)) {
+      widget.game.overlays.add(SettingsOverlay.id);
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -91,6 +108,9 @@ class MenuNav extends StatelessWidget {
             }
             // hide main menu and start/resume game
             game.overlays.remove('MainMenu');
+            if (!game.overlays.isActive(SettingsOverlay.id)) {
+              game.overlays.add(SettingsOverlay.id);
+            }
             game.resumeEngine();
           },
           child: const Text(
