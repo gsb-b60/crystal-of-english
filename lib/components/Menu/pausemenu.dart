@@ -49,8 +49,8 @@ class NavPauseMenu extends StatelessWidget {
             ),
             onPressed: () {
               game.resumeEngine();
-              game.overlays.add('PauseButton'); // hiện lại nút pause
-              game.overlays.remove('PauseMenu'); // tắt menu
+              // Previously re-added HUD pause button; now removed - just close pause menu
+              game.overlays.remove('PauseMenu'); // close menu
             },
             child: SizedBox(
               height: btnSize,
@@ -65,8 +65,8 @@ class NavPauseMenu extends StatelessWidget {
             ),
             onPressed: () {
               game.resumeEngine();
-              game.overlays.add('MainMenu'); // hiện lại nút pause
-              //game.overlays.remove('PauseMenu'); // tắt menu
+              game.overlays.add('MainMenu');
+              game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
               height: btnSize,
@@ -81,8 +81,8 @@ class NavPauseMenu extends StatelessWidget {
             ),
             onPressed: () {
               game.resumeEngine();
-              game.overlays.add('PauseButton'); // hiện lại nút pause
-              game.overlays.remove('PauseMenu'); // tắt menu
+              // close pause menu
+              game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
               height: btnSize,

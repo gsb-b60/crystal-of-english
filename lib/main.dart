@@ -31,7 +31,7 @@ import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
 import 'package:mygame/components/Menu/mainmenu.dart';
-import 'package:mygame/components/Menu/pausebutton.dart';
+// pausebutton overlay removed; UI no longer uses pauseBtn asset
 import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
 import 'audio/audio_manager.dart';
@@ -80,9 +80,7 @@ void main() async {
             "MainMenu": (context, game) {
               return MainMenu(game: game as MyGame);
             },
-            "PauseButton": (context, game) {
-              return PauseButton(game: game as MyGame);
-            },
+            // Pause button overlay removed: pause is handled via settings or pause menu
             "PauseMenu": (context, game) {
               return PauseMenu(game: game as MyGame);
             },
@@ -116,14 +114,24 @@ void main() async {
               return Cardlevelscreen(game: game as MyGame);
             },
             SettingsOverlay.id: (context, game) {
+              final g = game as MyGame;
               return SettingsOverlay(
                 audio: AudioManager.instance,
                 onUseItem: (item) {
-                  final g = game as MyGame;
                   if (item.name.toLowerCase() == 'image1') {
                     g.heartsHud.heal(1);
                     Inventory.instance.remove(item);
                   }
+                },
+                onGoToMain: () {
+                  // Open the main menu overlay and pause the game
+                  g.pauseEngine();
+                  if (!g.overlays.isActive('MainMenu')) g.overlays.add('MainMenu');
+                },
+                onPause: () {
+                  // Pause the game and show PauseMenu overlay
+                  g.pauseEngine();
+                  if (!g.overlays.isActive('PauseMenu')) g.overlays.add('PauseMenu');
                 },
               );
             },
@@ -146,7 +154,7 @@ void main() async {
             },
           },
 
-          initialActiveOverlays: const ['PauseButton', 'MainMenu'],
+          initialActiveOverlays: const ['MainMenu'],
         ),
       ),
     ),

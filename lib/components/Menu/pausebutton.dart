@@ -10,20 +10,24 @@ class PauseButton extends StatelessWidget {
     return Positioned(
       top: 20,
       right: 20,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.zero, // bỏ padding mặc định
-          backgroundColor: Colors.transparent, // nền trong suốt
-          shadowColor: Colors.transparent,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            game.pauseEngine();
+            game.overlays.add('PauseMenu'); // show menu pause
+            game.overlays.remove('PauseButton'); // hide this button while menu is open
+          },
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.pause, color: Colors.white, size: 28),
+          ),
         ),
-        onPressed: () {
-          game.pauseEngine();
-          game.overlays.add('PauseMenu'); // show menu pause
-          game.overlays.remove('PauseButton'); // ẩn nút khi menu hiện
-        },
-        child: SizedBox(
-          height: 45,
-          child: Image.asset("assets/menu/pauseMenu/pauseBtn.png")),
       ),
     );
   }
