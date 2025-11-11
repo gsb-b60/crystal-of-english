@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart' show rootBundle, ByteData;
-import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/painting.dart' show TextStyle, FontWeight;
 import 'package:flutter/foundation.dart' show VoidCallback;
 
 import '../quiz/quiz_models.dart';
@@ -321,9 +321,10 @@ class QuizPanel extends PositionComponent
     size = game.size;
     position = Vector2.zero();
 
-    final w = size.x;
-    final h = size.y;
-    _panelH = h * panelHeightRatio;
+  final w = size.x;
+  final h = size.y;
+  final isSmallScreen = h < 700 || w < 420; // heuristic: phone small viewport
+  _panelH = h * (isSmallScreen ? 0.72 : panelHeightRatio); // give more vertical space on small
     _panelY = h - _panelH;
 
     // backgrd - using 9-slice sprite
@@ -338,8 +339,9 @@ class QuizPanel extends PositionComponent
     );
 
     // define inner content area inside the panel
-    _border = 64.0;
-    _pad = 15.0;
+  // Make border & padding relative so they don't eat too much space on small screens
+  _border = isSmallScreen ? (_panelH * 0.08).clamp(36.0, 56.0) : 64.0;
+  _pad = isSmallScreen ? (_panelH * 0.02).clamp(10.0, 18.0) : 15.0;
     _innerTop = _panelY + _border + _pad;
     _innerBottom = _panelY + _panelH - _border - _pad;
     _innerH = _innerBottom - _innerTop;
@@ -397,7 +399,17 @@ class QuizPanel extends PositionComponent
     final startX =
         rightX + _innerSidePad; // right column start inside right border
     double rowY = _innerTop;
-    final rowH = (_innerH - gap * (count - 1)) / count;
+    // Fit height per row to the available inner space
+    final fitRowH = (_innerH - gap * (count - 1)) / count;
+    final desiredMinRowH = _panelH * (isSmallScreen ? 0.19 : 0.16);
+    // Use the larger of fit or desired min only if it still fits overall; otherwise fall back to fit to avoid overflow
+    double rowH;
+    final totalIfMin = desiredMinRowH * count + gap * (count - 1);
+    if (totalIfMin <= _innerH) {
+      rowH = desiredMinRowH;
+    } else {
+      rowH = fitRowH;
+    }
 
     for (int i = 0; i < count; i++) {
       final displayLabel = '${i + 1}. ${question.options[i]}';
@@ -406,6 +418,8 @@ class QuizPanel extends PositionComponent
           rect: ui.Rect.fromLTWH(startX, rowY, innerW, rowH),
           label: displayLabel,
           priority: priority + 3,
+          screenHeight: h,
+          isSmall: isSmallScreen,
           onTap: () {
             if (_disabled) return;
             _disabled = true;
@@ -418,8 +432,11 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addCenteredText(String text) async {
-    // Scale font size based on panel height
-    final fontSize = (_panelH * 0.028).clamp(12.0, 22.0);
+    // Scale font size more aggressively on small screens for readability
+    final isSmallScreen = size.y < 700 || size.x < 420;
+    final fontSize = isSmallScreen
+        ? (_panelH * 0.035).clamp(16.0, 26.0)
+        : (_panelH * 0.028).clamp(12.0, 22.0);
     await add(
       TextComponent(
         text: text,
@@ -479,14 +496,16 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addImageSound({String? imageRaw, String? soundRaw}) async {
-    final btnH = _panelH * 0.05;
-    final btnW = _panelH * 0.22;
+  final btnH = _panelH * 0.05;
+  // Ensure button width is reasonable and within left content area
+  final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
+  final double btnW = (_panelH * 0.22).clamp(100.0, maxLeftContentW).toDouble();
     final btnGapBottom = _panelH * 0.025;
 
     if (soundRaw != null && soundRaw.isNotEmpty) {
       await add(
         _SmallButton(
-          label: '🔊 Phát âm',
+          label: 'Phát âm',
           onPressed: () => _playSoundRaw(soundRaw),
           position: Vector2((_leftW - btnW) / 2, _innerTop),
         )..size = Vector2(btnW, btnH),
@@ -541,12 +560,14 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addSoundButtonCentered(String raw) async {
-    final btnW = _panelH * 0.25;
+  // Ensure button width is reasonable and within left content area
+  final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
+  final double btnW = (_panelH * 0.25).clamp(110.0, maxLeftContentW).toDouble();
     final btnH = _panelH * 0.06;
     final pos = Vector2(_leftW / 2 - btnW / 2, _innerTop);
     await add(
       _SmallButton(
-        label: '🔊 Phát âm',
+  label: 'Phát âm',
         onPressed: () => _playSoundRaw(raw),
         position: pos,
       )..size = Vector2(btnW, btnH),
@@ -557,13 +578,14 @@ class QuizPanel extends PositionComponent
     required String prompt,
     required String soundRaw,
   }) async {
-    final btnH = _panelH * 0.05;
-    final btnW = _panelH * 0.22;
+  final btnH = _panelH * 0.05;
+  final double maxLeftContentW = _leftW - (_innerSidePad + _pad);
+  final double btnW = (_panelH * 0.22).clamp(100.0, maxLeftContentW).toDouble();
     final btnGapBottom = _panelH * 0.025;
 
     await add(
       _SmallButton(
-        label: '🔊 Phát âm',
+  label: 'Phát âm',
         onPressed: () => _playSoundRaw(soundRaw),
         position: Vector2((_leftW - btnW) / 2, _innerTop),
       )..size = Vector2(btnW, btnH),
@@ -574,7 +596,10 @@ class QuizPanel extends PositionComponent
     final textAreaH = (textAreaBottom - textAreaTop).clamp(40.0, _innerH);
     final centerY = textAreaTop + textAreaH / 2;
 
-    final fontSize = (_panelH * 0.028).clamp(12.0, 22.0);
+  final isSmallScreen = size.y < 700 || size.x < 420;
+  final fontSize = isSmallScreen
+    ? (_panelH * 0.035).clamp(16.0, 26.0)
+    : (_panelH * 0.028).clamp(12.0, 22.0);
     await add(
       TextComponent(
         text: prompt,
@@ -658,11 +683,17 @@ class _SmallButton extends PositionComponent with TapCallbacks {
       ..color = const ui.Color(0x33FFFFFF);
     canvas.drawRRect(r, border);
 
-    final fontSize = (size.y * 0.5).clamp(10.0, 16.0);
+    // Slightly larger label for better readability on phones; scale with panel height hint
+    final fontSize = (size.y * 0.6).clamp(15.0, 24.0);
     final tp = TextPaint(
-      style: TextStyle(color: ui.Color(0xFFF8FAFC), fontSize: fontSize),
+      style: TextStyle(
+        color: ui.Color(0xFFF8FAFC),
+        fontSize: fontSize,
+        height: 1.05,
+        fontWeight: FontWeight.w600,
+      ),
     );
-    tp.render(canvas, label, size / 2, anchor: Anchor.center);
+    tp.render(canvas, label, Vector2(size.x / 2, size.y / 2 - 1), anchor: Anchor.center);
   }
 
   @override
@@ -679,12 +710,16 @@ class _SmallButton extends PositionComponent with TapCallbacks {
 class _AnswerItem extends PositionComponent with TapCallbacks {
   final String label;
   final VoidCallback onTap;
+  final double screenHeight;
+  final bool isSmall;
 
   _AnswerItem({
     required ui.Rect rect,
     required this.label,
     required int priority,
     required this.onTap,
+    required this.screenHeight,
+    required this.isSmall,
   }) : super(
          position: Vector2(rect.left, rect.top),
          size: Vector2(rect.width, rect.height),
@@ -704,7 +739,7 @@ class _AnswerItem extends PositionComponent with TapCallbacks {
     final fill = ui.Paint()
       ..color = _down ? const ui.Color(0xFF2A3647) : const ui.Color(0xFF233042);
     canvas.drawRRect(rrect, fill);
-
+    // Border paint (pure stroke; text rendering handled separately below)
     final border = ui.Paint()
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 1
@@ -712,7 +747,11 @@ class _AnswerItem extends PositionComponent with TapCallbacks {
     canvas.drawRRect(rrect, border);
 
     // Scale font based on button height
-    final fontSize = (size.y * 0.22).clamp(10.0, 18.0);
+  // Use screenHeight so font doesn't shrink excessively when row height reduces
+  final baseFactor = isSmall ? 0.035 : 0.032; // slightly larger on small screens
+  double fontSize = (screenHeight * baseFactor);
+  // Still respect button height so it doesn't overflow vertically
+  fontSize = fontSize.clamp(16.0, (size.y * 0.42).clamp(20.0, 34.0));
     final tp = TextPaint(
       style: TextStyle(color: ui.Color(0xFFE2E8F0), fontSize: fontSize),
     );

@@ -154,7 +154,7 @@ class _DialogOverlayState extends State<DialogOverlay> {
                                     const SizedBox(height: 8),
                                     if (imageRaw != null && imageRaw.isNotEmpty)
                                       SizedBox(
-                                        height: panelH * 0.7,
+                                        height: panelH * 0.8,
                                         child: Center(
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(12),
@@ -175,9 +175,9 @@ class _DialogOverlayState extends State<DialogOverlay> {
                                       style: TextStyle(
                                         fontFamily: 'MyFont',
                                         color: Colors.white,
-                                        // Increase base font size for better legibility on mobile
-                                        // Use clamp to avoid extremely large fonts on very tall screens
-                                        fontSize: (size.height * 0.035).clamp(16.0, 40.0),
+                                        // Bigger base font for mobile readability
+                                        // Clamp to avoid extreme values on tablets/desktops
+                                        fontSize: (size.height * 0.042).clamp(18.0, 44.0),
                                       ),
                                     ),
                                   ),
@@ -207,96 +207,108 @@ class _DialogOverlayState extends State<DialogOverlay> {
                               final dialogType = manager.currentType.value ?? '';
                               final showLetters = dialogType == 'flashcard' || dialogType == 'quiz';
                               if (showLetters) {
-                                // Allow the answers column to scroll if there are
-                                // more choices than available vertical space.
-                                return SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: choices.asMap().entries.map((entry) {
-                                    final i = entry.key;
-                                    final c = entry.value;
-                                    final letter = String.fromCharCode(65 + i); // A, B, C, D
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(vertical: panelH * 0.012),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        height: panelH * 0.16, // larger buttons
-                                        child: ElevatedButton(
-                                          onPressed: () => manager.choose(i),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white,
-                                            foregroundColor: Colors.black,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(size.width * 0.018)),
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: panelH * 0.01,
-                                              horizontal: size.width * 0.015,
-                                            ),
-                                          ),
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                              child: Text(
-                                              '$letter. ${c.text}',
-                                              textAlign: TextAlign.left,
-                                              style: TextStyle(
-                                                // slightly larger answer text with bounds
-                                                fontSize: (size.height * 0.03).clamp(14.0, 28.0),
-                                                height: 1.1,
+                                // Fill the available column height so 4 buttons nearly occupy full panel height
+                                return LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final totalH = constraints.maxHeight;
+                                    final n = choices.length;
+                                    final gap = panelH * 0.012;
+                                    final totalGap = (n > 1) ? gap * (n - 1) : 0.0;
+                                    final itemH = (totalH - totalGap) / n;
+                                    return Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: choices.asMap().entries.map((entry) {
+                                        final i = entry.key;
+                                        final c = entry.value;
+                                        final letter = String.fromCharCode(65 + i); // A, B, C, D
+                                        return Padding(
+                                          padding: EdgeInsets.only(bottom: i == n - 1 ? 0 : gap),
+                                          child: SizedBox(
+                                            width: double.infinity,
+                                            height: itemH,
+                                            child: ElevatedButton(
+                                              onPressed: () => manager.choose(i),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white,
+                                                foregroundColor: Colors.black,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(size.width * 0.018),
+                                                ),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: panelH * 0.014,
+                                                  horizontal: size.width * 0.02,
+                                                ),
                                               ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  '$letter. ${c.text}',
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                    // Larger answer text for mobile
+                                                    fontSize: (size.height * 0.034).clamp(16.0, 30.0),
+                                                    height: 1.15,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
+                                        );
+                                      }).toList(),
                                     );
-                                  }).toList(),
-                                  ),
+                                  },
                                 );
                               } else {
-                                // NPC/dialog mode: use a scrollable list and cap
-                                // each button's height to avoid RenderFlex overflow
-                                return SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: choices.map((c) {
-                                      return Padding(
-                                        padding: EdgeInsets.symmetric(vertical: panelH * 0.008),
-                                        child: SizedBox(
-                                          height: panelH * 0.14,
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                            onPressed: () => manager.choose(choices.indexOf(c)),
-                                            style: ElevatedButton.styleFrom(
-                                              // Subtle tinted, semi-transparent button for NPC choices
-                                              backgroundColor: const Color(0xFF3B82F6).withOpacity(0.12),
-                                              foregroundColor: Colors.white,
-                                              elevation: 0,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(size.width * 0.015),
-                                              ),
-                                              side: BorderSide(color: Colors.white24),
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: panelH * 0.01,
-                                                horizontal: size.width * 0.015,
-                                              ),
-                                            ),
-                                            child: Center(
-                                                child: Text(
-                                                c.text,
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  // bigger NPC choice text for readability
-                                                  fontSize: (size.height * 0.028).clamp(14.0, 26.0),
+                                // NPC/dialog mode: fill column height evenly with buttons
+                                return LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final n = choices.length;
+                                    final gap = panelH * 0.01;
+                                    final totalGap = (n > 1) ? gap * (n - 1) : 0.0;
+                                    final itemH = (constraints.maxHeight - totalGap) / n;
+                                    return Column(
+                                      children: choices.asMap().entries.map((entry) {
+                                        final idx = entry.key;
+                                        final c = entry.value;
+                                        return Padding(
+                                          padding: EdgeInsets.only(bottom: idx == n - 1 ? 0 : gap),
+                                          child: SizedBox(
+                                            height: itemH,
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () => manager.choose(idx),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF3B82F6).withOpacity(0.12),
+                                                foregroundColor: Colors.white,
+                                                elevation: 0,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(size.width * 0.015),
                                                 ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
+                                                side: const BorderSide(color: Colors.white24),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: panelH * 0.014,
+                                                  horizontal: size.width * 0.02,
+                                                ),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  c.text,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: (size.height * 0.032).clamp(16.0, 28.0),
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
+                                        );
+                                      }).toList(),
+                                    );
+                                  },
                                 );
                               }
                             },
