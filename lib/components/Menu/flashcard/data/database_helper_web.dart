@@ -33,7 +33,36 @@ class DatabaseHelper {
 
 
 
-  Future<void> updateCard(Flashcard card) async {}
+  Future<void> updateCard(Flashcard card) async {
+    final list = _cards[card.deckId];
+    if (list == null) return;
+    final idx = list.indexWhere((c) => c.id == card.id);
+    if (idx != -1) {
+      // Replace with updated fields (keep unchanged fields if null)
+      final old = list[idx];
+      final updated = Flashcard(
+        id: old.id,
+        deckId: old.deckId,
+        word: card.word ?? old.word,
+        meaning: card.meaning ?? old.meaning,
+        example: card.example ?? old.example,
+        img: card.img ?? old.img,
+        ipa: card.ipa ?? old.ipa,
+        interval: card.interval ?? old.interval,
+        reps: card.reps ?? old.reps,
+        due: card.due ?? old.due,
+        lastReview: card.lastReview ?? old.lastReview,
+        lapses: card.lapses ?? old.lapses,
+        easeFactor: card.easeFactor ?? old.easeFactor,
+        sound: card.sound ?? old.sound,
+        defSound: card.defSound ?? old.defSound,
+        usageSound: card.usageSound ?? old.usageSound,
+        complexity: card.complexity ?? old.complexity,
+        synonyms: card.synonyms ?? old.synonyms,
+      );
+      list[idx] = updated;
+    }
+  }
   Future<void> deleteCard(int cardId) async {}
 
   Future<int> insertCard(Flashcard card) async {

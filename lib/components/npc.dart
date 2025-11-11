@@ -178,6 +178,38 @@ class Npc extends SpriteComponent with HasGameRef<MyGame> {
     if (_badge != null && !_badge!.isMounted && parent != null) {
       parent!.add(_badge!);
     }
+    // Show a persistent small speech bubble with the interact prompt when
+    // the player is within interact radius. This gives a visible "Talk" cue.
+    try {
+      final p = gameRef.player;
+      final dist = p.position.distanceTo(position);
+      final near = dist <= interactRadius;
+      if (!manager.isOpen && near && (interactChoices.isNotEmpty || (interactPrompt != null && interactPrompt!.isNotEmpty))) {
+        // Show a persistent interact prompt only once when player enters range.
+        if (_bubble == null) {
+          final label = (interactPrompt != null && interactPrompt!.trim().length <= 28)
+              ? interactPrompt!
+              : 'Nói chuyện';
+          final b = SpeechBubble(
+            text: label,
+            target: this,
+            maxWidth: 160,
+            padding: 8,
+            gapToHead: 6,
+          );
+          if (parent != null) {
+            parent!.add(b);
+            _bubble = b;
+          }
+        }
+      } else if (!near) {
+        // If player moved away, remove the interaction prompt bubble.
+        if (_bubble != null) {
+          _bubble!.removeFromParent();
+          _bubble = null;
+        }
+      }
+    } catch (_) {}
   }
   void _handleInteractPressed() {
     if (manager.isOpen) return;

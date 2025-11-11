@@ -455,8 +455,25 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     final q = _pool.removeAt(0);
 
+    // Ensure any previous quiz panels are fully removed from the HUD so
+    // we don't accidentally stack multiple panels with stale content.
+    // (Some platforms may keep visual children alive briefly if not
+    // explicitly removed.)
+    try {
+      for (final c in hud.children.where((c) => c is QuizPanel).toList()) {
+        c.removeFromParent();
+      }
+    } catch (_) {}
+
     _panel?.removeFromParent();
     _answering = false;
+
+    // Debug: log which question is being shown so we can trace whether the
+    // question actually changes between turns.
+    try {
+      // question has an 'id' field — use it if available
+      print('[BattleScene] presenting quiz question: ${q.id}');
+    } catch (_) {}
 
     _panel = QuizPanel(
       question: q,

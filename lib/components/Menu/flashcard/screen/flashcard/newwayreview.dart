@@ -44,7 +44,21 @@ class _Newwayreview extends State<Newwayreview> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Review Cards')),
+      appBar: AppBar(
+        title: const Text('Review Cards'),
+        actions: [
+          IconButton(
+            tooltip: 'Undo last review',
+            icon: const Icon(Icons.undo),
+            onPressed: () async {
+              final cardModel = Provider.of<Cardmodel>(context, listen: false);
+              await cardModel.undoLastReview();
+              // rewind the controller so the undone card is visible again
+              controller.rewind();
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder(
         future: _loadDueCard(),
         builder: (context, snapshot) => Column(
@@ -56,6 +70,7 @@ class _Newwayreview extends State<Newwayreview> {
                   child: Swipeder(
                     controller: controller,
                     cardWidgets: cardWidgets,
+                    cards: _dueCards,
                   ),
                 ),
               ),
@@ -73,10 +88,12 @@ class Swipeder extends StatefulWidget {
     super.key,
     required this.controller,
     required this.cardWidgets,
+    required this.cards,
   });
 
   final SwipableStackController controller;
   final List<Widget>? cardWidgets;
+  final List<Flashcard>? cards;
 
   @override
   State<Swipeder> createState() => _SwipederState();
@@ -84,6 +101,7 @@ class Swipeder extends StatefulWidget {
 
 class _SwipederState extends State<Swipeder> {
   bool right = false;
+  int _activeItem = 0;
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -131,6 +149,8 @@ class _SwipederState extends State<Swipeder> {
               return SizedBox();
             }
             final itemIndex = (properties.index) % widget.cardWidgets!.length;
+            // track currently visible item for rating buttons
+            _activeItem = itemIndex;
             return Stack(
               children: [Card(child: widget.cardWidgets?[itemIndex])],
             );
@@ -140,75 +160,40 @@ class _SwipederState extends State<Swipeder> {
           alignment: Alignment.bottomCenter,
           child: Container(
             padding: EdgeInsets.only(bottom: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    widget.controller.next(swipeDirection: SwipeDirection.down);
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: List.generate(6, (i) {
+                // i ranges 0..5: SM-2 quality
+                return ElevatedButton(
+                  onPressed: () async {
+                    // apply rating to the active card
+                    if (widget.cards == null || widget.cards!.isEmpty) return;
+                    final card = widget.cards![_activeItem];
+                    final cardModel = Provider.of<Cardmodel>(context, listen: false);
+                    await cardModel.updateCardAfterReview(card, i);
+                    // advance the stack: choose direction visually
+                    final dir = (i >= 3) ? SwipeDirection.down : SwipeDirection.up;
+                    widget.controller.next(swipeDirection: dir);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    padding: EdgeInsets.all(20),
+                    backgroundColor: i >= 3 ? Colors.teal : Colors.redAccent,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.check_circle_rounded,
-                        color: Colors.white,
-                        size: 30,
-                      ),
+                      Text(i.toString(), style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                       Text(
-                        "Easy",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 23,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        i == 5 ? 'Perfect' : (i == 4 ? 'Easy' : (i == 3 ? 'Good' : (i == 2 ? 'Again' : (i == 1 ? 'Poor' : 'Null')))),
+                        style: TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ],
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    widget.controller.rewind();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    padding: EdgeInsets.all(20),
-                    shadowColor: Colors.blueGrey
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.replay, color: Colors.teal, size: 30),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    widget.controller.next(
-                      swipeDirection: SwipeDirection.up,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: EdgeInsets.all(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.whatshot, color: Colors.white, size: 30),
-                      Text(
-                        "Hard",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 23,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                );
+              }),
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
+import 'scheduler.dart';
 
 
 class Flashcard {
@@ -181,38 +182,109 @@ class Cardmodel with ChangeNotifier {
 
  
 
+  // Update card scheduling after a review. Accepts either a raw SM-2 quality (0..5)
+  // or legacy 1..3 performanceRating values. If `quality` is in 0..5 it is
+  // used directly, otherwise it's mapped from performanceRating to quality.
+  Flashcard? _lastOldForUndo;
+
+  Future<void> undoLastReview() async {
+    if (_lastOldForUndo == null) return;
+    // restore DB
+    await _dbhelper.updateCard(_lastOldForUndo!);
+    final idx = _cards.indexWhere((c) => c.id == _lastOldForUndo!.id);
+    if (idx != -1) {
+      _cards[idx] = _lastOldForUndo!;
+    }
+    _lastOldForUndo = null;
+    
+    notifyListeners();
+  }
+
   Future<void> updateCardAfterReview(
     Flashcard card,
-    int performanceRating,
+    int qualityOrLegacy,
   ) async {
-    final newReivewCount = card.reps! + 1;
-    late DateTime newDueDate;
-
-    if (performanceRating == 3) {
-      newDueDate = DateTime.now().add(const Duration(days: 3));
-    } else if (performanceRating == 2) {
-      newDueDate = DateTime.now().add(const Duration(days: 2));
-    } else if (performanceRating == 1) {
-      //newDueDate = DateTime.now().add(const Duration(minutes: 10));
-      newDueDate = DateTime.now();
+    // Determine quality (SM-2 uses 0..5)
+    int q;
+    if (qualityOrLegacy >= 0 && qualityOrLegacy <= 5) {
+      q = qualityOrLegacy;
+    } else {
+      // backward compatibility: map legacy 1..3 into quality
+      if (qualityOrLegacy >= 3) {
+        q = 5;
+      } else if (qualityOrLegacy == 2) {
+        q = 4;
+      } else {
+        q = 2;
+      }
     }
 
-    final updateCard = Flashcard(
-      id:card.id!,
+    final now = DateTime.now();
+    final prevInterval = card.interval ?? 0;
+    final prevReps = card.reps ?? 0;
+    final prevEF = card.easeFactor ?? 2.5;
+
+    final schedule = computeSM2(
+      quality: q,
+      prevInterval: prevInterval,
+      prevReps: prevReps,
+      prevEF: prevEF,
+    );
+
+    final lapses = (q < 3) ? ((card.lapses ?? 0) + 1) : (card.lapses ?? 0);
+    final newDue = now.add(Duration(days: schedule.intervalDays));
+
+    final updated = Flashcard(
+      id: card.id!,
       deckId: card.deckId,
       word: card.word,
       meaning: card.meaning,
-      due: newDueDate,
-      reps: newReivewCount,
+      interval: schedule.intervalDays,
+      reps: schedule.reps,
+      due: newDue,
+      lastReview: now,
+      lapses: lapses,
+      easeFactor: schedule.easeFactor,
     );
-    await _dbhelper.updateCard(updateCard);
-    //update len db
 
-    //update len du lieu tuc thi
-    final index=_cards.indexWhere((c)=>c.id==updateCard.id);
-    if(index!=-1)
-    {
-      _cards[index]=updateCard;
+    // Save old state for undo
+    final oldIndex = _cards.indexWhere((c) => c.id == card.id);
+    if (oldIndex != -1) {
+      _lastOldForUndo = _cards[oldIndex];
+    } else {
+      _lastOldForUndo = null;
+    }
+
+    
+
+    await _dbhelper.updateCard(updated);
+
+    // update in-memory list
+    final index = _cards.indexWhere((c) => c.id == updated.id);
+    if (index != -1) {
+      final old = _cards[index];
+      _cards[index] = Flashcard(
+        id: old.id,
+        deckId: old.deckId,
+        createdAt: old.createdAt,
+        updatedAt: now,
+        word: old.word,
+        meaning: old.meaning,
+        example: old.example,
+        ipa: old.ipa,
+        complexity: old.complexity,
+        img: old.img,
+        sound: old.sound,
+        defSound: old.defSound,
+        usageSound: old.usageSound,
+        synonyms: old.synonyms,
+        interval: updated.interval,
+        reps: updated.reps,
+        due: updated.due,
+        lastReview: updated.lastReview,
+        lapses: updated.lapses,
+        easeFactor: updated.easeFactor,
+      );
     }
     notifyListeners();
   }

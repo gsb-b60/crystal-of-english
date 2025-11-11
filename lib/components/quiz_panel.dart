@@ -418,14 +418,16 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addCenteredText(String text) async {
+    // Scale font size based on panel height
+    final fontSize = (_panelH * 0.028).clamp(12.0, 22.0);
     await add(
       TextComponent(
         text: text,
         anchor: Anchor.topCenter,
         textRenderer: TextPaint(
-          style: const TextStyle(
+          style: TextStyle(
             color: ui.Color(0xFFF1F5F9),
-            fontSize: 18,
+            fontSize: fontSize,
             height: 1.25,
           ),
         ),
@@ -477,9 +479,9 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addImageSound({String? imageRaw, String? soundRaw}) async {
-    const btnH = 32.0;
-    const btnW = 140.0;
-    const btnGapBottom = 15.0;
+    final btnH = _panelH * 0.05;
+    final btnW = _panelH * 0.22;
+    final btnGapBottom = _panelH * 0.025;
 
     if (soundRaw != null && soundRaw.isNotEmpty) {
       await add(
@@ -539,8 +541,8 @@ class QuizPanel extends PositionComponent
   }
 
   Future<void> _addSoundButtonCentered(String raw) async {
-    const btnW = 160.0;
-    const btnH = 40.0;
+    final btnW = _panelH * 0.25;
+    final btnH = _panelH * 0.06;
     final pos = Vector2(_leftW / 2 - btnW / 2, _innerTop);
     await add(
       _SmallButton(
@@ -555,9 +557,9 @@ class QuizPanel extends PositionComponent
     required String prompt,
     required String soundRaw,
   }) async {
-    const btnH = 32.0;
-    const btnW = 140.0;
-    const btnGapBottom = 15.0;
+    final btnH = _panelH * 0.05;
+    final btnW = _panelH * 0.22;
+    final btnGapBottom = _panelH * 0.025;
 
     await add(
       _SmallButton(
@@ -572,14 +574,15 @@ class QuizPanel extends PositionComponent
     final textAreaH = (textAreaBottom - textAreaTop).clamp(40.0, _innerH);
     final centerY = textAreaTop + textAreaH / 2;
 
+    final fontSize = (_panelH * 0.028).clamp(12.0, 22.0);
     await add(
       TextComponent(
         text: prompt,
         anchor: Anchor.center,
         textRenderer: TextPaint(
-          style: const TextStyle(
+          style: TextStyle(
             color: ui.Color(0xFFF1F5F9),
-            fontSize: 18,
+            fontSize: fontSize,
             height: 1.25,
           ),
         ),
@@ -643,7 +646,7 @@ class _SmallButton extends PositionComponent with TapCallbacks {
   void render(ui.Canvas canvas) {
     final r = ui.RRect.fromRectAndRadius(
       size.toRect(),
-      const ui.Radius.circular(10),
+      ui.Radius.circular(size.y * 0.18),
     );
     final fill = ui.Paint()
       ..color = _down ? const ui.Color(0xFF2A3647) : const ui.Color(0xFF3B4A60);
@@ -655,8 +658,9 @@ class _SmallButton extends PositionComponent with TapCallbacks {
       ..color = const ui.Color(0x33FFFFFF);
     canvas.drawRRect(r, border);
 
+    final fontSize = (size.y * 0.5).clamp(10.0, 16.0);
     final tp = TextPaint(
-      style: const TextStyle(color: ui.Color(0xFFF8FAFC), fontSize: 14),
+      style: TextStyle(color: ui.Color(0xFFF8FAFC), fontSize: fontSize),
     );
     tp.render(canvas, label, size / 2, anchor: Anchor.center);
   }
@@ -694,7 +698,7 @@ class _AnswerItem extends PositionComponent with TapCallbacks {
   void render(ui.Canvas canvas) {
     final rrect = ui.RRect.fromRectAndRadius(
       ui.Rect.fromLTWH(0, 0, size.x, size.y),
-      const ui.Radius.circular(12),
+      ui.Radius.circular(size.y * 0.15),
     );
 
     final fill = ui.Paint()
@@ -707,13 +711,18 @@ class _AnswerItem extends PositionComponent with TapCallbacks {
       ..color = const ui.Color(0x33FFFFFF);
     canvas.drawRRect(rrect, border);
 
+    // Scale font based on button height
+    final fontSize = (size.y * 0.22).clamp(10.0, 18.0);
     final tp = TextPaint(
-      style: const TextStyle(color: ui.Color(0xFFE2E8F0), fontSize: 16),
+      style: TextStyle(color: ui.Color(0xFFE2E8F0), fontSize: fontSize),
     );
+    
+    // Scale left padding proportionally
+    final leftPad = size.x * 0.03;
     tp.render(
       canvas,
       label,
-      Vector2(12, size.y / 2),
+      Vector2(leftPad, size.y / 2),
       anchor: Anchor.centerLeft,
     );
   }

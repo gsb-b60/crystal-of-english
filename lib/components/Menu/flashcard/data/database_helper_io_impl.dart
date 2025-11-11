@@ -64,7 +64,50 @@ class DatabaseHelper {
       debugPrint('Runtime schema reconciliation failed: $e');
     }
 
+    // attempt to migrate legacy `due_date` string values into integer `due` (ms since epoch)
+    try {
+      await migrateDueDateStrings(db);
+    } catch (e) {
+      debugPrint('migrateDueDateStrings failed: $e');
+    }
+
     return db;
+  }
+
+  /// Migrate any legacy `due_date` string columns (ISO 8601) into the integer
+  /// `due` column (milliseconds since epoch). This is tolerant: if `due` is
+  /// already present we skip. We read all rows and update as needed.
+  Future<void> migrateDueDateStrings(Database db) async {
+    try {
+      // read all cards; if column `due_date` exists and `due` is null, parse and write
+      final rows = await db.rawQuery('SELECT rowid, * FROM cards');
+      for (final row in rows) {
+        // row is Map<String, Object?>; check for 'due' and 'due_date'
+        final dueVal = row['due'];
+        final dueDateVal = row['due_date'];
+        if ((dueVal == null || dueVal == 0) && dueDateVal != null) {
+          try {
+            final parsed = DateTime.tryParse(dueDateVal.toString());
+            if (parsed != null) {
+              final id = row['id'] as int?;
+              if (id != null) {
+                await db.update(
+                  'cards',
+                  {'due': parsed.millisecondsSinceEpoch},
+                  where: 'id=?',
+                  whereArgs: [id],
+                );
+                debugPrint('Migrated due_date -> due for card id=$id');
+              }
+            }
+          } catch (e) {
+            debugPrint('Failed to parse due_date for row ${row['id']}: $e');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('migrateDueDateStrings error: $e');
+    }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -188,11 +231,18 @@ class DatabaseHelper {
 
   Future<void> updateCard(Flashcard card) async {
     final db = await database;
+    final row = <String, Object?>{
+      'interval': card.interval,
+      'reps': card.reps,
+      'due': card.due?.millisecondsSinceEpoch,
+      'last_review': card.lastReview?.millisecondsSinceEpoch,
+      'lapses': card.lapses,
+      'ease_factor': card.easeFactor,
+    };
+
     await db.update(
       'cards',
-      {
-        'due_date': card.due!.toIso8601String(),
-      },
+      row,
       where: 'id=?',
       whereArgs: [card.id],
     );
