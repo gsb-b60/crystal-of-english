@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/components/Menu/usersetting/setting.dart';
 import 'package:mygame/main.dart';
-// removed unused imports (cleaned up after switching to text labels)
+
 import 'package:flutter/foundation.dart';
 import 'package:mygame/audio/audio_manager.dart';
 import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
@@ -21,13 +21,13 @@ class _MainMenuState extends State<MainMenu> {
   @override
   void initState() {
     super.initState();
-    // Hide the settings/inventory overlay while the main menu is visible
+
     widget.game.overlays.remove(SettingsOverlay.id);
   }
 
   @override
   void dispose() {
-    // Restore the overlay once the player leaves the menu
+
     if (!widget.game.overlays.isActive(SettingsOverlay.id)) {
       widget.game.overlays.add(SettingsOverlay.id);
     }
@@ -39,7 +39,7 @@ class _MainMenuState extends State<MainMenu> {
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          // use the provided menu image
+
           image: AssetImage("assets/menu/menuimage.jpg"),
           fit: BoxFit.cover,
         ),
@@ -59,7 +59,7 @@ class MenuContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // place the menu nav aligned to the left and vertically centered
+
     return SizedBox.expand(
       child: Align(
         alignment: Alignment.centerLeft,
@@ -84,7 +84,7 @@ class MenuNav extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // simple title (optional image fallback to text if missing)
+
         SizedBox(
           height: 120,
           child: Image.asset(
@@ -100,13 +100,13 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        // New Game label
+
         GestureDetector(
           onTap: () async {
             if (kIsWeb) {
               await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
             }
-            // hide main menu and start/resume game
+
             game.overlays.remove('MainMenu');
             if (!game.overlays.isActive(SettingsOverlay.id)) {
               game.overlays.add(SettingsOverlay.id);
@@ -121,7 +121,7 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Save / Load label
+
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -137,7 +137,7 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Options label (placeholder for settings)
+
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -153,7 +153,7 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Exit label
+
         GestureDetector(
           onTap: () {
             SystemNavigator.pop();

@@ -251,16 +251,16 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
             child: ReviewScreen(
               right: right,
               onPressed: () {
-                // context.read<Mindfieldnoti>().nextCard();
-                // setState(() {
-                //   answered=false;
-                //   selectedIndex=null;
 
-                //   Future.delayed(Duration(milliseconds: 400),()
-                //   {
-                //     right=false;
-                //   });
-                // });
+
+
+
+
+
+
+
+
+
               },
             ),
           ),
