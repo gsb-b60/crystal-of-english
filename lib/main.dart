@@ -114,6 +114,7 @@ void main() async {
             SettingsOverlay.id: (context, game) {
               return SettingsOverlay(
                 audio: AudioManager.instance,
+                game: game as MyGame,
                 onUseItem: (item) {
                   final g = game as MyGame;
                   if (item.name.toLowerCase() == 'image1') {

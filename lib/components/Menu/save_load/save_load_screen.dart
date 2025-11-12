@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
 import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/main.dart';
+import 'package:mygame/ui/settings_overlay.dart';
+import 'package:mygame/audio/audio_manager.dart';
 import 'package:flame/components.dart';
 
 class SaveLoadScreen extends StatefulWidget {
@@ -74,6 +76,18 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         }
       }
     }
+    // If we have a game instance, remove the main menu overlay and resume
+    // the engine so the player is returned directly to the gameplay view.
+    if (widget.game != null) {
+      widget.game!.overlays.remove('MainMenu');
+      if (!widget.game!.overlays.isActive(SettingsOverlay.id)) {
+        widget.game!.overlays.add(SettingsOverlay.id);
+      }
+      widget.game!.resumeEngine();
+      // Ensure background music resumes as well
+      AudioManager.instance.resumeBgm();
+    }
+
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Loaded slot $slot')));
     Navigator.of(context).pop();
