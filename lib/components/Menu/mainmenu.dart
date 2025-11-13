@@ -4,8 +4,7 @@ import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dar
 import 'package:mygame/components/Menu/usersetting/setting.dart';
 import 'package:mygame/main.dart';
 
-import 'package:flutter/foundation.dart';
-import 'package:mygame/audio/audio_manager.dart';
+// removed unused imports
 import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
 import 'package:mygame/ui/settings_overlay.dart';
 
@@ -108,18 +107,14 @@ class MenuNav extends StatelessWidget {
 
         GestureDetector(
           onTap: () async {
-            if (kIsWeb) {
-              await AudioManager.instance.playBgm(
-                'audio/bgm_overworld.mp3',
-                volume: 0.4,
-              );
-            }
-
+            // Ensure overlays/game state
             game.overlays.remove('MainMenu');
             if (!game.overlays.isActive(SettingsOverlay.id)) {
               game.overlays.add(SettingsOverlay.id);
             }
-            game.resumeEngine();
+
+            // Resume gameplay fully (restores joystick) and keep music uninterrupted
+            await game.resumeGame();
           },
           child: const Text(
             'New Game',

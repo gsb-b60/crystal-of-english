@@ -3,7 +3,6 @@ import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
 import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/main.dart';
 import 'package:mygame/ui/settings_overlay.dart';
-import 'package:mygame/audio/audio_manager.dart';
 import 'package:flame/components.dart';
 
 class SaveLoadScreen extends StatefulWidget {
@@ -83,9 +82,8 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
       if (!widget.game!.overlays.isActive(SettingsOverlay.id)) {
         widget.game!.overlays.add(SettingsOverlay.id);
       }
-      widget.game!.resumeEngine();
-      // Ensure background music resumes as well
-      AudioManager.instance.resumeBgm();
+      // Fully resume gameplay (restores joystick and resumes BGM at normal volume)
+      await widget.game!.resumeGame();
     }
 
     if (!mounted) return;
