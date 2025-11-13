@@ -322,6 +322,19 @@ class MyGame extends FlameGame
     await hudRoot.add(AreaTitle(text));
   }
 
+  /// Persist the current gameplay state into the requested save slot.
+  Future<void> saveSlot(int slot) async {
+    await PlayerProfile.instance.saveSnapshot(
+      mapFile: currentMapFile,
+      posX: player.position.x,
+      posY: player.position.y,
+      hearts: heartsHud.currentHearts,
+      xp: expHud.xp,
+      gold: goldHud.gold,
+      slot: slot,
+    );
+  }
+
   void _lockControls(bool lock) {
     final js = joystick;
     if (js == null) {

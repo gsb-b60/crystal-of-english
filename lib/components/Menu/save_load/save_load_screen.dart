@@ -52,11 +52,22 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
   }
 
   Future<void> _saveSlot(int slot) async {
-
-    await PlayerProfile.instance.saveToSlot(slot);
-    await _refresh();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    try {
+      if (widget.game != null) {
+        await widget.game!.saveSlot(slot);
+      } else {
+        await PlayerProfile.instance.saveToSlot(slot);
+      }
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e')),
+      );
+    }
   }
 
   Future<void> _loadSlot(int slot) async {
