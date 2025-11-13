@@ -3,7 +3,6 @@ import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
 import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/main.dart';
 import 'package:mygame/ui/settings_overlay.dart';
-import 'package:mygame/audio/audio_manager.dart';
 import 'package:flame/components.dart';
 
 class SaveLoadScreen extends StatefulWidget {
@@ -53,11 +52,22 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
   }
 
   Future<void> _saveSlot(int slot) async {
-
-    await PlayerProfile.instance.saveToSlot(slot);
-    await _refresh();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    try {
+      if (widget.game != null) {
+        await widget.game!.saveSlot(slot);
+      } else {
+        await PlayerProfile.instance.saveToSlot(slot);
+      }
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e')),
+      );
+    }
   }
 
   Future<void> _loadSlot(int slot) async {
@@ -83,9 +93,8 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
       if (!widget.game!.overlays.isActive(SettingsOverlay.id)) {
         widget.game!.overlays.add(SettingsOverlay.id);
       }
-      widget.game!.resumeEngine();
-      // Ensure background music resumes as well
-      AudioManager.instance.resumeBgm();
+      // Fully resume gameplay (restores joystick and resumes BGM at normal volume)
+      await widget.game!.resumeGame();
     }
 
     if (!mounted) return;

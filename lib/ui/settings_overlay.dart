@@ -149,6 +149,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                                       ),
                                       const SizedBox(height: 8),
 
+                                      // Music (BGM)
                                       Row(
                                         children: [
                                           Switch(
@@ -173,6 +174,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                                       ),
                                       const SizedBox(height: 4),
 
+                                      // Sound Effects (SFX)
                                       Row(
                                         children: [
                                           Switch(
@@ -196,19 +198,25 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                                         },
                                       ),
                                       const SizedBox(height: 8),
+
                                       Row(
                                         children: [
                                           Expanded(
                                             child: ElevatedButton.icon(
                                               onPressed: () async {
-                                                // Pause: pause engine only, do not open pause overlay
+                                                // Toggle pause/resume including audio
                                                 final g = widget.game;
                                                 if (g != null) {
-                                                  g.pauseEngine();
+                                                  await g.togglePause();
+                                                  if (mounted) setState(() {});
                                                 }
                                               },
-                                              icon: const Icon(Icons.pause),
-                                              label: const Text('Pause'),
+                                              icon: Icon((widget.game?.isPaused ?? false)
+                                                  ? Icons.play_arrow
+                                                  : Icons.pause),
+                                              label: Text((widget.game?.isPaused ?? false)
+                                                  ? 'Continue'
+                                                  : 'Pause'),
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -239,14 +247,19 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                                               onPressed: () async {
                                                 final g = widget.game;
                                                 if (g != null) {
-                                                  // remove settings overlay and show main menu overlay
+                                                  // Home: return to main menu with smooth BGM fade-in
                                                   if (g.overlays.isActive(SettingsOverlay.id)) {
                                                     g.overlays.remove(SettingsOverlay.id);
                                                   }
-                                                  g.pauseEngine();
+                                                  await g.pauseGame();
                                                   if (!g.overlays.isActive('MainMenu')) {
                                                     g.overlays.add('MainMenu');
                                                   }
+
+                                                  // Restart menu music from the beginning (no fade required)
+                                                  try {
+                                                    await widget.audio.playBgm('audio/bgm_overworld.mp3', volume: widget.audio.bgmVolume);
+                                                  } catch (_) {}
                                                 }
                                               },
                                               icon: const Icon(Icons.home),

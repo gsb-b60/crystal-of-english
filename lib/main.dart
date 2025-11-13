@@ -173,6 +173,8 @@ class MyGame extends FlameGame
   final DialogManager dialogManager = DialogManager();
   final ValueNotifier<List<RightAction>> rightActions =
       ValueNotifier<List<RightAction>>(<RightAction>[]);
+  bool _isPaused = false;
+  bool get isPaused => _isPaused;
 
   @override
   Future<void> onLoad() async {
@@ -268,14 +270,45 @@ class MyGame extends FlameGame
     };
 
     if (!kIsWeb) {
+      // Play BGM at normal volume immediately (no fade to avoid pause interruption)
       await AudioManager.instance.playBgm(
         'audio/bgm_overworld.mp3',
-        volume: 0.4,
+        volume: AudioManager.instance.bgmVolume,
       );
     }
     if (!overlays.isActive('MainMenu') &&
         !overlays.isActive(SettingsOverlay.id)) {
       overlays.add(SettingsOverlay.id);
+    }
+  }
+
+  /// Fully pause the game: lock controls and halt the engine.
+  Future<void> pauseGame() async {
+    if (_isPaused) return;
+    _isPaused = true;
+    _lockControls(true);
+    pauseEngine();
+    await AudioManager.instance.pauseBgm();
+  }
+
+  /// Resume gameplay: unlock controls and resume the engine.
+  Future<void> resumeGame() async {
+    // Always unlock controls and ensure joystick, even if not in paused state
+    // This handles cases like returning from menu where isPaused might be stale
+    _isPaused = false;
+    _lockControls(false);
+    resumeEngine();
+    await AudioManager.instance.resumeBgm();
+    // Ensure joystick is reattached and player wired to it
+    await _ensureJoystickAttached();
+  }
+
+  /// Toggle pause/resume including audio and control locks
+  Future<void> togglePause() async {
+    if (_isPaused) {
+      await resumeGame();
+    } else {
+      await pauseGame();
     }
   }
 
@@ -289,17 +322,59 @@ class MyGame extends FlameGame
     await hudRoot.add(AreaTitle(text));
   }
 
+  /// Persist the current gameplay state into the requested save slot.
+  Future<void> saveSlot(int slot) async {
+    await PlayerProfile.instance.saveSnapshot(
+      mapFile: currentMapFile,
+      posX: player.position.x,
+      posY: player.position.y,
+      hearts: heartsHud.currentHearts,
+      xp: expHud.xp,
+      gold: goldHud.gold,
+      slot: slot,
+    );
+  }
+
   void _lockControls(bool lock) {
     final js = joystick;
+    if (js == null) {
+      player.joystick = null;
+      return;
+    }
+
     if (lock) {
       player.joystick = null;
-      if (js != null && js.parent != null) js.removeFromParent();
     } else {
-      if (js != null && js.parent == null) {
-        hudRoot.add(js);
-      }
-      if (js != null) player.joystick = js;
+      // When unlocking, always ensure joystick is properly attached
+      _attachJoystick();
     }
+  }
+
+  /// Synchronously attach joystick to HUD and player if not already attached
+  void _attachJoystick() {
+    final js = joystick;
+    if (js == null) return;
+    
+    // Add to HUD if not already there
+    if (js.parent == null) {
+      hudRoot.add(js);
+    }
+    
+    // Wire to player
+    player.joystick = js;
+  }
+
+  Future<void> _ensureJoystickAttached() async {
+    final js = joystick;
+    if (js == null) return;
+    
+    // Add to HUD if not already there
+    if (js.parent == null) {
+      await hudRoot.add(js);
+    }
+    
+    // Wire to player
+    player.joystick = js;
   }
 
   Future<void> _initMapObjects(String mapFile) async {
@@ -626,7 +701,8 @@ class MyGame extends FlameGame
       if (_savedJoystickPos != null) {
         joystick!.position = _savedJoystickPos!;
       }
-      player.joystick = joystick;
+      // Use the centralized attach method to ensure joystick is in HUD
+      _attachJoystick();
     }
 
     if (result.outcome == 'lose') {
@@ -723,10 +799,8 @@ class MyGame extends FlameGame
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
 
-    if (joystick != null && joystick!.parent == null) {
-      await hudRoot.add(joystick!);
-    }
-    player.joystick = joystick;
+    // Use centralized method to ensure joystick is properly attached
+    await _ensureJoystickAttached();
 
     await showAreaTitle(
       mapFile == 'houseinterior.tmx'
