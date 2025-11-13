@@ -324,11 +324,13 @@ class MyGame extends FlameGame
 
   void _lockControls(bool lock) {
     final js = joystick;
+    if (js == null) {
+      player.joystick = null;
+      return;
+    }
+
     if (lock) {
       player.joystick = null;
-      if (js != null && js.parent != null) {
-        js.removeFromParent();
-      }
     } else {
       // When unlocking, always ensure joystick is properly attached
       _attachJoystick();

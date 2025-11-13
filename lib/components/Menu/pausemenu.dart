@@ -47,8 +47,8 @@ class NavPauseMenu extends StatelessWidget {
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            onPressed: () {
-              game.resumeEngine();
+            onPressed: () async {
+              await game.resumeGame();
               game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
@@ -62,9 +62,11 @@ class NavPauseMenu extends StatelessWidget {
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            onPressed: () {
-              game.resumeEngine();
-              game.overlays.add('MainMenu');
+            onPressed: () async {
+              await game.pauseGame();
+              if (!game.overlays.isActive('MainMenu')) {
+                game.overlays.add('MainMenu');
+              }
               game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
@@ -78,8 +80,8 @@ class NavPauseMenu extends StatelessWidget {
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            onPressed: () {
-              game.resumeEngine();
+            onPressed: () async {
+              await game.resumeGame();
               game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
