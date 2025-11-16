@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 
+enum ButtonState{normal,selected,done,wrong}
 class EchospellUI extends StatefulWidget {
   const EchospellUI({super.key});
 
@@ -13,6 +15,25 @@ class _EchospellUIState extends State<EchospellUI> {
   String ipa = "/heˈləʊ/";
   List<String> list = ["H", "e", "l", "l", "o"];
   List<String> listWord=["_","_","_","_","_",];
+  int currentIndex=0;
+  bool answered=false;
+  List<ButtonState> listState=[ButtonState.normal,ButtonState.normal,ButtonState.normal,ButtonState.normal,ButtonState.normal];
+  void CheckAnswer(String letter,int index)
+  {
+    //print(letter+list[])
+    if(letter==list[currentIndex])
+    {
+      setState(() {
+        listState[index]=ButtonState.done;
+        listWord[currentIndex]=list[currentIndex];
+        currentIndex++;
+      });
+      if(currentIndex==listWord.length)
+      {
+        answered=true;
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,34 +125,9 @@ class _EchospellUIState extends State<EchospellUI> {
 
                 children: List.generate(list.length, (index) {
                   final value = list[index];
-                  return AnimatedOpacity(
-                    opacity: 1,
-                    duration: const Duration(milliseconds: 200),
-                    child: GestureDetector(
-                      onTap: (){
-
-                      },
-                      child: Container(
-                        height: 60,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: BoxBorder.all(color:AppColor.darkCard,width: 4 )
-                        ),
-                        child: Center(
-                          child: Text(
-                            value,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Roboto',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
+                  return ChoiceBtn(value: value,state:  listState[index],onChoose: (){
+                    CheckAnswer(value, index);
+                  },);
                 }),
               ),
             ],
@@ -140,7 +136,7 @@ class _EchospellUIState extends State<EchospellUI> {
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
             //bottom: provider.answer ? 0 : -MediaQuery.of(context).size.height,
-            bottom: -MediaQuery.of(context).size.height,
+            bottom:answered?0: -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
@@ -151,6 +147,77 @@ class _EchospellUIState extends State<EchospellUI> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ChoiceBtn extends StatelessWidget {
+  ChoiceBtn({
+    super.key,
+    required this.value,
+    required this.state,
+    required this.onChoose
+  });
+
+  String value;
+  ButtonState state;
+  VoidCallback onChoose;
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColor = AppColor.darkBase;
+    Color textColor = Colors.white;
+    Color borderColor = AppColor.darkCard;
+
+    switch (state) {
+      case ButtonState.selected:
+        backgroundColor = AppColor.darkSurface;
+        borderColor = AppColor.BlueMuted;
+        textColor = AppColor.BlueMuted;
+        break;
+      case ButtonState.done:
+        backgroundColor = AppColor.darkBase;
+        borderColor = AppColor.darkCard;
+        textColor = AppColor.darkerCard;
+        break;
+      case ButtonState.normal:
+        backgroundColor = AppColor.darkBase;
+        borderColor = AppColor.darkCard;
+        textColor = Colors.white;
+        break;
+      case ButtonState.wrong:
+        backgroundColor = AppColor.darkSurface;
+        borderColor = AppColor.redMuted;
+        textColor = AppColor.redMuted;
+        break;
+    }
+    return GestureDetector(
+      onTap: (){
+        if(state!=ButtonState.done)
+        {
+          onChoose.call();
+        }
+        
+      },
+      child: Container(
+        height: 60,
+        width: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: BoxBorder.all(color:borderColor,width: 4 ),
+          color: backgroundColor
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 35,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto',
+            ),
+          ),
+        ),
       ),
     );
   }
