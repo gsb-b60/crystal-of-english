@@ -1,8 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/components/Menu/flashcard/screen/echospell/echospellNoti.dart';
+import 'package:provider/provider.dart';
 
-enum ButtonState{normal,selected,done,wrong}
+enum ButtonState { normal, selected, done, wrong }
+
 class EchospellUI extends StatefulWidget {
   const EchospellUI({super.key});
 
@@ -11,31 +13,14 @@ class EchospellUI extends StatefulWidget {
 }
 
 class _EchospellUIState extends State<EchospellUI> {
-  String word = "Hello";
-  String ipa = "/heˈləʊ/";
-  List<String> list = ["H", "e", "l", "l", "o"];
-  List<String> listWord=["_","_","_","_","_",];
-  int currentIndex=0;
-  bool answered=false;
-  List<ButtonState> listState=[ButtonState.normal,ButtonState.normal,ButtonState.normal,ButtonState.normal,ButtonState.normal];
-  void CheckAnswer(String letter,int index)
-  {
-    //print(letter+list[])
-    if(letter==list[currentIndex])
-    {
-      setState(() {
-        listState[index]=ButtonState.done;
-        listWord[currentIndex]=list[currentIndex];
-        currentIndex++;
-      });
-      if(currentIndex==listWord.length)
-      {
-        answered=true;
-      }
-    }
-  }
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<EchospellNoti>();
+    final reader = context.read<EchospellNoti>();
+    final list = provider.SetUpList();
+    final listWord = provider.SetUpListWord();
+    final ipa = provider.SetIPA();
+    final listState = provider.GetListState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -55,7 +40,7 @@ class _EchospellUIState extends State<EchospellUI> {
           ],
         ),
         title: LinearProgressIndicator(
-          value: 0.1,
+          value: provider.value,
           backgroundColor: AppColor.darkCard,
           valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
           minHeight: 18,
@@ -79,7 +64,8 @@ class _EchospellUIState extends State<EchospellUI> {
                     ),
                   ),
                 ],
-              ),SizedBox(height: 10,),
+              ),
+              SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -87,10 +73,11 @@ class _EchospellUIState extends State<EchospellUI> {
                     onPressed: () {},
                     icon: Icon(
                       Icons.volume_up,
-                      color: AppColor.darkBorder,
+                      color: AppColor.lightText,
                       size: 30,
                     ),
                   ),
+                  SizedBox(width: 20),
                   Text(
                     ipa,
                     style: TextStyle(
@@ -102,22 +89,25 @@ class _EchospellUIState extends State<EchospellUI> {
                   ),
                 ],
               ),
-              SizedBox(height: 15,),
+              SizedBox(height: 15),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 alignment: WrapAlignment.center,
-                children:List.generate(listWord.length, (index){
-                  String value=listWord[index];
-                  return Text(value,style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Roboto',
-                ),);
+                children: List.generate(listWord.length, (index) {
+                  String value = listWord[index];
+                  return Text(
+                    value,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Roboto',
+                    ),
+                  );
                 }),
               ),
-              SizedBox(height: 50,),
+              SizedBox(height: 50),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -125,9 +115,13 @@ class _EchospellUIState extends State<EchospellUI> {
 
                 children: List.generate(list.length, (index) {
                   final value = list[index];
-                  return ChoiceBtn(value: value,state:  listState[index],onChoose: (){
-                    CheckAnswer(value, index);
-                  },);
+                  return ChoiceBtn(
+                    value: value,
+                    state: listState[index],
+                    onChoose: () {
+                      reader.CheckAnswer(value, index);
+                    },
+                  );
                 }),
               ),
             ],
@@ -135,14 +129,13 @@ class _EchospellUIState extends State<EchospellUI> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            //bottom: provider.answer ? 0 : -MediaQuery.of(context).size.height,
-            bottom:answered?0: -MediaQuery.of(context).size.height,
+            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
               onPressed: () {
-                
+                reader.SetNext();
               },
             ),
           ),
@@ -157,7 +150,7 @@ class ChoiceBtn extends StatelessWidget {
     super.key,
     required this.value,
     required this.state,
-    required this.onChoose
+    required this.onChoose,
   });
 
   String value;
@@ -192,20 +185,18 @@ class ChoiceBtn extends StatelessWidget {
         break;
     }
     return GestureDetector(
-      onTap: (){
-        if(state!=ButtonState.done)
-        {
+      onTap: () {
+        if (state != ButtonState.done) {
           onChoose.call();
         }
-        
       },
       child: Container(
         height: 60,
         width: 60,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: BoxBorder.all(color:borderColor,width: 4 ),
-          color: backgroundColor
+          border: BoxBorder.all(color: borderColor, width: 4),
+          color: backgroundColor,
         ),
         child: Center(
           child: Text(
@@ -222,7 +213,6 @@ class ChoiceBtn extends StatelessWidget {
     );
   }
 }
-
 
 class ReviewScreen extends StatelessWidget {
   ReviewScreen({super.key, required this.onPressed});
