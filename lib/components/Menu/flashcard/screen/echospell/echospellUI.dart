@@ -70,14 +70,16 @@ class _EchospellUIState extends State<EchospellUI> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton.outlined(
-                    onPressed: () {},
+                    onPressed: () {
+                      reader.playSound();
+                    },
                     icon: Icon(
                       Icons.volume_up,
                       color: AppColor.lightText,
                       size: 30,
                     ),
                   ),
-                  SizedBox(width: 20),
+                  SizedBox(width: 30),
                   Text(
                     ipa,
                     style: TextStyle(
