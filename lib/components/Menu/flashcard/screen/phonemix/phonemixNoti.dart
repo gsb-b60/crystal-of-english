@@ -96,7 +96,7 @@ class phoneMixNoti extends ChangeNotifier {
         wordState[selectedWordIDX!] = ButtonState.wrong;
         notifyListeners(); 
 
-        Future.delayed(Duration(milliseconds: 500), () {
+        Future.delayed(Duration(milliseconds: 300), () {
           ipaState[selectedIPAIDX!] = ButtonState.normal;
           wordState[selectedWordIDX!] = ButtonState.normal;
           selectedWordIDX = null;
