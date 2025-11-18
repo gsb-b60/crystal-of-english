@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
 import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/main.dart';
+import 'package:mygame/ui/settings_overlay.dart';
 import 'package:flame/components.dart';
 
 class SaveLoadScreen extends StatefulWidget {
@@ -51,17 +52,28 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
   }
 
   Future<void> _saveSlot(int slot) async {
-    // ensure PlayerProfile autosave state is persisted
-    await PlayerProfile.instance.saveToSlot(slot);
-    await _refresh();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    try {
+      if (widget.game != null) {
+        await widget.game!.saveSlot(slot);
+      } else {
+        await PlayerProfile.instance.saveToSlot(slot);
+      }
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e')),
+      );
+    }
   }
 
   Future<void> _loadSlot(int slot) async {
     await PlayerProfile.instance.loadFromSlot(slot);
     final data = await DatabaseHelper.instance.loadPlayerProfileSlot(slot);
-    // if we have a game reference and a map/position, try to teleport there
+
   if (widget.game != null && data != null) {
       final mapFile = data['map_file'] as String?;
       final px = (data['pos_x'] as num?)?.toDouble();
@@ -74,6 +86,17 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         }
       }
     }
+    // If we have a game instance, remove the main menu overlay and resume
+    // the engine so the player is returned directly to the gameplay view.
+    if (widget.game != null) {
+      widget.game!.overlays.remove('MainMenu');
+      if (!widget.game!.overlays.isActive(SettingsOverlay.id)) {
+        widget.game!.overlays.add(SettingsOverlay.id);
+      }
+      // Fully resume gameplay (restores joystick and resumes BGM at normal volume)
+      await widget.game!.resumeGame();
+    }
+
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Loaded slot $slot')));
     Navigator.of(context).pop();

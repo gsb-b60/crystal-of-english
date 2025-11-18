@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 import 'package:mygame/components/Menu/usersetting/setting.dart';
 import 'package:mygame/main.dart';
-// removed unused imports (cleaned up after switching to text labels)
-import 'package:flutter/foundation.dart';
-import 'package:mygame/audio/audio_manager.dart';
+
+// removed unused imports
 import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
 import 'package:mygame/ui/settings_overlay.dart';
 
@@ -19,11 +19,27 @@ class MainMenu extends StatefulWidget {
 
 class _MainMenuState extends State<MainMenu> {
   @override
+  void initState() {
+    super.initState();
+
+    widget.game.overlays.remove(SettingsOverlay.id);
+  }
+
+  @override
+  void dispose() {
+
+    if (!widget.game.overlays.isActive(SettingsOverlay.id)) {
+      widget.game.overlays.add(SettingsOverlay.id);
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          // use the provided menu image
+
           image: AssetImage("assets/menu/menuimage.jpg"),
           fit: BoxFit.cover,
         ),
@@ -43,7 +59,7 @@ class MenuContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // place the menu nav aligned to the left and vertically centered
+
     return SizedBox.expand(
       child: Align(
         alignment: Alignment.centerLeft,
@@ -68,7 +84,7 @@ class MenuNav extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // simple title (optional image fallback to text if missing)
+
         SizedBox(
           height: 120,
           child: Image.asset(
@@ -76,7 +92,11 @@ class MenuNav extends StatelessWidget {
             errorBuilder: (c, e, s) => const Center(
               child: Text(
                 'Crystal of English',
-                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -84,22 +104,17 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        // New Game label
+
         GestureDetector(
           onTap: () async {
-            debugPrint('MainMenu: New Game tapped');
-            if (kIsWeb) {
-              await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
-            }
-            // ensure any blocking overlays are closed (Settings may be open)
-            if (game.overlays.isActive(SettingsOverlay.id)) {
-              debugPrint('MainMenu: removing SettingsOverlay before resume');
-              game.overlays.remove(SettingsOverlay.id);
-            }
-            // hide main menu and start/resume game
+            // Ensure overlays/game state
             game.overlays.remove('MainMenu');
-            game.resumeEngine();
-            debugPrint('MainMenu: requested resumeEngine');
+            if (!game.overlays.isActive(SettingsOverlay.id)) {
+              game.overlays.add(SettingsOverlay.id);
+            }
+
+            // Resume gameplay fully (restores joystick) and keep music uninterrupted
+            await game.resumeGame();
           },
           child: const Text(
             'New Game',
@@ -109,12 +124,14 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Save / Load label
+
         GestureDetector(
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => SaveLoadScreen(game: game)),
+              MaterialPageRoute(
+                builder: (context) => SaveLoadScreen(game: game),
+              ),
             );
           },
           child: const Text(
@@ -125,7 +142,7 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Options label (placeholder for settings)
+
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -141,13 +158,26 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Exit label
+
         GestureDetector(
           onTap: () {
             SystemNavigator.pop();
           },
           child: const Text(
             'Exit',
+            style: TextStyle(color: Colors.white, fontSize: 24),
+          ),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DeckListScreen()),
+            );
+          },
+          child: const Text(
+            'Flash Card',
             style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),

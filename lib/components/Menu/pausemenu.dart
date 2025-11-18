@@ -43,14 +43,13 @@ class NavPauseMenu extends StatelessWidget {
         children: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.zero, // bỏ padding mặc định
-              backgroundColor: Colors.transparent, // nền trong suốt
+              padding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            onPressed: () {
-              game.resumeEngine();
-              // Previously re-added HUD pause button; now removed - just close pause menu
-              game.overlays.remove('PauseMenu'); // close menu
+            onPressed: () async {
+              await game.resumeGame();
+              game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
               height: btnSize,
@@ -59,13 +58,15 @@ class NavPauseMenu extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.zero, // bỏ padding mặc định
-              backgroundColor: Colors.transparent, // nền trong suốt
+              padding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            onPressed: () {
-              game.resumeEngine();
-              game.overlays.add('MainMenu');
+            onPressed: () async {
+              await game.pauseGame();
+              if (!game.overlays.isActive('MainMenu')) {
+                game.overlays.add('MainMenu');
+              }
               game.overlays.remove('PauseMenu');
             },
             child: SizedBox(
@@ -75,13 +76,12 @@ class NavPauseMenu extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.zero, // bỏ padding mặc định
-              backgroundColor: Colors.transparent, // nền trong suốt
+              padding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            onPressed: () {
-              game.resumeEngine();
-              // close pause menu
+            onPressed: () async {
+              await game.resumeGame();
               game.overlays.remove('PauseMenu');
             },
             child: SizedBox(

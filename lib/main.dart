@@ -31,7 +31,6 @@ import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
 import 'package:mygame/components/Menu/mainmenu.dart';
-// pausebutton overlay removed; UI no longer uses pauseBtn asset
 import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
 
 import 'audio/audio_manager.dart';
@@ -50,7 +49,7 @@ void main() async {
   ]);
 
   await AudioManager.instance.init();
-  // initialize persisted player profile (reads saved placement/deck level)
+
   await PlayerProfile.instance.init();
 
   final deckModel = Deckmodel();
@@ -64,7 +63,7 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        // ⚠️ Bảo đảm font 'MyFont' có hỗ trợ tiếng Việt (VD: Noto Sans/Roboto).
+
         theme: ThemeData(fontFamily: 'MyFont'),
         home: GameWidget(
           game: MyGame(),
@@ -80,7 +79,6 @@ void main() async {
             "MainMenu": (context, game) {
               return MainMenu(game: game as MyGame);
             },
-            // Pause button overlay removed: pause is handled via settings or pause menu
             "PauseMenu": (context, game) {
               return PauseMenu(game: game as MyGame);
             },
@@ -94,7 +92,7 @@ void main() async {
                     extendBodyBehindAppBar: true,
                     appBar: AppBar(
                       backgroundColor:
-                          Colors.transparent, 
+                          Colors.transparent,
                       elevation: 0,
                       title: const Text('Flashcards'),
                       leading: IconButton(
@@ -114,24 +112,15 @@ void main() async {
               return Cardlevelscreen(game: game as MyGame);
             },
             SettingsOverlay.id: (context, game) {
-              final g = game as MyGame;
               return SettingsOverlay(
                 audio: AudioManager.instance,
+                game: game as MyGame,
                 onUseItem: (item) {
+                  final g = game as MyGame;
                   if (item.name.toLowerCase() == 'image1') {
                     g.heartsHud.heal(1);
                     Inventory.instance.remove(item);
                   }
-                },
-                onGoToMain: () {
-                  // Open the main menu overlay and pause the game
-                  g.pauseEngine();
-                  if (!g.overlays.isActive('MainMenu')) g.overlays.add('MainMenu');
-                },
-                onPause: () {
-                  // Pause the game and show PauseMenu overlay
-                  g.pauseEngine();
-                  if (!g.overlays.isActive('PauseMenu')) g.overlays.add('PauseMenu');
                 },
               );
             },
@@ -184,6 +173,8 @@ class MyGame extends FlameGame
   final DialogManager dialogManager = DialogManager();
   final ValueNotifier<List<RightAction>> rightActions =
       ValueNotifier<List<RightAction>>(<RightAction>[]);
+  bool _isPaused = false;
+  bool get isPaused => _isPaused;
 
   @override
   Future<void> onLoad() async {
@@ -198,7 +189,7 @@ class MyGame extends FlameGame
       priority: 0,
     );
     await world.add(map);
-    // initial current map value
+
     currentMapFile = 'map.tmx';
 
     await _initMapObjects('map.tmx');
@@ -242,7 +233,7 @@ class MyGame extends FlameGame
     dialogManager.onRequestOpenOverlay = () {
       overlays.add(DialogOverlay.id);
       _lockControls(true);
-      // Giữ nút cài đặt nổi trên cùng
+
       if (overlays.isActive(SettingsOverlay.id)) {
         overlays.remove(SettingsOverlay.id);
         overlays.add(SettingsOverlay.id);
@@ -279,12 +270,46 @@ class MyGame extends FlameGame
     };
 
     if (!kIsWeb) {
+      // Play BGM at normal volume immediately (no fade to avoid pause interruption)
       await AudioManager.instance.playBgm(
         'audio/bgm_overworld.mp3',
-        volume: 0.4,
+        volume: AudioManager.instance.bgmVolume,
       );
     }
-    overlays.add(SettingsOverlay.id);
+    if (!overlays.isActive('MainMenu') &&
+        !overlays.isActive(SettingsOverlay.id)) {
+      overlays.add(SettingsOverlay.id);
+    }
+  }
+
+  /// Fully pause the game: lock controls and halt the engine.
+  Future<void> pauseGame() async {
+    if (_isPaused) return;
+    _isPaused = true;
+    _lockControls(true);
+    pauseEngine();
+    await AudioManager.instance.pauseBgm();
+  }
+
+  /// Resume gameplay: unlock controls and resume the engine.
+  Future<void> resumeGame() async {
+    // Always unlock controls and ensure joystick, even if not in paused state
+    // This handles cases like returning from menu where isPaused might be stale
+    _isPaused = false;
+    _lockControls(false);
+    resumeEngine();
+    await AudioManager.instance.resumeBgm();
+    // Ensure joystick is reattached and player wired to it
+    await _ensureJoystickAttached();
+  }
+
+  /// Toggle pause/resume including audio and control locks
+  Future<void> togglePause() async {
+    if (_isPaused) {
+      await resumeGame();
+    } else {
+      await pauseGame();
+    }
   }
 
   @override
@@ -297,31 +322,73 @@ class MyGame extends FlameGame
     await hudRoot.add(AreaTitle(text));
   }
 
+  /// Persist the current gameplay state into the requested save slot.
+  Future<void> saveSlot(int slot) async {
+    await PlayerProfile.instance.saveSnapshot(
+      mapFile: currentMapFile,
+      posX: player.position.x,
+      posY: player.position.y,
+      hearts: heartsHud.currentHearts,
+      xp: expHud.xp,
+      gold: goldHud.gold,
+      slot: slot,
+    );
+  }
+
   void _lockControls(bool lock) {
     final js = joystick;
+    if (js == null) {
+      player.joystick = null;
+      return;
+    }
+
     if (lock) {
       player.joystick = null;
-      if (js != null && js.parent != null) js.removeFromParent();
     } else {
-      if (js != null && js.parent == null) {
-        hudRoot.add(js);
-      }
-      if (js != null) player.joystick = js;
+      // When unlocking, always ensure joystick is properly attached
+      _attachJoystick();
     }
   }
 
+  /// Synchronously attach joystick to HUD and player if not already attached
+  void _attachJoystick() {
+    final js = joystick;
+    if (js == null) return;
+    
+    // Add to HUD if not already there
+    if (js.parent == null) {
+      hudRoot.add(js);
+    }
+    
+    // Wire to player
+    player.joystick = js;
+  }
+
+  Future<void> _ensureJoystickAttached() async {
+    final js = joystick;
+    if (js == null) return;
+    
+    // Add to HUD if not already there
+    if (js.parent == null) {
+      await hudRoot.add(js);
+    }
+    
+    // Wire to player
+    player.joystick = js;
+  }
+
   Future<void> _initMapObjects(String mapFile) async {
-    // decide spawn difficulty based on player profile
+
     final effectiveLevel = PlayerProfile.instance.effectiveLevel();
     int _slotCounter = 0;
 
     EnemyType _enemyForSlot(int level, int slot) {
-      // Simple deterministic mapping: slot used to distribute types
-      // level 1 -> all normal
-      // level 2 -> normal, strong
-      // level 3 -> strong, miniboss
-      // level 4 -> miniboss, strong
-      // level 5 -> miniboss, boss
+
+
+
+
+
+
       switch (level) {
         case 1:
           return EnemyType.normal;
@@ -564,7 +631,7 @@ class MyGame extends FlameGame
     if (_inBattle) return;
     _inBattle = true;
 
-    // autosave before entering battle
+
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
@@ -596,7 +663,7 @@ class MyGame extends FlameGame
 
     heartsHud.removeFromParent();
 
-    // Tạm dừng nhạc nền khi vào trận chiến
+
     await AudioManager.instance.pauseBgm();
 
     _battleScene = BattleScene(
@@ -634,7 +701,8 @@ class MyGame extends FlameGame
       if (_savedJoystickPos != null) {
         joystick!.position = _savedJoystickPos!;
       }
-      player.joystick = joystick;
+      // Use the centralized attach method to ensure joystick is in HUD
+      _attachJoystick();
     }
 
     if (result.outcome == 'lose') {
@@ -642,10 +710,10 @@ class MyGame extends FlameGame
       player.position = Vector2(1255, 655);
     }
 
-    // Tiếp tục nhạc nền khi thoát trận chiến
+
     AudioManager.instance.resumeBgm();
 
-    // Khôi phục overlay cài đặt sau trận
+
     if (!overlays.isActive(SettingsOverlay.id)) {
       overlays.add(SettingsOverlay.id);
     }
@@ -657,7 +725,7 @@ class MyGame extends FlameGame
     Vector2? spawnTile,
     double tileSize = 16,
   }) async {
-    // autosave current state before switching maps
+
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
@@ -678,7 +746,7 @@ class MyGame extends FlameGame
     await add(newWorld);
     world = newWorld;
 
-    // Set scale for dungeon.tmx
+
     if (mapFile == 'dungeon.tmx') {
       map = await ft.TiledComponent.load(
         mapFile,
@@ -731,10 +799,8 @@ class MyGame extends FlameGame
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
 
-    if (joystick != null && joystick!.parent == null) {
-      await hudRoot.add(joystick!);
-    }
-    player.joystick = joystick;
+    // Use centralized method to ensure joystick is properly attached
+    await _ensureJoystickAttached();
 
     await showAreaTitle(
       mapFile == 'houseinterior.tmx'
@@ -799,7 +865,7 @@ class MyGame extends FlameGame
       );
     }
 
-    // update current map pointer and autosave after successful load
+
     currentMapFile = mapFile;
     try {
       await PlayerProfile.instance.saveSnapshot(
