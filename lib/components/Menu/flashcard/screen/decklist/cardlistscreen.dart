@@ -59,7 +59,7 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
             ],
-          ),
+          ),  
         ],
       ),
     );
