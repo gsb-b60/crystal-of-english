@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/components/Menu/flashcard/screen/sound&sight/sound&sightNoti.dart';
+import 'package:provider/provider.dart';
 
 enum ButtonState { normal, selected, done, wrong }
 
@@ -15,6 +17,12 @@ class SoundNSightUI extends StatefulWidget {
 class _MyWidgetState extends State<SoundNSightUI> {
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<SoundNSightNoti>();
+    List<String> list = provider.getList();
+    List<String> listWord = provider.getListWord();
+    List<ButtonState> listState = provider.getListState();
+    String img = provider.getImagePath();
+    final reader = context.read<SoundNSightNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -34,7 +42,7 @@ class _MyWidgetState extends State<SoundNSightUI> {
           ],
         ),
         title: LinearProgressIndicator(
-          value: 0.1,
+          value: provider.value,
           backgroundColor: AppColor.darkCard,
           valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
           minHeight: 18,
@@ -61,82 +69,103 @@ class _MyWidgetState extends State<SoundNSightUI> {
               ),
               SizedBox(height: 10),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  IconButton.outlined(
-                    onPressed: () {
-                      //reader.playSound();
-                    },
-                    icon: Icon(
-                      Icons.volume_up,
-                      color: AppColor.lightText,
-                      size: 30,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(width: 30),
+                      if (img != "")
+                        Container(
+                          width: 350,
+                          height: 270,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(img),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  SizedBox(width: 30),
-
-                  Container(
-                    width: 350,
-                    height: 180,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        r"assets/level-titan/attack.png",
-                        fit: BoxFit.cover,
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton.outlined(
+                            onPressed: () {
+                              reader.playSound();
+                            },
+                            icon: Icon(
+                              Icons.volume_up,
+                              color: AppColor.lightText,
+                              size: 30,
+                            ),
+                          ),
+                          SizedBox(width: 30),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            alignment: WrapAlignment.center,
+                            children: List.generate(listWord.length, (index) {
+                              String value = listWord[index];
+                              return Text(
+                                value,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Roboto',
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
                       ),
-                    ),
+                      SizedBox(height: 20),
+                      SizedBox(
+                        height: 170,
+                        width: 400,
+                        child: Center(
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            alignment: WrapAlignment.center,
+
+                            children: List.generate(list.length, (index) {
+                              final value = list[index];
+                              return ChoiceBtn(
+                                value: value,
+                                state: listState[index],
+                                onChoose: () {
+                                  reader.CheckAnswer(value, index);
+                                },
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              SizedBox(height: 15),
-              // Wrap(
-              //   spacing: 10,
-              //   runSpacing: 10,
-              //   alignment: WrapAlignment.center,
-              //   children: List.generate(listWord.length, (index) {
-              //     String value = listWord[index];
-              //     return Text(
-              //       value,
-              //       style: TextStyle(
-              //         color: Colors.white,
-              //         fontSize: 40,
-              //         fontWeight: FontWeight.bold,
-              //         fontFamily: 'Roboto',
-              //       ),
-              //     );
-              //   }),
-              // ),
-              SizedBox(height: 50),
-              // Wrap(
-              //   spacing: 10,
-              //   runSpacing: 10,
-              //   alignment: WrapAlignment.center,
-
-              //   children: List.generate(list.length, (index) {
-              //     final value = list[index];
-              //     return ChoiceBtn(
-              //       value: value,
-              //       state: listState[index],
-              //       onChoose: () {
-              //         reader.CheckAnswer(value, index);
-              //       },
-              //     );
-              //   }),
-              // ),
             ],
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom: -MediaQuery.of(context).size.height,
+            bottom:provider.answered?0: -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
-            child: ReviewScreen(onPressed: () {}),
+            child: ReviewScreen(onPressed: () {
+              reader.SetNext();
+            }),
           ),
         ],
       ),
