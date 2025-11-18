@@ -4,6 +4,7 @@ import 'package:mygame/components/Menu/flashcard/screen/blankfill/blankwordscree
 import 'package:mygame/components/Menu/flashcard/screen/echospell/echospell.dart';
 import 'package:mygame/components/Menu/flashcard/screen/flashcard/newwayreview.dart';
 import 'package:mygame/components/Menu/flashcard/screen/mindfield/mindfeild.dart';
+import 'package:mygame/components/Menu/flashcard/screen/neuropick/neuropick.dart';
 import 'package:mygame/components/Menu/flashcard/screen/phonemix/phonemix.dart';
 import 'package:mygame/components/Menu/flashcard/screen/sound&sight/sound&sight.dart';
 
@@ -55,6 +56,8 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "Phoneme Mix", screenBuilder: ()=>PhoneMix(deckID: widget.deckId!,)),
               NavPageBtn(label: "Echo Spell", screenBuilder: ()=>Echospell(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
             ],
           ),
         ],
