@@ -71,6 +71,34 @@ class DatabaseHelper {
       debugPrint('migrateDueDateStrings failed: $e');
     }
 
+    // Ensure player_profile table exists (tolerant runtime fix for older DBs)
+    try {
+      final tables = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='player_profile'");
+      if (tables.isEmpty) {
+        debugPrint('player_profile table missing, creating at runtime');
+        await db.execute('''
+          create table if not exists player_profile(
+            id integer primary key autoincrement,
+            slot integer not null,
+            proficiency integer,
+            preferred_deck integer,
+            map_file text,
+            pos_x real,
+            pos_y real,
+            hearts integer,
+            xp integer,
+            gold integer,
+            inventory text,
+            extra text,
+            saved_at integer,
+            unique(slot)
+          )
+        ''');
+      }
+    } catch (e) {
+      debugPrint('Failed to ensure player_profile table exists: $e');
+    }
+
     return db;
   }
 

@@ -6,6 +6,7 @@ import 'package:mygame/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/audio/audio_manager.dart';
 import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
+import 'package:mygame/ui/settings_overlay.dart';
 
 class MainMenu extends StatefulWidget {
   final MyGame game;
@@ -86,12 +87,19 @@ class MenuNav extends StatelessWidget {
         // New Game label
         GestureDetector(
           onTap: () async {
+            debugPrint('MainMenu: New Game tapped');
             if (kIsWeb) {
               await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
+            }
+            // ensure any blocking overlays are closed (Settings may be open)
+            if (game.overlays.isActive(SettingsOverlay.id)) {
+              debugPrint('MainMenu: removing SettingsOverlay before resume');
+              game.overlays.remove(SettingsOverlay.id);
             }
             // hide main menu and start/resume game
             game.overlays.remove('MainMenu');
             game.resumeEngine();
+            debugPrint('MainMenu: requested resumeEngine');
           },
           child: const Text(
             'New Game',
