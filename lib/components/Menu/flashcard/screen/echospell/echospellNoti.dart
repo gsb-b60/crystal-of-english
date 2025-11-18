@@ -1,3 +1,4 @@
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
@@ -7,6 +8,7 @@ import 'package:mygame/components/Menu/flashcard/screen/echospell/echospellUI.da
 class EchospellNoti extends ChangeNotifier {
   static final _dbhelper = DatabaseHelper.instance;
   List<Flashcard> _cards = [];
+  String media = "";
   bool isLoading = false;
 
   int currentCardIdx = 0;
@@ -18,14 +20,15 @@ class EchospellNoti extends ChangeNotifier {
   List<ButtonState>? listState;
   int currentIndex = 0;
   bool answered = false;
-  double get value=>(_cards.isEmpty)?0:currentCardIdx/_cards.length;
+  double get value => (_cards.isEmpty) ? 0 : currentCardIdx / _cards.length;
 
-  bool done=false;
+  bool done = false;
 
   Future<void> getFlashcardList(int deck_id) async {
     isLoading = true;
     notifyListeners();
     final data = await _dbhelper.getCardForDeck(deck_id);
+    media = (await _dbhelper.getMediaFile(deck_id)) ?? "";
     _cards.clear();
     _cards.addAll(data);
 
@@ -36,38 +39,49 @@ class EchospellNoti extends ChangeNotifier {
     notifyListeners();
   }
 
+  AudioPlayer audioPlayer = AudioPlayer();
+  Future<void> playSound() async {
+    if (media != "") {
+      try {
+        await audioPlayer.play(
+          DeviceFileSource(
+            "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].sound}",
+          ),
+        );
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
+
   void CheckAnswer(String letter, int index) {
-    if(letter==trueList![currentIndex])
-    {
-      listState![index]=ButtonState.done;
-      listWord![currentIndex]=trueList![currentIndex];
+    if (letter == trueList![currentIndex]) {
+      listState![index] = ButtonState.done;
+      listWord![currentIndex] = trueList![currentIndex];
       notifyListeners();
       currentIndex++;
-    }else
-    {
-      listState![index]=ButtonState.wrong;
+    } else {
+      listState![index] = ButtonState.wrong;
       notifyListeners();
-      Future.delayed( Duration(milliseconds: 100),()
-      {
-        listState![index]=ButtonState.normal;
+      Future.delayed(Duration(milliseconds: 100), () {
+        listState![index] = ButtonState.normal;
         notifyListeners();
       });
     }
-    if(currentIndex==list!.length)
-    {
-      answered=true;
+    if (currentIndex == list!.length) {
+      answered = true;
       notifyListeners();
     }
   }
-  void SetNext()
-  {
-    ipa=null;
-    trueList=null;
-    listWord=null;
-    list=null;
-    listState=null;
-    currentIndex=0;
-    answered=false;
+
+  void SetNext() {
+    ipa = null;
+    trueList = null;
+    listWord = null;
+    list = null;
+    listState = null;
+    currentIndex = 0;
+    answered = false;
     currentCardIdx++;
     notifyListeners();
   }
@@ -111,9 +125,9 @@ class EchospellNoti extends ChangeNotifier {
     }
     return ipa!;
   }
-  List<ButtonState> GetListState()
-  {
-    listState??=List.generate(list!.length,(_) => ButtonState.normal);
+
+  List<ButtonState> GetListState() {
+    listState ??= List.generate(list!.length, (_) => ButtonState.normal);
     return listState!;
   }
 }
