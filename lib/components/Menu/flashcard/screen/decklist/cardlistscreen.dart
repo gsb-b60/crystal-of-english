@@ -54,7 +54,7 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "Mind Field", screenBuilder: ()=>MindFeild(deckID: widget.deckId!,)),
               NavPageBtn(label: "Phoneme Mix", screenBuilder: ()=>PhoneMix(deckID: widget.deckId!,)),
               NavPageBtn(label: "Echo Spell", screenBuilder: ()=>Echospell(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight()),
+              NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
             ],
           ),
         ],
