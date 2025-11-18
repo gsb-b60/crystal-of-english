@@ -216,6 +216,15 @@ class DatabaseHelper {
       return Flashcard.fromMap(maps[i]);
     });
   }
+  Future<List<Flashcard>> getAllCard() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cards'
+    );
+    return List.generate(maps.length, (i) {
+      return Flashcard.fromMap(maps[i]);
+    });
+  }
 
   Future<List<Flashcard>> getCardByLevel(int level) async {
     final db = await database;

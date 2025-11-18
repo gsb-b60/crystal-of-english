@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/screen/decklist/achievement/achievement.dart';
 import 'package:provider/provider.dart';
 
 import 'cardlistscreen.dart';
@@ -119,31 +120,36 @@ class _DeckListScreenState extends State<DeckListScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 180,
-              height: 50,
-              decoration: BoxDecoration(
-                color: AppColor.greenPrimary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Icon(
-                      Icons.stars,
-                      color: AppColor.darkSurface,
-                      size: 35,
-                    ),
-                    Text(
-                      "Achievement",
-                      style: TextStyle(
+            GestureDetector(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> Achievement()));
+              },
+              child: Container(
+                width: 180,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColor.greenPrimary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Icon(
+                        Icons.stars,
                         color: AppColor.darkSurface,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
+                        size: 35,
                       ),
-                    ),
-                  ],
+                      Text(
+                        "Achievement",
+                        style: TextStyle(
+                          color: AppColor.darkSurface,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 30,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
