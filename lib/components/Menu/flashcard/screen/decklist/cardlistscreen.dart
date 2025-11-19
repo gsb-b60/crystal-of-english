@@ -7,6 +7,7 @@ import 'package:mygame/components/Menu/flashcard/screen/mindfield/mindfeild.dart
 import 'package:mygame/components/Menu/flashcard/screen/neuropick/neuropick.dart';
 import 'package:mygame/components/Menu/flashcard/screen/phonemix/phonemix.dart';
 import 'package:mygame/components/Menu/flashcard/screen/sound&sight/sound&sight.dart';
+import 'package:mygame/components/Menu/flashcard/screen/wordsnap/wordsnap.dart';
 
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -47,6 +48,19 @@ class _CardListScreenState extends State<CardListScreen> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              NavPageBtn(label: "review", screenBuilder: ()=>Newwayreview(deckId: widget.deckId!)),
+              NavPageBtn(label: "blank word", screenBuilder: ()=>BlankWordScreen(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Mind Field", screenBuilder: ()=>MindFeild(deckID: widget.deckId!,)),
+              NavPageBtn(label: "Word Snap", screenBuilder: ()=>WordSnap(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Phoneme Mix", screenBuilder: ()=>PhoneMix(deckID: widget.deckId!,)),
+              NavPageBtn(label: "Echo Spell", screenBuilder: ()=>Echospell(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
+            ],
+          ),  
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
