@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/screen/blankfill/blankwordscreen.dart';
+import 'package:mygame/components/Menu/flashcard/screen/echofuse/echofuse.dart';
 import 'package:mygame/components/Menu/flashcard/screen/echomatch/echomath.dart';
 import 'package:mygame/components/Menu/flashcard/screen/echospell/echospell.dart';
 import 'package:mygame/components/Menu/flashcard/screen/flashcard/newwayreview.dart';
@@ -65,6 +66,7 @@ class _CardListScreenState extends State<CardListScreen> {
             children: [
               NavPageBtn(label: "Echo Spell", screenBuilder: ()=>Echospell(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Echo Match", screenBuilder: ()=>EchoMatch(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Echo Fuse", screenBuilder: ()=>EchoFuse(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
             ],
