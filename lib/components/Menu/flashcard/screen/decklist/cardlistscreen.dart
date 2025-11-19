@@ -9,6 +9,7 @@ import 'package:mygame/components/Menu/flashcard/screen/mindfield/mindfeild.dart
 import 'package:mygame/components/Menu/flashcard/screen/neuropick/neuropick.dart';
 import 'package:mygame/components/Menu/flashcard/screen/phonemix/phonemix.dart';
 import 'package:mygame/components/Menu/flashcard/screen/sound&sight/sound&sight.dart';
+import 'package:mygame/components/Menu/flashcard/screen/wordpulse/wordpulse.dart';
 import 'package:mygame/components/Menu/flashcard/screen/wordsnap/wordsnap.dart';
 
 import 'package:provider/provider.dart';
@@ -69,6 +70,7 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "Echo Fuse", screenBuilder: ()=>EchoFuse(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
+              NavPageBtn(label: "Word Pulse", screenBuilder: ()=>WordPulse(deck_id: widget.deckId!,)),
             ],
           ),  
         ],
