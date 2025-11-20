@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/components/Menu/flashcard/screen/echomatch/echomatchNoti.dart';
+import 'package:mygame/components/Menu/flashcard/screen/wordsnap/wordsnapNoti.dart';
 import 'package:provider/provider.dart';
 
-class EchoMatchUI extends StatefulWidget {
-  const EchoMatchUI({super.key});
+class WordSnapUI extends StatefulWidget {
+  const WordSnapUI({super.key});
 
   @override
-  State<EchoMatchUI> createState() => _EchoMatchUIState();
+  State<WordSnapUI> createState() => _WordSnapUIState();
 }
 
-class _EchoMatchUIState extends State<EchoMatchUI> {
+class _WordSnapUIState extends State<WordSnapUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<EchoMatchNoti>();
-    final reader = context.read<EchoMatchNoti>();
-    final ipa = provider.SetIPA();
-
-    final options = provider.getOptionList;
-    final states = provider.GetListState();
+    final provider=context.watch<LessonNoti>();
+    final options=provider.getOptionsShuffle;
+    final states=provider.getOptionStateBool();
+    final progress=provider.value;
+    final mean=provider.meaning;
+    final reader=context.read<LessonNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -38,9 +39,11 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
           ],
         ),
         title: LinearProgressIndicator(
-          value: provider.value,
+          value: progress,
           backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            AppColor.greenPrimary,
+          ),
           minHeight: 18,
           borderRadius: BorderRadius.circular(9),
         ),
@@ -63,64 +66,47 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                   ),
                 ],
               ),
-              Expanded(
-                child: Column(
+              Container(
+                height: 150,
+                width: 650,
+                child: Center(
+                  child: Text(
+                    mean,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 150,
+                width: 750,
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.outlined(
-                          onPressed: () {
-                            reader.playSound();
-                          },
-                          icon: Icon(
-                            Icons.volume_up,
-                            color: AppColor.lightText,
-                            size: 30,
+                    ListView.builder(
+                      itemCount: 3,//options.length,
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return Center(
+                          child: ChoiceBtn(
+                            value: options[index],
+                            isSelected: states[index],
+                            onPressed: () {
+                              reader.selectOption(index);
+                            },
                           ),
-                        ),
-                        Text(
-                          ipa,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                    Container(
-                      height: 150,
-                      width: 750,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ListView.builder(
-                            itemCount: 3, 
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              return Center(
-                                child: ChoiceBtn(
-                                  value: options[index],
-                                  isSelected: states[index],
-                                  onPressed: () {
-                                    reader.selectOption(index);
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          CheckBtn(
-                            isChecked: provider.checkable,
-                            onCheck: () {
-                              reader.checkAnswer(provider.selectedIndex!);
-                            },
-                          ),
-                        ],
-                      ),
+                    CheckBtn(
+                      isChecked: provider.checkable,
+                      onCheck: () {
+                        reader.checkAnswerMC();
+                      },
                     ),
                   ],
                 ),
@@ -138,7 +124,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
               right: provider.right,
               answer: provider.answer,
               onPressed: () {
-                reader.SetNext();
+                reader.nextCard();
               },
             ),
           ),
@@ -147,7 +133,6 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
     );
   }
 }
-
 class ChoiceBtn extends StatelessWidget {
   String value;
   bool isSelected;
@@ -355,3 +340,4 @@ class ReviewScreen extends StatelessWidget {
     );
   }
 }
+

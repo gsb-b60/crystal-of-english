@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/components/Menu/flashcard/screen/echomatch/echomatchNoti.dart';
+import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:provider/provider.dart';
 
-class EchoMatchUI extends StatefulWidget {
-  const EchoMatchUI({super.key});
+
+class MindFeildUI extends StatefulWidget {
+  const MindFeildUI({super.key});
 
   @override
-  State<EchoMatchUI> createState() => _EchoMatchUIState();
+  State<MindFeildUI> createState() => _MindFeildUIState();
 }
 
-class _EchoMatchUIState extends State<EchoMatchUI> {
+class _MindFeildUIState extends State<MindFeildUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<EchoMatchNoti>();
-    final reader = context.read<EchoMatchNoti>();
-    final ipa = provider.SetIPA();
-
+    final provider = context.watch<LessonNoti>();
+    final reader = context.read<LessonNoti>();
     final options = provider.getOptionList;
-    final states = provider.GetListState();
+    final mean=provider.meaning;
+    final states = provider.getOptionStateBool();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -40,7 +41,9 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
         title: LinearProgressIndicator(
           value: provider.value,
           backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            AppColor.greenPrimary,
+          ),
           minHeight: 18,
           borderRadius: BorderRadius.circular(9),
         ),
@@ -63,64 +66,47 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                   ),
                 ],
               ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.outlined(
-                          onPressed: () {
-                            reader.playSound();
-                          },
-                          icon: Icon(
-                            Icons.volume_up,
-                            color: AppColor.lightText,
-                            size: 30,
-                          ),
-                        ),
-                        Text(
-                          ipa,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                      ],
+              Container(
+                height: 150,
+                width: 650,
+                child: Center(
+                  child: Text(
+                    mean,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
                     ),
-                    Container(
-                      height: 150,
-                      width: 750,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ListView.builder(
-                            itemCount: 3, 
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              return Center(
-                                child: ChoiceBtn(
-                                  value: options[index],
-                                  isSelected: states[index],
-                                  onPressed: () {
-                                    reader.selectOption(index);
-                                  },
-                                ),
-                              );
+                  ),
+                ),
+              ),
+              Container(
+                height: 150,
+                width: 750,
+                child: Row(
+                  children: [
+                    ListView.builder(
+                      itemCount: options.length,
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return Center(
+                          child: ChoiceBtn(
+                            value: options[index],
+                            isSelected: states[index],
+                            onPressed: () {
+                              reader.selectOption(index);
                             },
                           ),
-                          CheckBtn(
-                            isChecked: provider.checkable,
-                            onCheck: () {
-                              reader.checkAnswer(provider.selectedIndex!);
-                            },
-                          ),
-                        ],
-                      ),
+                        );
+                      },
+                    ),
+                    SizedBox(width: 50),
+                    CheckBtn(
+                      isChecked: provider.checkable,
+                      onCheck: () {
+                        reader.checkAnswerMC();
+                      },
                     ),
                   ],
                 ),
@@ -130,7 +116,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
+            bottom: provider.answered? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
@@ -138,94 +124,11 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
               right: provider.right,
               answer: provider.answer,
               onPressed: () {
-                reader.SetNext();
+                reader.nextCard();
               },
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class ChoiceBtn extends StatelessWidget {
-  String value;
-  bool isSelected;
-  VoidCallback? onPressed;
-  ChoiceBtn({
-    super.key,
-    required this.isSelected,
-    required this.value,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SizedBox(
-        width: 150,
-        height: 70,
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            side: BorderSide(
-              color: isSelected ? AppColor.greenMuted : AppColor.darkCard,
-              width: 4,
-            ),
-            backgroundColor: isSelected
-                ? AppColor.darkSurface
-                : AppColor.darkBase,
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              color: isSelected ? AppColor.greenMuted : Colors.white,
-              fontSize: 28,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CheckBtn extends StatelessWidget {
-  bool isChecked;
-  VoidCallback? onCheck;
-  CheckBtn({super.key, required this.isChecked, required this.onCheck});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isChecked ? onCheck : null,
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        height: 70,
-        width: 150,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border(
-            bottom: BorderSide(
-              color: isChecked ? AppColor.greenAccent : Colors.transparent,
-              width: 6,
-            ),
-          ),
-          color: isChecked ? AppColor.greenPrimary : AppColor.darkCard,
-        ),
-        child: Center(
-          child: Text(
-            "Check",
-            style: TextStyle(
-              color: AppColor.darkBase,
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -351,6 +254,122 @@ class ReviewScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+class ChoiceBtn extends StatelessWidget {
+  String value;
+  bool isSelected;
+  VoidCallback? onPressed;
+  ChoiceBtn({
+    super.key,
+    required this.isSelected,
+    required this.value,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: 150,
+        height: 70,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            side: BorderSide(
+              color: isSelected
+                  ? AppColor.greenMuted
+                  : AppColor.darkCard,
+              width: 4,
+            ),
+            backgroundColor: isSelected
+                ? AppColor.darkSurface
+                : AppColor.darkBase,
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: isSelected ? AppColor.greenMuted: Colors.white,
+              fontSize: 28,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CheckBtn extends StatelessWidget {
+  bool isChecked;
+  VoidCallback? onCheck;
+  CheckBtn({super.key, required this.isChecked, required this.onCheck});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            width: 150,
+            height: 70,
+            child: ElevatedButton(
+              onPressed: () {
+                if (isChecked) {
+                  onCheck?.call();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                elevation: isChecked ? 10 : 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: isChecked
+                    ? AppColor.greenPrimary
+                    : AppColor.darkCard,
+              ),
+
+              child: Text(
+                "Check",
+                style: TextStyle(
+                  color: AppColor.darkBase,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedContainer(
+                transform: isChecked
+                    ? Matrix4.translationValues(0, 0, 0)
+                    : Matrix4.translationValues(0, 10, 0),
+                duration: Duration(milliseconds: 100),
+                curve: Curves.bounceIn,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isChecked
+                          ?  AppColor.greenAccent
+                          : Colors.transparent,
+                      width: 6,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

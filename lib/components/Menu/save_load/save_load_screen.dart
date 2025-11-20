@@ -60,13 +60,14 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
       }
       await _refresh();
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
     }
   }
 
@@ -74,7 +75,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     await PlayerProfile.instance.loadFromSlot(slot);
     final data = await DatabaseHelper.instance.loadPlayerProfileSlot(slot);
 
-  if (widget.game != null && data != null) {
+    if (widget.game != null && data != null) {
       final mapFile = data['map_file'] as String?;
       final px = (data['pos_x'] as num?)?.toDouble();
       final py = (data['pos_y'] as num?)?.toDouble();
@@ -98,7 +99,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     }
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Loaded slot $slot')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Loaded slot $slot')));
     Navigator.of(context).pop();
   }
 
@@ -113,7 +116,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Save / Load'),
-        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _refresh)],
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _refresh),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -128,7 +133,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                 return Card(
                   child: ListTile(
                     title: Text('Slot $slotId'),
-                    subtitle: Text('Saved: ${_formatTimestamp(savedAt)}\nProficiency: ${prof ?? '-'}  Preferred deck: ${pref ?? '-'}'),
+                    subtitle: Text(
+                      'Saved: ${_formatTimestamp(savedAt)}\nProficiency: ${prof ?? '-'}  Preferred deck: ${pref ?? '-'}',
+                    ),
                     isThreeLine: true,
                     trailing: Wrap(
                       spacing: 8,

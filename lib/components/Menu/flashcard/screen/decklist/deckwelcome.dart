@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/lessonScreen.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
 import 'package:mygame/components/Menu/flashcard/screen/decklist/achievement/achievement.dart';
@@ -117,43 +118,62 @@ class _DeckListScreenState extends State<DeckListScreen> {
       bottomNavigationBar: Container(
         color: AppColor.darkSurface,
         padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.only(bottom: 9),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> Achievement()));
-              },
-              child: Container(
-                width: 180,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: AppColor.greenPrimary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Icon(
-                        Icons.stars,
-                        color: AppColor.darkSurface,
-                        size: 35,
-                      ),
-                      Text(
-                        "Achievement",
-                        style: TextStyle(
-                          color: AppColor.darkSurface,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                        ),
-                      ),
-                    ],
-                  ),
+            ButtomNav(value: "Achievement",ico: Icons.stars,screenBuilder:()=> Achievement()),
+            ButtomNav(value: "Daily lesson",ico: Icons.flash_on_rounded,screenBuilder:()=> LessonScreen()),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ButtomNav extends StatelessWidget {
+  ButtomNav({
+    super.key,
+    required this.value,
+    required this.ico,
+    required this.screenBuilder,
+  });
+  final String value;
+  final IconData ico;
+  final Widget Function() screenBuilder;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=> screenBuilder()));
+      },
+      child: Container(
+        width: 180,
+        height: 50,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColor.greenPrimary,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Icon(
+                ico,
+                color: AppColor.darkSurface,
+                size: 35,
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  color: AppColor.darkSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

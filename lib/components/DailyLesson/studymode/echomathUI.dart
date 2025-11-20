@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/components/Menu/flashcard/screen/echomatch/echomatchNoti.dart';
+
 import 'package:provider/provider.dart';
 
 class EchoMatchUI extends StatefulWidget {
@@ -13,12 +14,12 @@ class EchoMatchUI extends StatefulWidget {
 class _EchoMatchUIState extends State<EchoMatchUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<EchoMatchNoti>();
-    final reader = context.read<EchoMatchNoti>();
-    final ipa = provider.SetIPA();
+    final provider = context.watch<LessonNoti>();
+    final reader = context.read<LessonNoti>();
+    final ipa = provider.ipa??"";
 
     final options = provider.getOptionList;
-    final states = provider.GetListState();
+    final states = provider.getOptionStateBool();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -98,7 +99,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           ListView.builder(
-                            itemCount: 3, 
+                            itemCount: 3, //options.length,
                             scrollDirection: Axis.horizontal,
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
@@ -116,7 +117,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                           CheckBtn(
                             isChecked: provider.checkable,
                             onCheck: () {
-                              reader.checkAnswer(provider.selectedIndex!);
+                              reader.checkAnswerMC();
                             },
                           ),
                         ],
@@ -138,7 +139,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
               right: provider.right,
               answer: provider.answer,
               onPressed: () {
-                reader.SetNext();
+                reader.nextCard();
               },
             ),
           ),

@@ -1,24 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/components/Menu/flashcard/screen/echomatch/echomatchNoti.dart';
+import 'package:mygame/components/Menu/flashcard/screen/neuropick/neuropickNoti.dart';
 import 'package:provider/provider.dart';
 
-class EchoMatchUI extends StatefulWidget {
-  const EchoMatchUI({super.key});
+class NeuroPickUI extends StatefulWidget {
+  const NeuroPickUI({super.key});
 
   @override
-  State<EchoMatchUI> createState() => _EchoMatchUIState();
+  State<NeuroPickUI> createState() => _NeuroPickUIState();
 }
 
-class _EchoMatchUIState extends State<EchoMatchUI> {
+class _NeuroPickUIState extends State<NeuroPickUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<EchoMatchNoti>();
-    final reader = context.read<EchoMatchNoti>();
-    final ipa = provider.SetIPA();
-
-    final options = provider.getOptionList;
-    final states = provider.GetListState();
+    final provider = context.watch<LessonNoti>();
+    final reader = context.read<LessonNoti>();
+    List<String> options = provider.getOptionsShuffle;
+    List<bool> states = provider.getOptionStateBool();
+    
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -63,43 +65,34 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                   ),
                 ],
               ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.outlined(
-                          onPressed: () {
-                            reader.playSound();
-                          },
-                          icon: Icon(
-                            Icons.volume_up,
-                            color: AppColor.lightText,
-                            size: 30,
-                          ),
-                        ),
-                        Text(
-                          ipa,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                      ],
-                    ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (provider.getImagePath() != "")
                     Container(
-                      height: 150,
-                      width: 750,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ListView.builder(
-                            itemCount: 3, 
-                            scrollDirection: Axis.horizontal,
+                      width: 390,
+                      height: 270,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(provider.getImagePath()),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  Container(
+                    height: 270,
+                    width: 350,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: options.length,
+                            scrollDirection: Axis.vertical,
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               return Center(
@@ -113,17 +106,17 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                               );
                             },
                           ),
-                          CheckBtn(
-                            isChecked: provider.checkable,
-                            onCheck: () {
-                              reader.checkAnswer(provider.selectedIndex!);
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                        CheckBtn(
+                          isChecked: provider.checkable,
+                          onCheck: () {
+                            reader.checkAnswerMC();
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -138,7 +131,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
               right: provider.right,
               answer: provider.answer,
               onPressed: () {
-                reader.SetNext();
+                reader.nextCard();
               },
             ),
           ),
@@ -162,10 +155,10 @@ class ChoiceBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(3.0),
       child: SizedBox(
-        width: 150,
-        height: 70,
+        width: 200,
+        height: 60,
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
@@ -203,9 +196,9 @@ class CheckBtn extends StatelessWidget {
     return GestureDetector(
       onTap: isChecked ? onCheck : null,
       child: Container(
-        padding: const EdgeInsets.all(8.0),
-        height: 70,
-        width: 150,
+        padding: const EdgeInsets.all(3.0),
+        height: 60,
+        width: 200,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border(
