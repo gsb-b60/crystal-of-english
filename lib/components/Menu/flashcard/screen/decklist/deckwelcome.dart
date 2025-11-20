@@ -6,6 +6,8 @@ import 'package:mygame/components/DailyLesson/screen/endscreen.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
 import 'package:mygame/components/Menu/flashcard/screen/decklist/achievement/achievement.dart';
+import 'package:mygame/components/Menu/usersetting/setting.dart';
+import 'package:mygame/profile/profile.dart';
 import 'package:provider/provider.dart';
 
 import 'cardlistscreen.dart';
@@ -29,8 +31,8 @@ class _DeckListScreenState extends State<DeckListScreen> {
         boxShadow: [
           BoxShadow(
             color: const Color.fromARGB(255, 255, 239, 239).withOpacity(0.5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -38,6 +40,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
         title: Text(
           deck.name,
           style: const TextStyle(
+            fontSize: 24,
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -135,10 +138,9 @@ class _DeckListScreenState extends State<DeckListScreen> {
               screenBuilder: () => LessonScreen(),
             ),
             ButtomNav(
-              value: "Profile
-              ",
-              ico: Icons.flash_on_rounded,
-              screenBuilder: () => LessonScreen(),
+              value: "Profile",
+              ico: Icons.person,
+              screenBuilder: () => Profile(),
             ),
           ],
         ),
@@ -146,6 +148,8 @@ class _DeckListScreenState extends State<DeckListScreen> {
     );
   }
 }
+
+
 
 class ButtomNav extends StatelessWidget {
   ButtomNav({
@@ -176,7 +180,7 @@ class ButtomNav extends StatelessWidget {
         ),
         child: Center(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Icon(ico, color: AppColor.darkSurface, size: 35),
               Text(
