@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:mygame/components/DailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:provider/provider.dart';
-
-
 
 class SoundNSightUI extends StatefulWidget {
   const SoundNSightUI({super.key});
@@ -19,11 +17,12 @@ class _MyWidgetState extends State<SoundNSightUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
+    provider.fetchMedia();
     List<String> list = provider.SetUpList();
     List<String> listWord = provider.SetUpListWord();
     List<ButtonState> listState = provider.GetListState();
     String img = provider.getImagePath();
-    
+
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -86,10 +85,7 @@ class _MyWidgetState extends State<SoundNSightUI> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(img),
-                              fit: BoxFit.cover,
-                            ),
+                            child: Image.file(File(img), fit: BoxFit.cover),
                           ),
                         ),
                     ],
@@ -160,13 +156,15 @@ class _MyWidgetState extends State<SoundNSightUI> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom:provider.answered?0: -MediaQuery.of(context).size.height,
+            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
-            child: ReviewScreen(onPressed: () {
-              reader.nextCard();
-            }),
+            child: ReviewScreen(
+              onPressed: () {
+                reader.nextCard();
+              },
+            ),
           ),
         ],
       ),

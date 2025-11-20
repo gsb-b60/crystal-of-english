@@ -21,6 +21,7 @@ enum StudyMode {
   soundAndSight, //picture - arrange letters
 
   phonemix, //4 ipa
+  EndScreen
 }
 
 enum ButtonState { normal, selected, done, wrong }
@@ -35,8 +36,8 @@ class LessonNoti extends ChangeNotifier {
   Map<int, String> mediaMap = {};
 
   //data
-  
-  double get value => (_cards.isEmpty) ? 0 : currentCardIdx / _cards.length;
+
+  double get value => (_cards.isEmpty) ? 0 : currentCardIdx / (_cards.length-1);
   bool get checkable => selectedIndex != null;
   int? selectedIndex;
   int? currentIdx;
@@ -45,7 +46,13 @@ class LessonNoti extends ChangeNotifier {
   bool right = true;
   String get answer => _cards[currentCardIdx].word!;
   String get meaning => _cards[currentCardIdx].meaning!;
-  String get ipa=>_cards[currentCardIdx].ipa!;
+  String get ipa {
+    String i = _cards[currentCardIdx].ipa!;
+    if (!i.contains('/')) {
+      i = "/$i/";
+    }
+    return i;
+  }
 
   List<String>? trueList;
   List<String>? list;
@@ -70,14 +77,45 @@ class LessonNoti extends ChangeNotifier {
     StudyMode.soundAndSight,
     StudyMode.wordsnap, //meaning - other letters
     StudyMode.mindField,
+    StudyMode.soundAndSight,
+    StudyMode.soundAndSight,
+    StudyMode.wordsnap, //meaning - other letters
+    StudyMode.mindField,
+
   ]; //picture - arrange letters];
+  void nextCard() {
+    
+    if (currentCardIdx < _cards.length) {
+      print("in < length");
+      currentCardIdx++;
+      trueList = null;
+      listWord = null;
+      list = null;
+      states = null;
+      currentWordIdx = 0;
+      answered = false;
+      selectedIndex = null;
+      options = null;
+      statesBool = null;
+      mode = modes[currentCardIdx];
+      notifyListeners();
+      right = true;
+      notifyListeners();
+    }
+    if(currentCardIdx==_cards.length)
+    {
+      mode=StudyMode.EndScreen;
+    }
+    print(" - card index :${currentCardIdx} - ${_cards.length} - current at mode :${mode}");
+  }
+
   List<String> get getOptionsShuffle {
-    options??=genOptionsShuffle();
+    options ??= genOptionsShuffle();
     return options!;
   }
 
   List<String> genOptionsShuffle() {
-    List<String> re=[];
+    List<String> re = [];
     final answer = _cards[currentCardIdx].word!;
 
     final otherCards = _cards.where((c) => c.word != answer).toList()
@@ -155,24 +193,7 @@ class LessonNoti extends ChangeNotifier {
     }
   }
 
-  void nextCard() {
-    if (currentCardIdx < _cards.length - 1) {
-      currentCardIdx++;
-      trueList = null;
-      listWord = null;
-      list = null;
-      states = null;
-      currentWordIdx = 0;
-      answered = false;
-      selectedIndex=null;
-      options=null;
-      statesBool=null;
-      mode = modes[currentCardIdx];
-      notifyListeners();
-      right = true;
-      notifyListeners();
-    }
-  }
+  
 
   void selectOption(int index) {
     if (selectedIndex == null) {
@@ -274,14 +295,15 @@ class LessonNoti extends ChangeNotifier {
               c.img != null &&
               c.meaning != null,
         )
-        .take(8)
+        .take(10)
         .toList();
+        print(_cards.length);
     mode = modes[currentCardIdx];
     isLoading = false;
     notifyListeners();
   }
 
-  Future<String> fetchMedia(int id) async {
+  Future<String> fetchMedia() async {
     int deck_id = _cards[currentCardIdx].deckId;
     if (mediaMap.containsKey(deck_id)) {
       media = mediaMap[deck_id] ?? "";

@@ -15,6 +15,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<phoneMixNoti>();
     final reader = context.read<phoneMixNoti>();
+    
     provider.setOptionList();
     final word = provider.getWord();
     final ipa = provider.getIPA();

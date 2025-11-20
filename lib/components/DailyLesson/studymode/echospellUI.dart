@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/components/DailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/screen/echospell/echospellNoti.dart';
 import 'package:provider/provider.dart';
@@ -16,9 +16,10 @@ class _EchospellUIState extends State<EchospellUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
+    provider.fetchMedia();
     final list = provider.SetUpList();
     final listWord = provider.SetUpListWord();
-    final ipa = provider.ipa??"";
+    final ipa = provider.ipa;
     final listState = provider.GetListState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,

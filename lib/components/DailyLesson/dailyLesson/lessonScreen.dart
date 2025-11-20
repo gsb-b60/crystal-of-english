@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/components/DailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/echomathUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/echospellUI.dart';
@@ -9,8 +9,12 @@ import 'package:mygame/components/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/sound&sightUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/wordsnapUI.dart';
+import 'package:mygame/components/Menu/Theme/color.dart';
+
 
 import 'package:provider/provider.dart';
+
+import '../screen/endscreen.dart';
 
 class LessonScreen extends StatefulWidget {
   const LessonScreen({super.key});
@@ -29,7 +33,7 @@ class _LessonScreenState extends State<LessonScreen> {
           if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
           }
-          switch(provider.mode){
+          switch (provider.mode) {
             case StudyMode.soundAndSight:
               return SoundNSightUI();
             case StudyMode.wordsnap:
@@ -48,6 +52,8 @@ class _LessonScreenState extends State<LessonScreen> {
               return PhoneMixUI();
             case StudyMode.wordpulse:
               return WordPulseUI();
+            case StudyMode.EndScreen:
+              return EndScreen();
             default:
               return Text("Select a Study Mode");
           }
@@ -56,3 +62,4 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 }
+

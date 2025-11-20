@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:mygame/components/DailyLesson/lessonScreen.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonScreen.dart';
+import 'package:mygame/components/DailyLesson/screen/endscreen.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
 import 'package:mygame/components/Menu/flashcard/screen/decklist/achievement/achievement.dart';
@@ -124,6 +125,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
           children: [
             ButtomNav(value: "Achievement",ico: Icons.stars,screenBuilder:()=> Achievement()),
             ButtomNav(value: "Daily lesson",ico: Icons.flash_on_rounded,screenBuilder:()=> LessonScreen()),
+            ButtomNav(value: "ES Test",ico: Icons.flash_on_rounded,screenBuilder:()=> EndScreen()),
           ],
         ),
       ),

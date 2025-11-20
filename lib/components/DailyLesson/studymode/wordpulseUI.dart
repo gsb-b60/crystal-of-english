@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:mygame/components/DailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/components/Menu/flashcard/screen/wordpulse/wordpulseNoti.dart';
 import 'package:provider/provider.dart';
 
 class WordPulseUI extends StatefulWidget {
@@ -17,9 +16,10 @@ class _WordPulseUIState extends State<WordPulseUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
+    provider.fetchMedia();
     List<String> options = provider.getOptionsShuffle;
     List<bool> states = provider.getOptionStateBool();
-    final path=provider.getImagePath();
+    final path = provider.getImagePath();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -77,10 +77,7 @@ class _WordPulseUIState extends State<WordPulseUI> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(path),
-                          fit: BoxFit.cover,
-                        ),
+                        child: Image.file(File(path), fit: BoxFit.cover),
                       ),
                     ),
                   Container(

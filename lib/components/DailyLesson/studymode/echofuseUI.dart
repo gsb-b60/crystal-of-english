@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/components/DailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/screen/echofuse/echofuseNoti.dart';
 import 'package:provider/provider.dart';
@@ -16,8 +16,8 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
+    provider.fetchMedia();
     final ipa = provider.ipa;
-
     final options = provider.getOptionList;
     final states = provider.getOptionStateBool();
     return Scaffold(
