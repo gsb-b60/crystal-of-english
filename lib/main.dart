@@ -91,8 +91,7 @@ void main() async {
                     backgroundColor: Colors.white,
                     extendBodyBehindAppBar: true,
                     appBar: AppBar(
-                      backgroundColor:
-                          Colors.transparent,
+                      backgroundColor: Colors.transparent,
                       elevation: 0,
                       title: const Text('Flashcards'),
                       leading: IconButton(
@@ -354,12 +353,12 @@ class MyGame extends FlameGame
   void _attachJoystick() {
     final js = joystick;
     if (js == null) return;
-    
+
     // Add to HUD if not already there
     if (js.parent == null) {
       hudRoot.add(js);
     }
-    
+
     // Wire to player
     player.joystick = js;
   }
@@ -367,28 +366,21 @@ class MyGame extends FlameGame
   Future<void> _ensureJoystickAttached() async {
     final js = joystick;
     if (js == null) return;
-    
+
     // Add to HUD if not already there
     if (js.parent == null) {
       await hudRoot.add(js);
     }
-    
+
     // Wire to player
     player.joystick = js;
   }
 
   Future<void> _initMapObjects(String mapFile) async {
-
     final effectiveLevel = PlayerProfile.instance.effectiveLevel();
     int _slotCounter = 0;
 
     EnemyType _enemyForSlot(int level, int slot) {
-
-
-
-
-
-
       switch (level) {
         case 1:
           return EnemyType.normal;
@@ -404,6 +396,7 @@ class MyGame extends FlameGame
           return EnemyType.normal;
       }
     }
+
     if (mapFile == 'map.tmx') {
       final loader = TiledObjectLoader(map, world);
       await loader.loadLayer("house");
@@ -423,7 +416,10 @@ class MyGame extends FlameGame
           ),
           DialogueChoice('Để sau', onSelected: dialogManager.close),
         ],
-        idleLines: const ['You know nothing, Jon Snow', 'Why would a girl see blood and collapse?'],
+        idleLines: const [
+          'You know nothing, Jon Snow',
+          'Why would a girl see blood and collapse?',
+        ],
         enableIdleChatter: true,
         spriteAsset: 'chihiro.png',
         srcPosition: Vector2(0, 0),
@@ -631,7 +627,6 @@ class MyGame extends FlameGame
     if (_inBattle) return;
     _inBattle = true;
 
-
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
@@ -662,7 +657,6 @@ class MyGame extends FlameGame
     }
 
     heartsHud.removeFromParent();
-
 
     await AudioManager.instance.pauseBgm();
 
@@ -710,9 +704,7 @@ class MyGame extends FlameGame
       player.position = Vector2(1255, 655);
     }
 
-
     AudioManager.instance.resumeBgm();
-
 
     if (!overlays.isActive(SettingsOverlay.id)) {
       overlays.add(SettingsOverlay.id);
@@ -725,7 +717,6 @@ class MyGame extends FlameGame
     Vector2? spawnTile,
     double tileSize = 16,
   }) async {
-
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
@@ -745,7 +736,6 @@ class MyGame extends FlameGame
     final newWorld = World();
     await add(newWorld);
     world = newWorld;
-
 
     if (mapFile == 'dungeon.tmx') {
       map = await ft.TiledComponent.load(
@@ -806,8 +796,8 @@ class MyGame extends FlameGame
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'dungeon.tmx'
-              ? 'Welcome to Undead Island'
-              : 'Overworld',
+          ? 'Welcome to Undead Island'
+          : 'Overworld',
     );
 
     if (mapFile == 'houseinterior.tmx') {
@@ -864,7 +854,6 @@ class MyGame extends FlameGame
         ),
       );
     }
-
 
     currentMapFile = mapFile;
     try {

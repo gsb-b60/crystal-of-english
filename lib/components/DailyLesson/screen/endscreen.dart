@@ -1,12 +1,21 @@
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/timerNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:provider/provider.dart';
 
 class EndScreen extends StatelessWidget {
   const EndScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final timer=context.watch<TimerNoti>();
+    final reader=context.read<TimerNoti>();
+    reader.stop();
+    final elipse=timer.formatted;
+
+    final less=context.watch<LessonNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Column(
@@ -24,8 +33,8 @@ class EndScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnalystWidget(value: "25",ico: Icons.bolt,co: AppColor.yellowPrimary,line:"TOTAL XP" ,),
-              AnalystWidget(value: "90%",ico: Icons.my_location,co: AppColor.greenPrimary,line:"MODERATE" ,),
-              AnalystWidget(value: "3:53",ico: Icons.timer,co: AppColor.bluePrimary,line:"XP" ,),
+              AnalystWidget(value: less.accuracy,ico: Icons.my_location,co: AppColor.greenPrimary,line:less.accLine ,),
+              AnalystWidget(value: elipse,ico: Icons.timer,co: AppColor.bluePrimary,line:timer.getThresholdString ,),
             ],
           ),
           GestureDetector(

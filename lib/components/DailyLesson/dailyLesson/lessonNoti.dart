@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mygame/components/DailyLesson/config/threshold.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/data/database_helper_io_impl.dart';
 
@@ -21,7 +22,7 @@ enum StudyMode {
   soundAndSight, //picture - arrange letters
 
   phonemix, //4 ipa
-  EndScreen
+  EndScreen,
 }
 
 enum ButtonState { normal, selected, done, wrong }
@@ -37,7 +38,8 @@ class LessonNoti extends ChangeNotifier {
 
   //data
 
-  double get value => (_cards.isEmpty) ? 0 : currentCardIdx / (_cards.length-1);
+  double get value =>
+      (_cards.isEmpty) ? 0 : currentCardIdx / (_cards.length - 1);
   bool get checkable => selectedIndex != null;
   int? selectedIndex;
   int? currentIdx;
@@ -81,10 +83,32 @@ class LessonNoti extends ChangeNotifier {
     StudyMode.soundAndSight,
     StudyMode.wordsnap, //meaning - other letters
     StudyMode.mindField,
-
   ]; //picture - arrange letters];
+
+  int _acc = 0;
+  String get accuracy {
+    int limitedAcc = _acc;
+    if (limitedAcc > 7) limitedAcc = 7;
+    int percent = 10 - limitedAcc;
+    int accuracyPercent = percent * 10;
+
+    return "$accuracyPercent%";
+  }
+  String get accLine{
+    if (_acc <= ThresholdAcc.excellent) {
+    return ThresholdAcc.exStr;
+  } else if (_acc <= ThresholdAcc.great) {
+    return ThresholdAcc.greatStr;
+  } else if (_acc <= ThresholdAcc.good) {
+    return ThresholdAcc.okStr;
+  } else if (_acc <= ThresholdAcc.fair) {
+    return ThresholdAcc.fairStr;
+  } else {
+    return "POOR"; // optional: điểm quá thấp
+  }
+  }
+
   void nextCard() {
-    
     if (currentCardIdx < _cards.length) {
       print("in < length");
       currentCardIdx++;
@@ -102,11 +126,12 @@ class LessonNoti extends ChangeNotifier {
       right = true;
       notifyListeners();
     }
-    if(currentCardIdx==_cards.length)
-    {
-      mode=StudyMode.EndScreen;
+    if (currentCardIdx == _cards.length) {
+      mode = StudyMode.EndScreen;
     }
-    print(" - card index :${currentCardIdx} - ${_cards.length} - current at mode :${mode}");
+    print(
+      " - card index :${currentCardIdx} - ${_cards.length} - current at mode :${mode}",
+    );
   }
 
   List<String> get getOptionsShuffle {
@@ -145,6 +170,7 @@ class LessonNoti extends ChangeNotifier {
       notifyListeners();
       currentWordIdx++;
     } else {
+      _acc++;
       states![index] = ButtonState.wrong;
       notifyListeners();
       Future.delayed(Duration(milliseconds: 100), () {
@@ -189,11 +215,10 @@ class LessonNoti extends ChangeNotifier {
     } else {
       answered = true;
       right = false;
+      _acc++;
       notifyListeners();
     }
   }
-
-  
 
   void selectOption(int index) {
     if (selectedIndex == null) {
@@ -297,7 +322,7 @@ class LessonNoti extends ChangeNotifier {
         )
         .take(10)
         .toList();
-        print(_cards.length);
+    print(_cards.length);
     mode = modes[currentCardIdx];
     isLoading = false;
     notifyListeners();

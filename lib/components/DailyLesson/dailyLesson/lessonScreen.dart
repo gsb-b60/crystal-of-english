@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/DailyLesson/dailyLesson/lessonNoti.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/timerNoti.dart';
 import 'package:mygame/components/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/echomathUI.dart';
 import 'package:mygame/components/DailyLesson/studymode/echospellUI.dart';
@@ -26,10 +27,14 @@ class LessonScreen extends StatefulWidget {
 class _LessonScreenState extends State<LessonScreen> {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LessonNoti()..getFlashcardList(),
-      child: Consumer<LessonNoti>(
-        builder: (context, provider, _) {
+    return MultiProvider(
+       providers: [
+        ChangeNotifierProvider(create: (context) => LessonNoti()..getFlashcardList(),),
+        ChangeNotifierProvider(create: (context)=>TimerNoti()..start())
+       ],
+      
+      child: Consumer2<LessonNoti,TimerNoti>(
+        builder: (context, provider,timer, _) {
           if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
           }

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:mygame/components/DailyLesson/dailyLesson/lessonScreen.dart';
+import 'package:mygame/components/DailyLesson/dailyLesson/timerNoti.dart';
 import 'package:mygame/components/DailyLesson/screen/endscreen.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
@@ -77,7 +78,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
       backgroundColor: AppColor.darkSurface,
       appBar: AppBar(
         leading: const Icon(Icons.menu_book, color: Colors.white),
-        backgroundColor:  AppColor.darkSurface,
+        backgroundColor: AppColor.darkSurface,
         title: const Text(
           "My Decks",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -123,9 +124,22 @@ class _DeckListScreenState extends State<DeckListScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ButtomNav(value: "Achievement",ico: Icons.stars,screenBuilder:()=> Achievement()),
-            ButtomNav(value: "Daily lesson",ico: Icons.flash_on_rounded,screenBuilder:()=> LessonScreen()),
-            ButtomNav(value: "ES Test",ico: Icons.flash_on_rounded,screenBuilder:()=> EndScreen()),
+            ButtomNav(
+              value: "Achievement",
+              ico: Icons.stars,
+              screenBuilder: () => Achievement(),
+            ),
+            ButtomNav(
+              value: "Daily lesson",
+              ico: Icons.flash_on_rounded,
+              screenBuilder: () => LessonScreen(),
+            ),
+            ButtomNav(
+              value: "Profile
+              ",
+              ico: Icons.flash_on_rounded,
+              screenBuilder: () => LessonScreen(),
+            ),
           ],
         ),
       ),
@@ -146,8 +160,11 @@ class ButtomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> screenBuilder()));
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => screenBuilder()),
+        );
       },
       child: Container(
         width: 180,
@@ -161,11 +178,7 @@ class ButtomNav extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Icon(
-                ico,
-                color: AppColor.darkSurface,
-                size: 35,
-              ),
+              Icon(ico, color: AppColor.darkSurface, size: 35),
               Text(
                 value,
                 style: TextStyle(
