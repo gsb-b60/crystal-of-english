@@ -1,4 +1,6 @@
-﻿import 'dart:ui' as ui;
+﻿import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
@@ -12,8 +14,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
 import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/components/Menu/flashcard/quizzconverter/fctoquizz.dart';
 import 'package:mygame/vocab/screen/cardlevel/cardlevelscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'ui/health.dart';
 import 'ui/experience.dart';
@@ -40,6 +44,7 @@ import 'ui/shop_overlay.dart';
 import 'state/inventory.dart';
 
 void main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -54,6 +59,8 @@ void main() async {
 
   final deckModel = Deckmodel();
   await deckModel.fetchDecks();
+  
+
   runApp(
     MultiProvider(
       providers: [
