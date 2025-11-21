@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mygame/components/Menu/flashcard/screen/decklist/deckwelcome.dart';
+import 'package:mygame/flashcard/screen/decklist/deckwelcome.dart';
 import 'package:mygame/components/Menu/usersetting/setting.dart';
 import 'package:mygame/main.dart';
 

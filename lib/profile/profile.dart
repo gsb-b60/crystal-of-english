@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/profile/profileNoti.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -10,19 +12,15 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  List<String> listBadge = [
-    "assets/level-titan/attack.png",
-    "assets/level-titan/armor.png",
-    "assets/level-titan/beast.png",
-    "assets/level-titan/cart.png",
-    "assets/level-titan/collo.png",
-    "assets/level-titan/female.png",
-    "assets/level-titan/jaw.png",
-    "assets/level-titan/warhammer.png",
-  ];
+  
 
   @override
   Widget build(BuildContext context) {
+    final provider=context.watch<ProfileNoti>();
+    final listBadge=provider.listBadge;
+    final name=provider.name;
+    final learnTime=provider.learnTime;
+    final streak=provider.streak;
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -54,7 +52,7 @@ class _ProfileState extends State<Profile> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Name",
+                      name,
                       style: TextStyle(
                         color: AppColor.lightText,
                         fontSize: 38,
@@ -63,7 +61,7 @@ class _ProfileState extends State<Profile> {
                       ),
                     ),
                     Text(
-                      "LEVEL X",
+                      "LEVEL ${provider.level}",
                       style: TextStyle(color: AppColor.lightText, fontSize: 22),
                     ),
                   ],
@@ -71,9 +69,9 @@ class _ProfileState extends State<Profile> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    InfoBox(ico: Icons.bolt, line: "Streak Days", value: "X"),
-                    InfoBox(ico: Icons.bolt, line: "Streak Days", value: "X"),
-                    InfoBox(ico: Icons.bolt, line: "Streak Days", value: "X"),
+                    InfoBox(ico: Icons.bolt, line: "Streak Days", value: provider.streak.toString()),
+                    InfoBox(ico: Icons.calendar_month, line: "Log Day", value: provider.logDay),
+                    InfoBox(ico: Icons.bolt, line: "GOAL", value: provider.goal.toString()),
                   ],
                 ),
                 Row(
@@ -91,7 +89,7 @@ class _ProfileState extends State<Profile> {
                     itemBuilder: (context, index) {
                       return Row(
                         children: [
-                          SizedBox(width: 15),
+                          SizedBox(width: 9),
                           Container(
                             width: 88,
                             height: 88,
@@ -115,128 +113,107 @@ class _ProfileState extends State<Profile> {
               ],
             ),
           ),
-          VerticalDivider(
-            color: const Color.fromARGB(255, 255, 255, 255), // màu vạch
-            thickness: 1, // độ dày vạch
-            width: 20, // khoảng trống dành cho vạch
-            indent: 8, // cách trên
-            endIndent: 8, // cách dưới
-          ),
           Expanded(
             child: Container(
               child: Column(
-                spacing: 20,
+                mainAxisAlignment: MainAxisAlignment.start,
+                spacing: 10,
                 children: [
                   SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(
-                        Icons.timelapse,
-                        size: 78,
-                        color: AppColor.bluePrimary,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Time Goal",
-                            style: TextStyle(
-                              color: AppColor.bluePrimary,
-                              fontSize: 50,
-                              fontWeight: FontWeight.bold,
-                              height: 0.5,
-                            ),
-                          ),
-                          Text(
-                            "learn enough to make a streak",
-                            style: TextStyle(
-                              color: AppColor.lightText,
-                              fontSize: 27,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 20, // chiều cao progress bar
-                            width: 280,
-                            child: LinearProgressIndicator(
-                              value: 0.1,
-                              color: AppColor.bluePrimary,
-                              backgroundColor: AppColor.darkBorder,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            "X/5 MIN",
-                            style: TextStyle(
-                              color: AppColor.bluePrimary,
-                              fontSize: 30,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  ProgressBlock(
+                    ico: Icons.timer,
+                    name: "Learn Time",
+                    value: provider.timeValue,
+                    line: "learn enought to earn a streak!",
+                    indicate: "${learnTime.inMinutes}/5 MIN",
+                    co: AppColor.bluePrimary,
+                    realValue: provider.formatedTime,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(
-                        Icons.local_fire_department,
-                        size: 78,
-                        color: AppColor.redPrimary,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Streak Goal",
-                            style: TextStyle(
-                              color: AppColor.redPrimary,
-                              fontSize: 50,
-                              fontWeight: FontWeight.bold,
-                              height: 0.5,
-                            ),
-                          ),
-                          Text(
-                            "learn enough to make a streak",
-                            style: TextStyle(
-                              color: AppColor.lightText,
-                              fontSize: 27,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 20, // chiều cao progress bar
-                            width: 280,
-                            child: LinearProgressIndicator(
-                              value: 0.1,
-                              color: AppColor.redPrimary,
-                              backgroundColor: AppColor.darkBorder,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            "X/7 DAY",
-                            style: TextStyle(
-                              color: AppColor.redPrimary,
-                              fontSize: 30,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  ProgressBlock(
+                    ico: Icons.local_fire_department_outlined,
+                    name: "Streak Goal",
+                    value: provider.streakValue,
+                    line: "Show Me Who Really Learn!",
+                    indicate: " ${streak}/7 Day",
+                    co: AppColor.redPrimary,
+                    realValue: "",
                   ),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProgressBlock extends StatelessWidget {
+  ProgressBlock({
+    super.key,
+    required this.ico,
+    required this.name,
+    required this.line,
+    required this.indicate,
+    required this.value,
+    required this.co,
+    required this.realValue
+  });
+  IconData ico;
+  String name;
+  String line;
+  String indicate;
+  double value;
+  Color co;
+  String realValue;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 20),
+      margin: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColor.darkBorder,width: 2)
+        
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Icon(ico, size: 58, color: co),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: TextStyle(
+                  color: co,
+                  fontSize: 50,
+                  fontWeight: FontWeight.bold,
+                  height: 0.5,
+                ),
+              ),
+              Text(
+                line,
+                style: TextStyle(color: AppColor.lightText, fontSize: 27),
+              ),
+              SizedBox(
+                height: 20, // chiều cao progress bar
+                width: 280,
+                child: LinearProgressIndicator(
+                  value: value,
+                  color: co,
+                  backgroundColor: AppColor.darkBorder,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(indicate, style: TextStyle(color: co, fontSize: 30)),
+              Text(realValue, style: TextStyle(color: co, fontSize: 30)),
+            ],
           ),
         ],
       ),
@@ -264,17 +241,20 @@ class InfoBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(ico, color: AppColor.yellowPrimary),
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              
               Text(line, style: TextStyle(color: AppColor.lightText)),
               Text(
                 value,
                 style: TextStyle(
                   color: AppColor.lightText,
-                  fontSize: 30,
+                  fontSize: 27,
                   fontWeight: FontWeight.bold,
                   height: 0.6,
                 ),
