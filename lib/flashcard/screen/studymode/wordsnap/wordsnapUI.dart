@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/screen/studymode/echofuse/echofuseNoti.dart';
+import 'package:mygame/flashcard/business/Flashcard.dart';
+import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnapNoti.dart';
 import 'package:provider/provider.dart';
 
-class EchoFuseUI extends StatefulWidget {
-  const EchoFuseUI({super.key});
+class WordSnapUI extends StatefulWidget {
+  const WordSnapUI({super.key});
 
   @override
-  State<EchoFuseUI> createState() => _EchoFuseUIState();
+  State<WordSnapUI> createState() => _WordSnapUIState();
 }
 
-class _EchoFuseUIState extends State<EchoFuseUI> {
+class _WordSnapUIState extends State<WordSnapUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LessonNoti>();
-    final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
-    final ipa = provider.ipa;
-    final options = provider.getOptionList;
-    final states = provider.getOptionStateBool();
+    final provider=context.watch<WordSnapNoti>();
+    final options=provider.genOptions();
+    final states=provider.getOptionState();
+    final progress=provider.value;
+    final mean=provider.mean;
+    final reader=context.read<WordSnapNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -39,9 +39,11 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
           ],
         ),
         title: LinearProgressIndicator(
-          value: provider.value,
+          value: progress,
           backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            AppColor.greenPrimary,
+          ),
           minHeight: 18,
           borderRadius: BorderRadius.circular(9),
         ),
@@ -64,64 +66,47 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                   ),
                 ],
               ),
-              Expanded(
-                child: Column(
+              Container(
+                height: 150,
+                width: 650,
+                child: Center(
+                  child: Text(
+                    mean,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 150,
+                width: 750,
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.outlined(
-                          onPressed: () {
-                            reader.playSound();
-                          },
-                          icon: Icon(
-                            Icons.volume_up,
-                            color: AppColor.lightText,
-                            size: 30,
+                    ListView.builder(
+                      itemCount: 3,//options.length,
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return Center(
+                          child: ChoiceBtn(
+                            value: options[index],
+                            isSelected: states[index],
+                            onPressed: () {
+                              reader.selectOption(index);
+                            },
                           ),
-                        ),
-                        Text(
-                          ipa??"",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                    Container(
-                      height: 150,
-                      width: 750,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ListView.builder(
-                            itemCount: 3, //options.length,
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              return Center(
-                                child: ChoiceBtn(
-                                  value: options[index],
-                                  isSelected: states[index],
-                                  onPressed: () {
-                                    reader.selectOption(index);
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          CheckBtn(
-                            isChecked: provider.checkable,
-                            onCheck: () {
-                              reader.checkAnswerMC();
-                            },
-                          ),
-                        ],
-                      ),
+                    CheckBtn(
+                      isChecked: provider.checkable,
+                      onCheck: () {
+                        reader.checkAnswer(provider.selectedIndex!);
+                      },
                     ),
                   ],
                 ),
@@ -355,3 +340,4 @@ class ReviewScreen extends StatelessWidget {
     );
   }
 }
+

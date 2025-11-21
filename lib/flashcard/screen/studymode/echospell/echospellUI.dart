@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/screen/studymode/phonemix/phonemixNoti.dart';
+import 'package:mygame/flashcard/screen/studymode/echospell/echospellNoti.dart';
 import 'package:provider/provider.dart';
 
-class PhoneMixUI extends StatefulWidget {
-  const PhoneMixUI({super.key});
+enum ButtonState { normal, selected, done, wrong }
+
+class EchospellUI extends StatefulWidget {
+  const EchospellUI({super.key});
 
   @override
-  State<PhoneMixUI> createState() => _PhoneMixUIState();
+  State<EchospellUI> createState() => _EchospellUIState();
 }
 
-class _PhoneMixUIState extends State<PhoneMixUI> {
+class _EchospellUIState extends State<EchospellUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<phoneMixNoti>();
-    final reader = context.read<phoneMixNoti>();
-    
-    provider.setOptionList();
-    final word = provider.getWord();
-    final ipa = provider.getIPA();
-
+    final provider = context.watch<EchospellNoti>();
+    final reader = context.read<EchospellNoti>();
+    final list = provider.SetUpList();
+    final listWord = provider.SetUpListWord();
+    final ipa = provider.SetIPA();
+    final listState = provider.GetListState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -55,7 +56,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                 children: [
                   SizedBox(width: 40),
                   Text(
-                    "Tap the matching pairs",
+                    "Tap to build the word.",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 40,
@@ -64,75 +65,152 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                   ),
                 ],
               ),
-              Container(
-                height: 125,
-                width: 750,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ListView.builder(
-                      itemCount: word.length,
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return Center(
-                          child: ChoiceBtn(
-                            value: word[index],
-                            state:ButtonState.normal ,//provider.wordState[index],
-                            onChoose: () {
-                              reader.selectWord(index);
-                            },
-                          ),
-                        );
-                      },
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton.outlined(
+                    onPressed: () {
+                      reader.playSound();
+                    },
+                    icon: Icon(
+                      Icons.volume_up,
+                      color: AppColor.lightText,
+                      size: 30,
                     ),
-                    
-                  ],
-                ),
-              ),
-              SizedBox(width: 50),
-              Container(
-                height: 125,
-                width: 750,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ListView.builder(
-                      itemCount: ipa.length,
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return Center(
-                          child: ChoiceBtn(
-                            value: ipa[index],
-                            state:ButtonState.normal,// provider.ipaState[index],
-                            onChoose: () {
-                              reader.selectIPA(index);
-                            },
-                          ),
-                        );
-                      },
+                  ),
+                  SizedBox(width: 30),
+                  Text(
+                    ipa,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Roboto',
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              SizedBox(width: 50),
+              SizedBox(height: 15),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: List.generate(listWord.length, (index) {
+                  String value = listWord[index];
+                  return Text(
+                    value,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Roboto',
+                    ),
+                  );
+                }),
+              ),
+              SizedBox(height: 50),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+
+                children: List.generate(list.length, (index) {
+                  final value = list[index];
+                  return ChoiceBtn(
+                    value: value,
+                    state: listState[index],
+                    onChoose: () {
+                      reader.CheckAnswer(value, index);
+                    },
+                  );
+                }),
+              ),
             ],
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom: provider.answer ? 0 : -MediaQuery.of(context).size.height,
+            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
               onPressed: () {
-                reader.NextTask();
+                reader.SetNext();
               },
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ChoiceBtn extends StatelessWidget {
+  ChoiceBtn({
+    super.key,
+    required this.value,
+    required this.state,
+    required this.onChoose,
+  });
+
+  String value;
+  ButtonState state;
+  VoidCallback onChoose;
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColor = AppColor.darkBase;
+    Color textColor = Colors.white;
+    Color borderColor = AppColor.darkCard;
+
+    switch (state) {
+      case ButtonState.selected:
+        backgroundColor = AppColor.darkSurface;
+        borderColor = AppColor.BlueMuted;
+        textColor = AppColor.BlueMuted;
+        break;
+      case ButtonState.done:
+        backgroundColor = AppColor.darkBase;
+        borderColor = AppColor.darkCard;
+        textColor = AppColor.darkerCard;
+        break;
+      case ButtonState.normal:
+        backgroundColor = AppColor.darkBase;
+        borderColor = AppColor.darkCard;
+        textColor = Colors.white;
+        break;
+      case ButtonState.wrong:
+        backgroundColor = AppColor.darkSurface;
+        borderColor = AppColor.redMuted;
+        textColor = AppColor.redMuted;
+        break;
+    }
+    return GestureDetector(
+      onTap: () {
+        if (state != ButtonState.done) {
+          onChoose.call();
+        }
+      },
+      child: Container(
+        height: 60,
+        width: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: BoxBorder.all(color: borderColor, width: 4),
+          color: backgroundColor,
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 35,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Roboto',
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -218,80 +296,6 @@ class ReviewScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-enum ButtonState { normal, selected, done, wrong }
-
-class ChoiceBtn extends StatelessWidget {
-  String value;
-  ButtonState state;
-  VoidCallback? onChoose;
-  ChoiceBtn({
-    super.key,
-    required this.state,
-    required this.value,
-    required this.onChoose,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Color backgroundColor = AppColor.darkBase;
-    Color textColor = Colors.white;
-    Color borderColor = AppColor.darkCard;
-
-    switch (state) {
-      case ButtonState.selected:
-        backgroundColor = AppColor.darkSurface;
-        borderColor = AppColor.BlueMuted;
-        textColor = AppColor.BlueMuted;
-        break;
-      case ButtonState.done:
-        backgroundColor = AppColor.darkBase;
-        borderColor = AppColor.darkCard;
-        textColor = AppColor.darkerCard;
-        break;
-      case ButtonState.normal:
-        backgroundColor = AppColor.darkBase;
-        borderColor = AppColor.darkCard;
-        textColor = Colors.white;
-        break;
-      case ButtonState.wrong:
-        backgroundColor = AppColor.darkSurface;
-        borderColor = AppColor.redMuted;
-        textColor = AppColor.redMuted;
-        break;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SizedBox(
-        width: 150,
-        height: 70,
-        child: ElevatedButton(
-          onPressed: () {
-            if (state != ButtonState.done) {
-              onChoose?.call();
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            side: BorderSide(color: borderColor, width: 4),
-            backgroundColor: backgroundColor,
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Roboto',
-              color: textColor,
-              fontSize: 22,
-            ),
           ),
         ),
       ),

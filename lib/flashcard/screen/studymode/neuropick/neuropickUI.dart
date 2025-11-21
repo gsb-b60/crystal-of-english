@@ -1,25 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/screen/studymode/echofuse/echofuseNoti.dart';
+import 'package:mygame/flashcard/screen/studymode/neuropick/neuropickNoti.dart';
 import 'package:provider/provider.dart';
 
-class EchoFuseUI extends StatefulWidget {
-  const EchoFuseUI({super.key});
+class NeuroPickUI extends StatefulWidget {
+  const NeuroPickUI({super.key});
 
   @override
-  State<EchoFuseUI> createState() => _EchoFuseUIState();
+  State<NeuroPickUI> createState() => _NeuroPickUIState();
 }
 
-class _EchoFuseUIState extends State<EchoFuseUI> {
+class _NeuroPickUIState extends State<NeuroPickUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LessonNoti>();
-    final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
-    final ipa = provider.ipa;
-    final options = provider.getOptionList;
-    final states = provider.getOptionStateBool();
+    final provider = context.watch<NeuroPickNoti>();
+    List<String> options = provider.getOptions();
+    List<bool> states = provider.getOptionState();
+    final reader = context.read<NeuroPickNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -64,43 +63,34 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                   ),
                 ],
               ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.outlined(
-                          onPressed: () {
-                            reader.playSound();
-                          },
-                          icon: Icon(
-                            Icons.volume_up,
-                            color: AppColor.lightText,
-                            size: 30,
-                          ),
-                        ),
-                        Text(
-                          ipa??"",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                      ],
-                    ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (provider.getImagePath() != "")
                     Container(
-                      height: 150,
-                      width: 750,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ListView.builder(
-                            itemCount: 3, //options.length,
-                            scrollDirection: Axis.horizontal,
+                      width: 390,
+                      height: 270,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(provider.getImagePath()),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  Container(
+                    height: 270,
+                    width: 350,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: options.length,
+                            scrollDirection: Axis.vertical,
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               return Center(
@@ -114,17 +104,17 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                               );
                             },
                           ),
-                          CheckBtn(
-                            isChecked: provider.checkable,
-                            onCheck: () {
-                              reader.checkAnswerMC();
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                        CheckBtn(
+                          isChecked: provider.checkable,
+                          onCheck: () {
+                            reader.checkAnswer(provider.selectedIndex!);
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -148,6 +138,7 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
     );
   }
 }
+
 class ChoiceBtn extends StatelessWidget {
   String value;
   bool isSelected;
@@ -162,10 +153,10 @@ class ChoiceBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(3.0),
       child: SizedBox(
-        width: 150,
-        height: 70,
+        width: 200,
+        height: 60,
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
@@ -203,9 +194,9 @@ class CheckBtn extends StatelessWidget {
     return GestureDetector(
       onTap: isChecked ? onCheck : null,
       child: Container(
-        padding: const EdgeInsets.all(8.0),
-        height: 70,
-        width: 150,
+        padding: const EdgeInsets.all(3.0),
+        height: 60,
+        width: 200,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border(

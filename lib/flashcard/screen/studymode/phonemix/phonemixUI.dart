@@ -15,7 +15,6 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<phoneMixNoti>();
     final reader = context.read<phoneMixNoti>();
-    
     provider.setOptionList();
     final word = provider.getWord();
     final ipa = provider.getIPA();
@@ -78,7 +77,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                         return Center(
                           child: ChoiceBtn(
                             value: word[index],
-                            state:ButtonState.normal ,//provider.wordState[index],
+                            state: provider.wordState[index],
                             onChoose: () {
                               reader.selectWord(index);
                             },
@@ -105,7 +104,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                         return Center(
                           child: ChoiceBtn(
                             value: ipa[index],
-                            state:ButtonState.normal,// provider.ipaState[index],
+                            state: provider.ipaState[index],
                             onChoose: () {
                               reader.selectIPA(index);
                             },

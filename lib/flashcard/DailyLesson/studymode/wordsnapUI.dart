@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/screen/wordsnap/wordsnapNoti.dart';
+import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnapNoti.dart';
 import 'package:provider/provider.dart';
 
 class WordSnapUI extends StatefulWidget {

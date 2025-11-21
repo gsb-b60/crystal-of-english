@@ -13,11 +13,14 @@ class AppColor {
   static const darkBorder = Color.fromRGBO(84, 103, 110, 1);
   static const darkerCard = Color.fromRGBO(57, 69, 69, 1);
   static const darklight = Color.fromRGBO(57, 70, 79, 1);
+  static const greyGreen = Color.fromRGBO(129, 188, 126, 1);
 
   static const greenPrimary = Color.fromRGBO(149, 211, 50, 1);
   static const greenAccent = Color.fromRGBO(121, 186, 4, 1);
   static const greenMuted = Color.fromRGBO(96, 132, 34, 1);
   static const greenBright = Color.fromRGBO(120, 186, 49, 1);
+  static const greenDeep = Color.fromRGBO(1, 125, 3, 1);
+  static const greenFade = Color.fromRGBO(136, 255, 89, 1);
 
   static const redPrimary = Color.fromRGBO(199, 73, 73, 1);
   static const redAccent = Color.fromRGBO(217, 81, 76, 1);

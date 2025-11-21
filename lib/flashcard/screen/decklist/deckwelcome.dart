@@ -7,8 +7,9 @@ import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/business/Deck.dart';
 import 'package:mygame/flashcard/screen/decklist/achievement/achievement.dart';
 import 'package:mygame/components/Menu/usersetting/setting.dart';
-import 'package:mygame/profile/profile.dart';
-import 'package:mygame/profile/profileNoti.dart';
+import 'package:mygame/profile/Quest/quest.dart';
+import 'package:mygame/profile/userprofile/profile.dart';
+import 'package:mygame/profile/userprofile/profileNoti.dart';
 import 'package:provider/provider.dart';
 
 import 'cardlistscreen.dart';
@@ -145,14 +146,18 @@ class _DeckListScreenState extends State<DeckListScreen> {
                 create: (context) => ProfileNoti()..loadUser(),
                 child: Consumer<ProfileNoti>(
                   builder: (context, provider, _) {
-                    if(provider.isLoading)
-                    {
-                      return Center(child: CircularProgressIndicator(),);
+                    if (provider.isLoading) {
+                      return Center(child: CircularProgressIndicator());
                     }
                     return Profile();
                   },
                 ),
               ),
+            ),
+            ButtomNav(
+              value: "Quest",
+              ico: Icons.assignment_turned_in,
+              screenBuilder: () => Quest(),
             ),
           ],
         ),

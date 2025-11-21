@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/flashcard/screen/blankfill/blankwordscreen.dart';
-import 'package:mygame/flashcard/screen/echofuse/echofuse.dart';
-import 'package:mygame/flashcard/screen/echomatch/echomath.dart';
-import 'package:mygame/flashcard/screen/echospell/echospell.dart';
-import 'package:mygame/flashcard/screen/flashcard/newwayreview.dart';
-import 'package:mygame/flashcard/screen/mindfield/mindfeild.dart';
-import 'package:mygame/flashcard/screen/neuropick/neuropick.dart';
-import 'package:mygame/flashcard/screen/phonemix/phonemix.dart';
-import 'package:mygame/flashcard/screen/sound&sight/sound&sight.dart';
-import 'package:mygame/flashcard/screen/wordpulse/wordpulse.dart';
-import 'package:mygame/flashcard/screen/wordsnap/wordsnap.dart';
+import 'package:mygame/flashcard/screen/studymode/echofuse/echofuse.dart';
+import 'package:mygame/flashcard/screen/studymode/echomatch/echomath.dart';
+import 'package:mygame/flashcard/screen/studymode/echospell/echospell.dart';
+import 'package:mygame/flashcard/screen/studymode/flashcard/newwayreview.dart';
+import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
+import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
+import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
+import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
+import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
+import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnap.dart';
 
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';

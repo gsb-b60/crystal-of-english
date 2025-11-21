@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/screen/studymode/echofuse/echofuseNoti.dart';
 import 'package:provider/provider.dart';
@@ -14,12 +13,12 @@ class EchoFuseUI extends StatefulWidget {
 class _EchoFuseUIState extends State<EchoFuseUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LessonNoti>();
-    final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
-    final ipa = provider.ipa;
-    final options = provider.getOptionList;
-    final states = provider.getOptionStateBool();
+    final provider = context.watch<EchoFuseNoti>();
+    final reader = context.read<EchoFuseNoti>();
+    final ipa = provider.SetIPA();
+
+    final options = provider.getOptions();
+    final states = provider.getOptionState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -82,7 +81,7 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                           ),
                         ),
                         Text(
-                          ipa??"",
+                          ipa,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 40,
@@ -117,7 +116,7 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                           CheckBtn(
                             isChecked: provider.checkable,
                             onCheck: () {
-                              reader.checkAnswerMC();
+                              reader.checkAnswer(provider.selectedIndex!);
                             },
                           ),
                         ],
@@ -139,7 +138,7 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
               right: provider.right,
               answer: provider.answer,
               onPressed: () {
-                reader.nextCard();
+                reader.SetNext();
               },
             ),
           ),

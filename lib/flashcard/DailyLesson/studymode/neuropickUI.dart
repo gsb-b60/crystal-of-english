@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/screen/neuropick/neuropickNoti.dart';
+import 'package:mygame/flashcard/screen/studymode/neuropick/neuropickNoti.dart';
 import 'package:provider/provider.dart';
 
 class NeuroPickUI extends StatefulWidget {
