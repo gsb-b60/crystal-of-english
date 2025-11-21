@@ -60,6 +60,9 @@ class FlachCardCToQuizz {
         "options": opts,
         "correctIndex": correctIdx,
       });
+      final optsSound = genOptions(card);
+      final ansSound = card.word ?? "";
+      final correctIdxSound = optsSound.indexOf(ansSound);
       final media = await fetchMedia(card);
       final basePath =
           "/data/user/0/com.example.mygame/app_flutter/anki/$media";
@@ -70,16 +73,19 @@ class FlachCardCToQuizz {
         "id": "${card.id}_sound",
         "type": "sound",
         "prompt": "What is this?",
-        "options": opts,
-        "correctIndex": correctIdx,
+        "options": optsSound,
+        "correctIndex": correctIdxSound,
         "sound": File(soundPath).existsSync() ? soundPath : "",
       });
+      final optsImageSound = genOptions(card); 
+      final ansImgSound = card.word ?? "";
+      final correctIdxImgSound = optsImageSound.indexOf(ansImgSound);
       result.add({
         "id": "${card.id}_image_sound",
         "type": "image_sound",
         "prompt": "What is this?",
-        "options": opts,
-        "correctIndex": correctIdx,
+        "options": optsImageSound,
+        "correctIndex": correctIdxImgSound,
         "image": File(imagePath).existsSync() ? imagePath : "",
         "sound": File(soundPath).existsSync() ? soundPath : "",
       });
