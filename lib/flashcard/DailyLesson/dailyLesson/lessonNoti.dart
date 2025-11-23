@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/config/threshold.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
+import 'package:mygame/flashcard/business/supermemo.dart';
 
 enum StudyMode {
   //blankFill,//meaning - arrange letters
@@ -94,21 +95,29 @@ class LessonNoti extends ChangeNotifier {
 
     return "$accuracyPercent%";
   }
-  String get accLine{
+
+  String get accLine {
     if (_acc <= ThresholdAcc.excellent) {
-    return ThresholdAcc.exStr;
-  } else if (_acc <= ThresholdAcc.great) {
-    return ThresholdAcc.greatStr;
-  } else if (_acc <= ThresholdAcc.good) {
-    return ThresholdAcc.okStr;
-  } else if (_acc <= ThresholdAcc.fair) {
-    return ThresholdAcc.fairStr;
-  } else {
-    return "POOR"; // optional: điểm quá thấp
+      return ThresholdAcc.exStr;
+    } else if (_acc <= ThresholdAcc.great) {
+      return ThresholdAcc.greatStr;
+    } else if (_acc <= ThresholdAcc.good) {
+      return ThresholdAcc.okStr;
+    } else if (_acc <= ThresholdAcc.fair) {
+      return ThresholdAcc.fairStr;
+    } else {
+      return "POOR"; // optional: điểm quá thấp
+    }
   }
+
+  void updateCard() {
+    SMNoti n = SMNoti();
+    int rate = right ? 3 : 2;
+    n.updateCardAfterReview(_cards[currentCardIdx], rate);
   }
 
   void nextCard() {
+    updateCard();
     if (currentCardIdx < _cards.length) {
       print("in < length");
       currentCardIdx++;

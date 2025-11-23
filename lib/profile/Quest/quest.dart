@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/profile/Quest/questNoti.dart';
+import 'package:provider/provider.dart';
 
 class Quest extends StatefulWidget {
   const Quest({super.key});
@@ -11,7 +13,14 @@ class Quest extends StatefulWidget {
 class _QuestState extends State<Quest> {
   @override
   Widget build(BuildContext context) {
-    return QuestScreen();
+    return ChangeNotifierProvider(
+      create: (context) => QuestNoti(),
+      child: Consumer<QuestNoti>(
+        builder: (context, provider, _) {
+          return QuestScreen();
+        },
+      ),
+    );
   }
 }
 
@@ -236,7 +245,11 @@ class _QuestScreenState extends State<QuestScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                Icon(Icons.checklist_sharp,color: AppColor.greenPrimary,size: 30,),
+                                Icon(
+                                  Icons.checklist_sharp,
+                                  color: AppColor.greenPrimary,
+                                  size: 30,
+                                ),
                               ],
                             ),
                           ],

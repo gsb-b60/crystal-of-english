@@ -225,7 +225,17 @@ class DatabaseHelper {
       return Flashcard.fromMap(maps[i]);
     });
   }
-
+  Future<List<Flashcard>> getDueCards() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cards',
+      where: 'due<=',
+      whereArgs: [DateTime.now().toIso8601String()],
+    );
+    return List.generate(maps.length, (i) {
+      return Flashcard.fromMap(maps[i]);
+    });
+  }
   Future<List<Flashcard>> getCardByLevel(int level) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -285,6 +295,7 @@ class DatabaseHelper {
 
   Future<String?> pickAndCopyFile() async {
     final pickedFile = await pickApkgFile();
+    
     if (pickedFile == null || pickedFile.isEmpty) return null;
 
     final appDir = await getApplicationDocumentsDirectory();

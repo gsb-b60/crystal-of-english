@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:mygame/data/flashcard/database_helper.dart';
 import 'scheduler.dart';
 
-
 class Flashcard {
   final int? id;
   final int deckId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-
 
   final String? word;
   final String? meaning;
@@ -21,15 +19,12 @@ class Flashcard {
   final String? ipa;
   final int? complexity;
 
-
   final int? interval;
   final int? reps;
   final DateTime? due;
   final DateTime? lastReview;
   final int? lapses;
   final double? easeFactor;
-
-
 
   Flashcard({
     this.id,
@@ -51,8 +46,40 @@ class Flashcard {
     this.defSound,
     this.usageSound,
     this.complexity,
-    this.synonyms
+    this.synonyms,
   });
+  Flashcard copyWith({
+    int? interval,
+    int? reps,
+    DateTime? due,
+    DateTime? lastReview,
+    int? lapses,
+    double? easeFactor,
+  }) {
+    return Flashcard(
+      id: id,
+      deckId: deckId,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      word: word,
+      meaning: meaning,
+      img: img,
+      synonyms: synonyms,
+      sound: sound,
+      defSound: defSound,
+      usageSound: usageSound,
+      example: example,
+      ipa: ipa,
+      complexity: complexity,
+      interval: interval ?? this.interval,
+      reps: reps ?? this.reps,
+      due: due ?? this.due,
+      lastReview: lastReview ?? this.lastReview,
+      lapses: lapses ?? this.lapses,
+      easeFactor: easeFactor ?? this.easeFactor,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'deck_id': deckId,
@@ -61,7 +88,7 @@ class Flashcard {
       'word': word,
       'meaning': meaning,
       'example': example,
-      'img':img,
+      'img': img,
       'ipa': ipa,
       'interval': interval,
       'reps': reps,
@@ -69,11 +96,11 @@ class Flashcard {
       'last_review': lastReview?.millisecondsSinceEpoch,
       'lapses': lapses,
       'ease_factor': easeFactor,
-      'sound':sound,
-      'defSound':defSound,
-      'usageSound':usageSound,
-      'complexity':complexity,
-      'synonyms':synonyms
+      'sound': sound,
+      'defSound': defSound,
+      'usageSound': usageSound,
+      'complexity': complexity,
+      'synonyms': synonyms,
     };
   }
 
@@ -85,17 +112,16 @@ class Flashcard {
           ? DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int)
           : null,
       createdAt: map['created_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int):null,
+          ? DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int)
+          : null,
       word: map['word'] as String?,
       meaning: map['meaning'] as String?,
       example: map['example'] as String?,
       ipa: map['ipa'] as String?,
       complexity: map['complexity'] as int?,
 
-
-
-      interval: map['interval'] !=null ?map['interval'] as int?: 0,
-      reps: map['reps']!=null? map['reps'] as int?:0,
+      interval: map['interval'] != null ? map['interval'] as int? : 0,
+      reps: map['reps'] != null ? map['reps'] as int? : 0,
       due: map['due'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['due'] as int)
           : null,
@@ -108,7 +134,7 @@ class Flashcard {
       synonyms: map['synonyms'] as String?,
       sound: map['sound'] as String?,
       defSound: map['defSound'] as String?,
-      usageSound: map['usageSound'] as String?
+      usageSound: map['usageSound'] as String?,
     );
   }
 }
@@ -120,12 +146,12 @@ class Cardmodel with ChangeNotifier {
   String? _media;
 
   List<Flashcard> get card => _cards;
-  String? get media=>_media;
+  String? get media => _media;
   Future<void> fetchCards(int deckId) async {
     final data = await _dbhelper.getCardForDeck(deckId);
     _cards.clear();
     _cards.addAll(data);
-    _media=await _dbhelper.getMediaFile(deckId);
+    _media = await _dbhelper.getMediaFile(deckId);
     notifyListeners();
   }
 
@@ -180,11 +206,6 @@ class Cardmodel with ChangeNotifier {
         .toList(growable: false);
   }
 
-
-
-
-
-
   Flashcard? _lastOldForUndo;
 
   Future<void> undoLastReview() async {
@@ -204,12 +225,10 @@ class Cardmodel with ChangeNotifier {
     Flashcard card,
     int qualityOrLegacy,
   ) async {
-
     int q;
     if (qualityOrLegacy >= 0 && qualityOrLegacy <= 5) {
       q = qualityOrLegacy;
     } else {
-
       if (qualityOrLegacy >= 3) {
         q = 5;
       } else if (qualityOrLegacy == 2) {
@@ -247,7 +266,6 @@ class Cardmodel with ChangeNotifier {
       easeFactor: schedule.easeFactor,
     );
 
-
     final oldIndex = _cards.indexWhere((c) => c.id == card.id);
     if (oldIndex != -1) {
       _lastOldForUndo = _cards[oldIndex];
@@ -255,10 +273,7 @@ class Cardmodel with ChangeNotifier {
       _lastOldForUndo = null;
     }
 
-
-
     await _dbhelper.updateCard(updated);
-
 
     final index = _cards.indexWhere((c) => c.id == updated.id);
     if (index != -1) {
@@ -288,8 +303,9 @@ class Cardmodel with ChangeNotifier {
     }
     notifyListeners();
   }
-  Future<String?> MediaFile(int deckId) async{
-    final String? result= await _dbhelper.getMediaFile(deckId);
+
+  Future<String?> MediaFile(int deckId) async {
+    final String? result = await _dbhelper.getMediaFile(deckId);
     return result;
   }
 }

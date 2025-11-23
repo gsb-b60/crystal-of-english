@@ -95,6 +95,15 @@ class _DeckListScreenState extends State<DeckListScreen> {
               onPressed: () {
                 Provider.of<Deckmodel>(context, listen: false).filePicker();
               },
+              icon: const Icon(Icons.assignment_returned_rounded, color: Colors.white),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 60),
+            child: IconButton(
+              onPressed: () {
+                Provider.of<Deckmodel>(context, listen: false).filePickerReal();
+              },
               icon: const Icon(Icons.upload_file, color: Colors.white),
             ),
           ),

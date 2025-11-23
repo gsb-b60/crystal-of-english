@@ -10,7 +10,6 @@ import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
-import 'package:mygame/components/Menu/Theme/color.dart';
 
 
 import 'package:provider/provider.dart';
