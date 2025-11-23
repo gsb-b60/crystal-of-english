@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
+import 'package:mygame/data/flashcard/database_helper.dart';
 import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/main.dart';
 import 'package:mygame/ui/settings_overlay.dart';

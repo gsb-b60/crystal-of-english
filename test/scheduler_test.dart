@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mygame/components/Menu/flashcard/business/scheduler.dart';
+import 'package:mygame/flashcard/business/scheduler.dart';
 
 void main() {
   test('SM-2: perfect review increases interval', () {
