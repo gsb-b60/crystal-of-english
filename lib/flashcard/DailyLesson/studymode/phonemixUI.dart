@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn4States.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemixNoti.dart';
 import 'package:provider/provider.dart';
 
@@ -76,7 +79,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
                         return Center(
-                          child: ChoiceBtn(
+                          child: ChoiceBtnStates(
                             value: word[index],
                             state:ButtonState.normal ,//provider.wordState[index],
                             onChoose: () {
@@ -103,7 +106,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
                         return Center(
-                          child: ChoiceBtn(
+                          child: ChoiceBtnStates(
                             value: ipa[index],
                             state:ButtonState.normal,// provider.ipaState[index],
                             onChoose: () {
@@ -127,6 +130,8 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
+              right: true,
+              answer: "",
               onPressed: () {
                 reader.NextTask();
               },
@@ -138,163 +143,4 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
   }
 }
 
-class ReviewScreen extends StatelessWidget {
-  ReviewScreen({super.key, required this.onPressed});
-  VoidCallback onPressed;
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: SizedBox(
-        width: double.infinity,
-        height: 250,
-        child: Container(
-          color: AppColor.darkSurface,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Row(
-                children: [
-                  SizedBox(width: 30),
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: AppColor.greenBright,
-                    size: 40,
-                  ),
-                  SizedBox(width: 20),
-                  Text(
-                    "Great job!",
-                    style: TextStyle(
-                      color: AppColor.greenBright,
-                      fontSize: 50,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-              Stack(
-                children: [
-                  SizedBox(
-                    width: 650,
-                    height: 80,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onPressed.call();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        elevation: 10,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: AppColor.greenPrimary,
-                      ),
-                      child: Text(
-                        "CONTINUE",
-                        style: TextStyle(
-                          color: AppColor.darkBase,
-                          fontSize: 50,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border(
-                            bottom: BorderSide(
-                              color: AppColor.greenAccent,
 
-                              width: 6,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-enum ButtonState { normal, selected, done, wrong }
-
-class ChoiceBtn extends StatelessWidget {
-  String value;
-  ButtonState state;
-  VoidCallback? onChoose;
-  ChoiceBtn({
-    super.key,
-    required this.state,
-    required this.value,
-    required this.onChoose,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Color backgroundColor = AppColor.darkBase;
-    Color textColor = Colors.white;
-    Color borderColor = AppColor.darkCard;
-
-    switch (state) {
-      case ButtonState.selected:
-        backgroundColor = AppColor.darkSurface;
-        borderColor = AppColor.BlueMuted;
-        textColor = AppColor.BlueMuted;
-        break;
-      case ButtonState.done:
-        backgroundColor = AppColor.darkBase;
-        borderColor = AppColor.darkCard;
-        textColor = AppColor.darkerCard;
-        break;
-      case ButtonState.normal:
-        backgroundColor = AppColor.darkBase;
-        borderColor = AppColor.darkCard;
-        textColor = Colors.white;
-        break;
-      case ButtonState.wrong:
-        backgroundColor = AppColor.darkSurface;
-        borderColor = AppColor.redMuted;
-        textColor = AppColor.redMuted;
-        break;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SizedBox(
-        width: 150,
-        height: 70,
-        child: ElevatedButton(
-          onPressed: () {
-            if (state != ButtonState.done) {
-              onChoose?.call();
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            side: BorderSide(color: borderColor, width: 4),
-            backgroundColor: backgroundColor,
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Roboto',
-              color: textColor,
-              fontSize: 22,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
