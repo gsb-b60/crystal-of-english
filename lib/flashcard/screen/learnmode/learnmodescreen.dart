@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonScreen.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/allmode.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/shufflemode.dart';
 import 'package:path/path.dart';
 
 class LearnModeScreen extends StatefulWidget {
@@ -99,6 +101,62 @@ class DailyLearnScreenNav extends StatelessWidget {
                 alignment: AlignmentGeometry.bottomCenter,
                 child: Text(
                   "Learn Daily",
+                  style: TextStyle(
+                    color: AppColor.lightText,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AllMode()),
+              ),
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 25, horizontal: 20),
+
+              width: 175,
+              decoration: BoxDecoration(
+                color: AppColor.pinkPrimary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Align(
+                alignment: AlignmentGeometry.bottomCenter,
+                child: Text(
+                  "All Mode",
+                  style: TextStyle(
+                    color: AppColor.lightText,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Shufflemode()),
+              ),
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 25, horizontal: 20),
+
+              width: 175,
+              decoration: BoxDecoration(
+                color: AppColor.bluePrimary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Align(
+                alignment: AlignmentGeometry.bottomCenter,
+                child: Text(
+                  "SHUFFLE MODE",
                   style: TextStyle(
                     color: AppColor.lightText,
                     fontSize: 30,

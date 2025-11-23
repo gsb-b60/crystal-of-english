@@ -40,4 +40,7 @@ class AppColor {
   static const diamond = Color(0xFFB9F2FF);
   static const master = Color(0xFFFF4500); // tùy chọn
   static const challenger = Color(0xFF8A2BE2); // tùy chọn
+
+
+  static const pinkPrimary = Color.fromRGBO(255, 135, 206, 1);
 }

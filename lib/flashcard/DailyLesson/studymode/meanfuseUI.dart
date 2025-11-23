@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn4States.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:provider/provider.dart';
 
-class EchospellUI extends StatefulWidget {
-  const EchospellUI({super.key});
+class MeanfuseUI extends StatelessWidget {
+  const MeanfuseUI({super.key});
 
-  @override
-  State<EchospellUI> createState() => _EchospellUIState();
-}
-
-class _EchospellUIState extends State<EchospellUI> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
     final list = provider.SetUpList();
     final listWord = provider.SetUpListWord();
-    final ipa = provider.ipa;
     final listState = provider.GetListState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
@@ -52,6 +45,7 @@ class _EchospellUIState extends State<EchospellUI> {
       body: Stack(
         children: [
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Row(
                 children: [
@@ -66,33 +60,20 @@ class _EchospellUIState extends State<EchospellUI> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton.outlined(
-                    onPressed: () {
-                      reader.playSound();
-                    },
-                    icon: Icon(
-                      Icons.volume_up,
-                      color: AppColor.lightText,
-                      size: 30,
-                    ),
-                  ),
-                  SizedBox(width: 30),
-                  Text(
-                    ipa,
+               Container(
+                height: 150,
+                width: 650,
+                child: Center(
+                  child: Text(
+                    provider.meaning,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 40,
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Roboto',
                     ),
                   ),
-                ],
+                ),
               ),
-              SizedBox(height: 15),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -110,7 +91,6 @@ class _EchospellUIState extends State<EchospellUI> {
                   );
                 }),
               ),
-              SizedBox(height: 50),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -138,7 +118,7 @@ class _EchospellUIState extends State<EchospellUI> {
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
               right: true,
-              answer: provider.answer,
+              answer: "",
               onPressed: () {
                 reader.nextCard();
               },
@@ -149,6 +129,3 @@ class _EchospellUIState extends State<EchospellUI> {
     );
   }
 }
-
-
-

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn4States.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
-import 'package:mygame/flashcard/screen/studymode/phonemix/phonemixNoti.dart';
+
 import 'package:provider/provider.dart';
 
 class PhoneMixUI extends StatefulWidget {
@@ -16,10 +15,10 @@ class PhoneMixUI extends StatefulWidget {
 class _PhoneMixUIState extends State<PhoneMixUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<phoneMixNoti>();
-    final reader = context.read<phoneMixNoti>();
-    
-    provider.setOptionList();
+    final provider = context.watch<LessonNoti>();
+    final reader = context.read<LessonNoti>();
+
+    provider.setOptionListPhone();
     final word = provider.getWord();
     final ipa = provider.getIPA();
 
@@ -79,9 +78,9 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
                         return Center(
-                          child: ChoiceBtnStates(
+                          child: ChoiceBtn(
                             value: word[index],
-                            state:ButtonState.normal ,//provider.wordState[index],
+                            state: provider.wordState[index],
                             onChoose: () {
                               reader.selectWord(index);
                             },
@@ -89,7 +88,6 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                         );
                       },
                     ),
-                    
                   ],
                 ),
               ),
@@ -106,9 +104,9 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
                         return Center(
-                          child: ChoiceBtnStates(
+                          child: ChoiceBtn(
                             value: ipa[index],
-                            state:ButtonState.normal,// provider.ipaState[index],
+                            state: provider.ipaState[index],
                             onChoose: () {
                               reader.selectIPA(index);
                             },
@@ -125,7 +123,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom: provider.answer ? 0 : -MediaQuery.of(context).size.height,
+            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
@@ -133,7 +131,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
               right: true,
               answer: "",
               onPressed: () {
-                reader.NextTask();
+                reader.nextCard();
               },
             ),
           ),
@@ -143,4 +141,74 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
   }
 }
 
+class ChoiceBtn extends StatelessWidget {
+  String value;
+  ButtonState state;
+  VoidCallback? onChoose;
+  ChoiceBtn({
+    super.key,
+    required this.state,
+    required this.value,
+    required this.onChoose,
+  });
 
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColor = AppColor.darkBase;
+    Color textColor = Colors.white;
+    Color borderColor = AppColor.darkCard;
+
+    switch (state) {
+      case ButtonState.selected:
+        backgroundColor = AppColor.darkSurface;
+        borderColor = AppColor.BlueMuted;
+        textColor = AppColor.BlueMuted;
+        break;
+      case ButtonState.done:
+        backgroundColor = AppColor.darkBase;
+        borderColor = AppColor.darkCard;
+        textColor = AppColor.darkerCard;
+        break;
+      case ButtonState.normal:
+        backgroundColor = AppColor.darkBase;
+        borderColor = AppColor.darkCard;
+        textColor = Colors.white;
+        break;
+      case ButtonState.wrong:
+        backgroundColor = AppColor.darkSurface;
+        borderColor = AppColor.redMuted;
+        textColor = AppColor.redMuted;
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: 150,
+        height: 70,
+        child: ElevatedButton(
+          onPressed: () {
+            if (state != ButtonState.done) {
+              onChoose?.call();
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            side: BorderSide(color: borderColor, width: 4),
+            backgroundColor: backgroundColor,
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Roboto',
+              color: textColor,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

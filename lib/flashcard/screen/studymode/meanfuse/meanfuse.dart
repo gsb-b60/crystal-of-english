@@ -1,26 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn4States.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
+import 'package:mygame/flashcard/screen/studymode/echospell/echospellUI.dart';
+import 'package:mygame/flashcard/screen/studymode/meanfuse/meanfuseNoti.dart';
 import 'package:provider/provider.dart';
 
-class EchospellUI extends StatefulWidget {
-  const EchospellUI({super.key});
+class Meanfuse extends StatefulWidget {
+  int deck_id;
+  Meanfuse({super.key, required this.deck_id});
 
   @override
-  State<EchospellUI> createState() => _EchospellUIState();
+  State<Meanfuse> createState() => _MeanfuseState();
 }
 
-class _EchospellUIState extends State<EchospellUI> {
+class _MeanfuseState extends State<Meanfuse> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LessonNoti>();
-    final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
+    return ChangeNotifierProvider(
+      create: (context) => Meanfusenoti()..getFlashcardList(widget.deck_id),
+      child: Consumer<Meanfusenoti>(
+        builder: (context, provider, _) {
+          if (provider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+          return MeanfuseUI();
+        },
+        child: MeanfuseUI(),
+      ),
+    );
+  }
+}
+
+class MeanfuseUI extends StatelessWidget {
+  const MeanfuseUI({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<Meanfusenoti>();
+    final reader = context.read<Meanfusenoti>();
     final list = provider.SetUpList();
     final listWord = provider.SetUpListWord();
-    final ipa = provider.ipa;
+    final ipa = provider.SetIPA();
     final listState = provider.GetListState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
@@ -52,6 +71,7 @@ class _EchospellUIState extends State<EchospellUI> {
       body: Stack(
         children: [
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Row(
                 children: [
@@ -66,33 +86,20 @@ class _EchospellUIState extends State<EchospellUI> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton.outlined(
-                    onPressed: () {
-                      reader.playSound();
-                    },
-                    icon: Icon(
-                      Icons.volume_up,
-                      color: AppColor.lightText,
-                      size: 30,
-                    ),
-                  ),
-                  SizedBox(width: 30),
-                  Text(
-                    ipa,
+               Container(
+                height: 150,
+                width: 650,
+                child: Center(
+                  child: Text(
+                    provider.mean,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 40,
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Roboto',
                     ),
                   ),
-                ],
+                ),
               ),
-              SizedBox(height: 15),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -110,7 +117,6 @@ class _EchospellUIState extends State<EchospellUI> {
                   );
                 }),
               ),
-              SizedBox(height: 50),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -118,7 +124,7 @@ class _EchospellUIState extends State<EchospellUI> {
 
                 children: List.generate(list.length, (index) {
                   final value = list[index];
-                  return ChoiceBtnStates(
+                  return ChoiceBtn(
                     value: value,
                     state: listState[index],
                     onChoose: () {
@@ -137,10 +143,8 @@ class _EchospellUIState extends State<EchospellUI> {
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
-              right: true,
-              answer: provider.answer,
               onPressed: () {
-                reader.nextCard();
+                reader.SetNext();
               },
             ),
           ),
@@ -149,6 +153,3 @@ class _EchospellUIState extends State<EchospellUI> {
     );
   }
 }
-
-
-

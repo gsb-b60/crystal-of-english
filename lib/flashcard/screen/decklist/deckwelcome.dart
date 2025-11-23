@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonScreen.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/business/Deck.dart';
 import 'package:mygame/flashcard/screen/decklist/achievement/achievement.dart';

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/timerNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echospellUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/meanfuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
@@ -12,9 +14,10 @@ import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
 
 
+
 import 'package:provider/provider.dart';
 
-import '../screen/endscreen.dart';
+import '../../screen/endscreen.dart';
 
 class LessonScreen extends StatefulWidget {
   const LessonScreen({super.key});
@@ -58,6 +61,8 @@ class _LessonScreenState extends State<LessonScreen> {
               return WordPulseUI();
             case StudyMode.EndScreen:
               return EndScreen();
+            case StudyMode.meanfuse:
+              return MeanfuseUI();
             default:
               return Text("Select a Study Mode");
           }

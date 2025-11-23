@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/timerNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:provider/provider.dart';
 

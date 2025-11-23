@@ -5,6 +5,7 @@ import 'package:mygame/flashcard/screen/studymode/echofuse/echofuse.dart';
 import 'package:mygame/flashcard/screen/studymode/echomatch/echomath.dart';
 import 'package:mygame/flashcard/screen/studymode/echospell/echospell.dart';
 import 'package:mygame/flashcard/screen/studymode/flashcard/newwayreview.dart';
+import 'package:mygame/flashcard/screen/studymode/meanfuse/meanfuse.dart';
 import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
 import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
@@ -59,7 +60,7 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "Mind Field", screenBuilder: ()=>MindFeild(deckID: widget.deckId!,)),
               NavPageBtn(label: "Word Snap", screenBuilder: ()=>WordSnap(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Phoneme Mix", screenBuilder: ()=>PhoneMix(deckID: widget.deckId!,)),
-              
+              NavPageBtn(label: "Mean Fuse", screenBuilder: ()=>Meanfuse(deck_id: widget.deckId!,)),
             ],
           ),  
           Row(
