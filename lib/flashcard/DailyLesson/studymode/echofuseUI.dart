@@ -20,7 +20,7 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
     final reader = context.read<LessonNoti>();
     provider.fetchMedia();
     final ipa = provider.ipa;
-    final options = provider.getOptionList;
+    final options = provider.getOptionsShuffle;
     final states = provider.getOptionStateBool();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
@@ -84,7 +84,7 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                           ),
                         ),
                         Text(
-                          ipa??"",
+                          ipa,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 40,

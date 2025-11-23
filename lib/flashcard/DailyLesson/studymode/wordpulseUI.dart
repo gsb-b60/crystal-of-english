@@ -19,7 +19,7 @@ class _WordPulseUIState extends State<WordPulseUI> {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
     provider.fetchMedia();
-    List<String> options = provider.getOptionsShuffle;
+    List<String> options = provider.getOptionList;
     List<bool> states = provider.getOptionStateBool();
     final path = provider.getImagePath();
     return Scaffold(

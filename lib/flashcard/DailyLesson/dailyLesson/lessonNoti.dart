@@ -19,7 +19,7 @@ enum StudyMode {
   echofuse, //ipa+sound - other letters
 
   neuropick, //picture - other letters
-  wordpulse, //picture - other letters
+  wordpulse, //picture - shuffle word
   soundAndSight, //picture - arrange letters
 
   phonemix, //4 ipa
@@ -71,12 +71,15 @@ class LessonNoti extends ChangeNotifier {
   List<StudyMode> modes = [
     StudyMode.wordsnap, //meaning - other letters
     StudyMode.mindField, //meaning - shuffle word
+
     StudyMode.echoSpell, //ipa+sound - arrange letters,
     StudyMode.echoMatch, //ipa+sound - shuffle word
     StudyMode.echofuse, //ipa+sound - other letters
+
     StudyMode.neuropick, //picture - other letters
     StudyMode.wordpulse, //picture - other letters
-    StudyMode.soundAndSight,
+    StudyMode.soundAndSight,//picture - arrange letters
+
     StudyMode.soundAndSight,
     StudyMode.wordsnap, //meaning - other letters
     StudyMode.mindField,
@@ -139,7 +142,7 @@ class LessonNoti extends ChangeNotifier {
       mode = StudyMode.EndScreen;
     }
     print(
-      " - card index :${currentCardIdx} - ${_cards.length} - current at mode :${mode}",
+      " - card index :${currentCardIdx} - ${_cards.length} - is options null ${options==null} -current at mode :${mode}",
     );
   }
 
@@ -258,36 +261,36 @@ class LessonNoti extends ChangeNotifier {
   }
 
   List<bool> getOptionStateBool() {
-    statesBool ??= List<bool>.filled(genOptions().length, false);
+    statesBool ??= List<bool>.filled(3, false);
     return statesBool!;
   }
 
   List<String> genOptions() {
-    final List<String> options = [];
+    final List<String> strs = [];
     String word = _cards[currentCardIdx].word!;
     final rand = Random();
-    options.add(word);
-    while (options.length < 3) {
+    strs.add(word);
+    while (strs.length < 3) {
       String mixed;
 
-      if (options.length == 1) {
-        // First distractor: slight variant
+      if (strs.length == 1) {
         do {
           mixed = generateVariant(word, rand);
-        } while (mixed == word || options.contains(mixed));
+        } while (mixed == word || strs.contains(mixed));
       } else {
         // Second distractor: full shuffle
         final letters = word.split('');
         do {
           final shuffled = List.from(letters)..shuffle(rand);
           mixed = shuffled.join('');
-        } while (mixed == word || options.contains(mixed));
+        } while (mixed == word || strs.contains(mixed));
       }
 
-      options.add(mixed);
+      strs.add(mixed);
     }
-    List<String> shuffle = List.from(options)..shuffle(rand);
+    List<String> shuffle = List.from(strs)..shuffle(rand);
     statesBool = List.generate(shuffle.length, (_) => false);
+    print(shuffle);
     return shuffle;
   }
 

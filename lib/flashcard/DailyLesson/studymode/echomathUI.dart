@@ -20,7 +20,7 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
     provider.fetchMedia();
-    final ipa = provider.ipa??"";
+    final ipa = provider.ipa;
 
     final options = provider.getOptionList;
     final states = provider.getOptionStateBool();

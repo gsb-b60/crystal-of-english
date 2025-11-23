@@ -126,6 +126,7 @@ class Deckmodel with ChangeNotifier {
 
   Future<void> filePickerReal() async {
     final filePath = await pickAndCopyFile();
+    if (filePath==null )return;
     final ankiDbPath = await _dbhelper.unzipApkgFile(filePath!);
     await _dbhelper.importDataFromAnki(ankiDbPath!);
     await fetchDecks();

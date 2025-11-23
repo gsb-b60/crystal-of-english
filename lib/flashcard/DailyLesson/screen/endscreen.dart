@@ -1,4 +1,3 @@
-import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/timerNoti.dart';
