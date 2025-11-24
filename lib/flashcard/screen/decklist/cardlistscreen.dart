@@ -10,6 +10,7 @@ import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
 import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
 import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
+import 'package:mygame/flashcard/screen/studymode/synonympick/synonympick.dart';
 import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
 import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnap.dart';
 
@@ -71,7 +72,9 @@ class _CardListScreenState extends State<CardListScreen> {
               NavPageBtn(label: "Echo Fuse", screenBuilder: ()=>EchoFuse(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
               NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
+              
               NavPageBtn(label: "Word Pulse", screenBuilder: ()=>WordPulse(deck_id: widget.deckId!,)),
+              NavPageBtn(label: "Synonym Pick", screenBuilder: ()=>Synonympick(deckID: widget.deckId!,)),
             ],
           ),  
         ],
