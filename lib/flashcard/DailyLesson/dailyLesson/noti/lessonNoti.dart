@@ -9,7 +9,6 @@ import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/supermemo.dart';
 
-
 enum ButtonState { normal, selected, done, wrong }
 
 class LessonNoti extends ChangeNotifier {
@@ -80,41 +79,59 @@ class LessonNoti extends ChangeNotifier {
   Future<void> getFlashcardList() async {
     isLoading = true;
     notifyListeners();
+
     final data = await _dbhelper.getCardLimit(10);
     _cards.clear();
     _cards.addAll(data);
-
-    print(_cards.length);
     mode = SetUpLessonList[currentLessIdx]["mode"];
+
     isLoading = false;
     notifyListeners();
   }
+
   Future<void> getFlashcardListAllMode() async {
     isLoading = true;
     notifyListeners();
+
     final data = await _dbhelper.getCardLimit(10);
     _cards.clear();
     _cards.addAll(data);
-    SetUpLessonList=lessonNotiHelper.allMode;
-    print(_cards.length);
+    SetUpLessonList = lessonNotiHelper.allMode;
     mode = SetUpLessonList[currentLessIdx]["mode"];
+
     isLoading = false;
     notifyListeners();
   }
+
   Future<void> getFlashcardListShuffleMode() async {
     isLoading = true;
     notifyListeners();
+
     final data = await _dbhelper.getCardLimit(10);
     _cards.clear();
     _cards.addAll(data);
     SetUpLessonList.shuffle();
-    print(_cards.length);
     mode = SetUpLessonList[currentLessIdx]["mode"];
+
     isLoading = false;
     notifyListeners();
   }
 
+  Future<void> getByLevel(int level) async {
+    isLoading = true;
+    notifyListeners();
 
+    final data = await _dbhelper.getCardByLevel(level);
+    _cards.clear();
+    _cards.addAll(data);
+    _cards = _cards
+        .where((c) => c.sound != null && !(c.word?.contains(" ") ?? true))
+        .toList();
+    mode = SetUpLessonList[currentLessIdx]["mode"];
+
+    isLoading = false;
+    notifyListeners();
+  }
 
   String get accuracy {
     int limitedAcc = _acc;
