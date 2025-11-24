@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/config/threshold.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
@@ -74,6 +75,12 @@ class LessonNoti extends ChangeNotifier {
   ];
 
   int _acc = 0;
+  int inARow = 0;
+  void haper() {
+    if (inARow > 2) {
+      HapticFeedback.vibrate();
+    }
+  }
 
   //get variant
   Future<void> getFlashcardList() async {
@@ -141,10 +148,11 @@ class LessonNoti extends ChangeNotifier {
 
     return "$accuracyPercent%";
   }
-  int get accPercent{
+
+  int get accPercent {
     int limitedAcc = _acc;
     if (limitedAcc > 7) limitedAcc = 7;
-    return (10-limitedAcc)*10;
+    return (10 - limitedAcc) * 10;
   }
 
   String get accLine => lessonNotiHelper.getAccLine(_acc);
@@ -158,7 +166,6 @@ class LessonNoti extends ChangeNotifier {
   void nextCard() {
     updateCard();
     if (currentLessIdx < SetUpLessonList.length) {
-      print("in < length");
       trueList = null;
       listWord = null;
       list = null;
@@ -168,8 +175,8 @@ class LessonNoti extends ChangeNotifier {
       selectedIndex = null;
       options = null;
       statesBool = null;
-      mode = SetUpLessonList[currentLessIdx]["mode"];
       currentLessIdx++;
+      mode = SetUpLessonList[currentLessIdx]["mode"];
       listWI = null;
       listIPA = null;
       listWordPhone = null;
@@ -181,11 +188,8 @@ class LessonNoti extends ChangeNotifier {
       right = true;
       notifyListeners();
     }
-    // if (currentCardIdx == _cards.length) {
-    //   mode = StudyMode.EndScreen;
-    // }
     print(
-      " - card index :${currentLessIdx} - ${SetUpLessonList.length} - is options null ${options == null} -current at mode :${mode}",
+      " - current at :${currentLessIdx} - ${SetUpLessonList.length} - is options null ${options == null} -current at mode :${mode}",
     );
   }
 
@@ -200,7 +204,7 @@ class LessonNoti extends ChangeNotifier {
     return re;
   }
 
-  String getImagePath() {
+  String getImagePath() {    
     if (File(
       "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}",
     ).existsSync()) {
@@ -212,11 +216,12 @@ class LessonNoti extends ChangeNotifier {
   void CheckAnswer(String letter, int index) {
     if (letter == trueList![currentWordIdx]) {
       states![index] = ButtonState.done;
-      listWord![currentWordIdx!] = trueList![currentWordIdx!];
+      listWord![currentWordIdx] = trueList![currentWordIdx];
       notifyListeners();
       currentWordIdx++;
-    } else {
       _acc++;
+    } else {
+      inARow = 0;
       states![index] = ButtonState.wrong;
       notifyListeners();
       Future.delayed(Duration(milliseconds: 100), () {
@@ -226,6 +231,8 @@ class LessonNoti extends ChangeNotifier {
     }
     if (currentWordIdx == list!.length) {
       answered = true;
+      haper();
+      inARow++;
       notifyListeners();
     }
   }
@@ -257,11 +264,14 @@ class LessonNoti extends ChangeNotifier {
   void checkAnswerMC() {
     if (options?[selectedIndex!] == _cards[cardIdx].word) {
       answered = true;
+      inARow++;
+      haper();
       notifyListeners();
     } else {
       answered = true;
       right = false;
       _acc++;
+      inARow = 0;
       notifyListeners();
     }
   }
@@ -364,6 +374,7 @@ class LessonNoti extends ChangeNotifier {
       return md;
     }
   }
+  
 
   List<WordIPA>? listWI;
   List<String>? listIPA;
@@ -448,6 +459,10 @@ class LessonNoti extends ChangeNotifier {
         selectedIPAIDX = null;
 
         answered = !wordState.contains(ButtonState.normal);
+        if(answered)
+        {
+          haper();
+        }
         notifyListeners();
       } else {
         ipaState[selectedIPAIDX!] = ButtonState.wrong;

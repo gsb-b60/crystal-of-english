@@ -70,14 +70,6 @@ class EndScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  // Text(
-                  //   less.accuracy,
-                  //   style: TextStyle(
-                  //     color: AppColor.greenPrimary,
-                  //     fontSize: 40,
-                  //     fontWeight: FontWeight.bold,
-                  //   ),
-                  // ),
                 ],
               ),
               AnalystWidget(

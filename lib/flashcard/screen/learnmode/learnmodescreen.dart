@@ -83,22 +83,6 @@ class _LearnModeScreenState extends State<LearnModeScreen> {
   }
 }
 
-enum StudyMode {
-  meanfuse, //meaning - fuse
-  wordsnap, //meaning - other letters
-  mindField, //meaning - shuffle word
-
-  echoSpell, //ipa+sound - fuse,
-  echoMatch, //ipa+sound - shuffle word
-  echofuse, //ipa+sound - other letters
-
-  neuropick, //picture - fuse
-  wordpulse, //picture - shuffle word
-  soundAndSight, //picture - arrange letters
-
-  phonemix, //4 ipa
-  EndScreen,
-}
 
 class LearnByMode extends StatefulWidget {
   const LearnByMode({super.key});

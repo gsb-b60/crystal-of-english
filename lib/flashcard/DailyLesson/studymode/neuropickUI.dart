@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtnVertical.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:provider/provider.dart';
 
@@ -41,13 +42,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
             ),
           ],
         ),
-        title: LinearProgressIndicator(
-          value: provider.value,
-          backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
-          minHeight: 18,
-          borderRadius: BorderRadius.circular(9),
-        ),
+        title: ProgressBar(value: provider.value, inARow: provider.inARow),
         backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
