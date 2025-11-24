@@ -11,32 +11,40 @@ class WordSnapNoti extends ChangeNotifier {
   List<String>? options;
   List<bool>? states;
   double get value => currentCardIdx / _cards.length;
-  String get mean=> _cards[currentCardIdx].meaning!;
-  bool get checkable=> selectedIndex != null;
+  String get mean => _cards[currentCardIdx].meaning!;
+  bool get checkable => selectedIndex != null;
 
   bool answered = false;
-  bool right=true;
+  bool right = true;
 
-  String get answer=>_cards[currentCardIdx].word!;
-
+  String get answer => _cards[currentCardIdx].word!;
 
   Future<void> getFlashcardList(int deckID) async {
     IsLoading = true;
     notifyListeners();
-    final data = await DatabaseHelper.instance.getCardForDeck(deckID);
-    _cards.clear();
-    _cards.addAll(data);
-    _cards = _cards
-        .where(
-          (c) =>
-              c.word != null &&
-              c.meaning != null &&
-              !(c.word?.contains(" ") ?? true),
-        )
-        .toList();
+    if (deckID == 0) {
+      final data = await DatabaseHelper.instance.getCardLimit(10);
+      _cards.clear();
+      _cards.addAll(data);
+      
+    } else {
+      final data = await DatabaseHelper.instance.getCardForDeck(deckID);
+      _cards.clear();
+      _cards.addAll(data);
+      _cards = _cards
+          .where(
+            (c) =>
+                c.word != null &&
+                c.meaning != null &&
+                !(c.word?.contains(" ") ?? true),
+          )
+          .toList();
+    }
+
     IsLoading = false;
     notifyListeners();
   }
+
   List<String> genOptions() {
     if (options == null) {
       final answer = _cards[currentCardIdx].word!;
@@ -52,15 +60,17 @@ class WordSnapNoti extends ChangeNotifier {
     }
     return options!;
   }
+
   List<bool> getOptionState() {
     states ??= List<bool>.filled(genOptions().length, false);
     return states!;
   }
+
   void selectOption(int index) {
     if (selectedIndex == null) {
       selectedIndex = index;
       states?[index] = true;
-    }else{
+    } else {
       states?[selectedIndex!] = false;
       selectedIndex = index;
       states?[index] = true;
@@ -68,17 +78,18 @@ class WordSnapNoti extends ChangeNotifier {
 
     notifyListeners();
   }
+
   void checkAnswer(int selectedIndex) {
     if (options?[selectedIndex] == _cards[currentCardIdx].word) {
       answered = true;
       notifyListeners();
-    }
-    else{
+    } else {
       answered = true;
-      right=false;
+      right = false;
       notifyListeners();
     }
   }
+
   void nextCard() {
     if (currentCardIdx < _cards.length - 1) {
       currentCardIdx++;
@@ -86,9 +97,8 @@ class WordSnapNoti extends ChangeNotifier {
       answered = false;
       selectedIndex = null;
       notifyListeners();
-      right=true;
+      right = true;
       notifyListeners();
     }
-
   }
 }

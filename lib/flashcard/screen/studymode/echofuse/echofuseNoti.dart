@@ -26,28 +26,36 @@ class EchoFuseNoti extends ChangeNotifier{
   Future<void> getFlashcardList(int deck_id) async {
     isLoading = true;
     notifyListeners();
-    final data = await _dbhelper.getCardForDeck(deck_id);
-    media = (await _dbhelper.getMediaFile(deck_id)) ?? "";
-    _cards.clear();
-    _cards.addAll(data);
-    _cards = _cards
-        .where(
-          (c) =>
-              c.sound != null &&
-              !(c.word?.contains(" ") ?? true) &&
-              c.ipa != null,
-        )
-        .toList();
+    if (deck_id == 0) {
+      final data = await DatabaseHelper.instance.getCardLimit(10);
+      _cards.clear();
+      _cards.addAll(data);
+      
+    } else {
+      final data = await DatabaseHelper.instance.getCardForDeck(deck_id);
+      _cards.clear();
+      _cards.addAll(data);
+      _cards = _cards
+          .where(
+            (c) =>
+                c.word != null &&
+                c.meaning != null &&
+                !(c.word?.contains(" ") ?? true),
+          )
+          .toList();
+    }
+    media=(await DatabaseHelper.instance.getMediaFile(_cards[0].deckId))!;
     isLoading = false;
     notifyListeners();
   }
-  void SetNext() {
+  Future<void> SetNext()async {
     if (currentCardIdx < _cards.length - 1) {
       ipa = null;
       currentCardIdx++;
       options = null;
       answered = false;
       selectedIndex = null;
+      media=(await DatabaseHelper.instance.getMediaFile(_cards[currentCardIdx].deckId))!;
       notifyListeners();
       right = true;
       notifyListeners();

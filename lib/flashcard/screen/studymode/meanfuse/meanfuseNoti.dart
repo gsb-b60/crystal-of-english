@@ -1,8 +1,8 @@
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
-import 'package:mygame/data/flashcard/database_helper.dart';
 import 'package:mygame/flashcard/screen/studymode/echospell/echospellUI.dart';
 
 class Meanfusenoti extends ChangeNotifier {
@@ -21,16 +21,23 @@ class Meanfusenoti extends ChangeNotifier {
   int currentIndex = 0;
   bool answered = false;
   double get value => (_cards.isEmpty) ? 0 : currentCardIdx / _cards.length;
-  String get mean=>_cards[currentCardIdx].meaning??"";
+  String get mean => _cards[currentCardIdx].meaning ?? "";
   bool done = false;
 
   Future<void> getFlashcardList(int deck_id) async {
     isLoading = true;
     notifyListeners();
-    final data = await _dbhelper.getCardForDeck(deck_id);
-    media = (await _dbhelper.getMediaFile(deck_id)) ?? "";
-    _cards.clear();
-    _cards.addAll(data);
+    if (deck_id == 0) {
+      final data = await _dbhelper.getCardLimit(10);
+      _cards.clear();
+      _cards.addAll(data);
+      media = (await _dbhelper.getMediaFile(_cards[0].deckId)) ?? "";
+    } else {
+      final data = await _dbhelper.getCardForDeck(deck_id);
+      media = (await _dbhelper.getMediaFile(deck_id)) ?? "";
+      _cards.clear();
+      _cards.addAll(data);
+    }
 
     _cards = _cards
         .where((c) => c.sound != null && !(c.word?.contains(" ") ?? true))
@@ -74,7 +81,7 @@ class Meanfusenoti extends ChangeNotifier {
     }
   }
 
-  void SetNext() {
+  Future<void> SetNext() async {
     ipa = null;
     trueList = null;
     listWord = null;
@@ -83,20 +90,10 @@ class Meanfusenoti extends ChangeNotifier {
     currentIndex = 0;
     answered = false;
     currentCardIdx++;
+    media = (await _dbhelper.getMediaFile(_cards[currentCardIdx].deckId)) ?? "";
     notifyListeners();
   }
 
-  // void SetUpList()
-  // {
-  //   if(list!=null)
-  //   {
-
-  //   }
-  //   if(listWord!=null)
-  //   {
-
-  //   }
-  // }
   List<String> SetUpList() {
     if (list == null) {
       list = _cards[currentCardIdx].word?.split("");

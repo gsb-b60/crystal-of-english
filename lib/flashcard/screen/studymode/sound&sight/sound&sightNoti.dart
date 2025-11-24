@@ -16,13 +16,13 @@ class SoundNSightNoti extends ChangeNotifier {
   int currentIndex = 0;
   List<String>? list;
   List<String>? listWord;
-  List<String> trueList=[];
+  List<String> trueList = [];
   List<ButtonState>? listState;
   double get value => (_cards.isEmpty) ? 0 : currentCardIdx / _cards.length;
 
   bool answered = false;
-  
-  void SetNext() {
+
+  Future<void> SetNext() async {
     trueList.clear();
     listWord = null;
     list = null;
@@ -30,6 +30,9 @@ class SoundNSightNoti extends ChangeNotifier {
     currentIndex = 0;
     answered = false;
     currentCardIdx++;
+    media = (await DatabaseHelper.instance.getMediaFile(
+      _cards[currentCardIdx].deckId,
+    ))!;
     notifyListeners();
   }
 
@@ -56,44 +59,64 @@ class SoundNSightNoti extends ChangeNotifier {
   Future<void> getFlashcardList(int deck_id) async {
     isLoading = true;
     notifyListeners();
-    final data=await _dbhelper.getCardForDeck(  deck_id);
-    _cards.clear();
-    _cards.addAll(data);
-    _cards=_cards.where((c) => c.sound!=null && !(c.word?.contains(" ")?? true)&&c.img!=null).toList();
-    media = (await _dbhelper.getMediaFile(deck_id)) ?? "";
+    if (deck_id == 0) {
+      final data = await DatabaseHelper.instance.getCardLimit(10);
+      _cards.clear();
+      _cards.addAll(data);
+    } else {
+      final data = await DatabaseHelper.instance.getCardForDeck(deck_id);
+      _cards.clear();
+      _cards.addAll(data);
+      _cards = _cards
+          .where(
+            (c) =>
+                c.word != null &&
+                c.meaning != null &&
+                !(c.word?.contains(" ") ?? true),
+          )
+          .toList();
+    }
+    media = (await DatabaseHelper.instance.getMediaFile(_cards[0].deckId))!;
     isLoading = false;
     notifyListeners();
   }
-  List<String> getList()
-  {
-    if(list==null)
-    {
-      list??=_cards[currentCardIdx].word!.split("");
+
+  List<String> getList() {
+    if (list == null) {
+      list ??= _cards[currentCardIdx].word!.split("");
       trueList.clear();
       trueList.addAll(list!);
-      listWord=List.generate(list!.length, (index) => "_");
+      listWord = List.generate(list!.length, (index) => "_");
       list!.shuffle();
     }
     return list!;
   }
-  List<String> getListWord()
-  {
-    listWord ??= List.generate(_cards[currentCardIdx].word!.length, (index) => "_");
+
+  List<String> getListWord() {
+    listWord ??= List.generate(
+      _cards[currentCardIdx].word!.length,
+      (index) => "_",
+    );
     return listWord!;
   }
-  List<ButtonState> getListState()
-  {
-    listState ??= List.filled(_cards[currentCardIdx].word!.length, ButtonState.normal);
+
+  List<ButtonState> getListState() {
+    listState ??= List.filled(
+      _cards[currentCardIdx].word!.length,
+      ButtonState.normal,
+    );
     return listState!;
   }
-  String getImagePath()
-  {
-    if(File("/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].img}").existsSync())
-    {
+
+  String getImagePath() {
+    if (File(
+      "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].img}",
+    ).existsSync()) {
       return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].img}";
     }
     return "";
   }
+
   AudioPlayer audioPlayer = AudioPlayer();
   Future<void> playSound() async {
     if (media != "") {
