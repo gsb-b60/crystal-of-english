@@ -10,6 +10,7 @@ import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
 import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
 import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
+import 'package:mygame/flashcard/screen/studymode/synonymfield/synonymfield.dart';
 import 'package:mygame/flashcard/screen/studymode/synonympick/synonympick.dart';
 import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
 import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnap.dart';
@@ -25,7 +26,11 @@ final AudioPlayer audio = AudioPlayer();
 class CardListScreen extends StatefulWidget {
   final int? deckId;
   final String? deckName;
-  const CardListScreen({super.key, required this.deckId,required this.deckName});
+  const CardListScreen({
+    super.key,
+    required this.deckId,
+    required this.deckName,
+  });
 
   @override
   State<CardListScreen> createState() => _CardListScreenState();
@@ -56,27 +61,66 @@ class _CardListScreenState extends State<CardListScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              NavPageBtn(label: "review", screenBuilder: ()=>Newwayreview(deckId: widget.deckId!)),
-              NavPageBtn(label: "blank word", screenBuilder: ()=>BlankWordScreen(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Mind Field", screenBuilder: ()=>MindFeild(deckID: widget.deckId!,)),
-              NavPageBtn(label: "Word Snap", screenBuilder: ()=>WordSnap(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Phoneme Mix", screenBuilder: ()=>PhoneMix(deckID: widget.deckId!,)),
-              NavPageBtn(label: "Mean Fuse", screenBuilder: ()=>Meanfuse(deck_id: widget.deckId!,)),
+              NavPageBtn(
+                label: "review",
+                screenBuilder: () => Newwayreview(deckId: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "blank word",
+                screenBuilder: () => BlankWordScreen(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Mind Field",
+                screenBuilder: () => MindFeild(deckID: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Word Snap",
+                screenBuilder: () => WordSnap(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Phoneme Mix",
+                screenBuilder: () => PhoneMix(deckID: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Synonym Feild",
+                screenBuilder: () => Synonymfield(deckID: widget.deckId!),
+              ),
             ],
-          ),  
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              NavPageBtn(label: "Echo Spell", screenBuilder: ()=>Echospell(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Echo Match", screenBuilder: ()=>EchoMatch(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Echo Fuse", screenBuilder: ()=>EchoFuse(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Sound - Sight", screenBuilder: ()=>SoundNSight(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Neuro Pick", screenBuilder: ()=>NeuroPick(deckID: widget.deckId!,)),
-              
-              NavPageBtn(label: "Word Pulse", screenBuilder: ()=>WordPulse(deck_id: widget.deckId!,)),
-              NavPageBtn(label: "Synonym Pick", screenBuilder: ()=>Synonympick(deckID: widget.deckId!,)),
+              NavPageBtn(
+                label: "Echo Spell",
+                screenBuilder: () => Echospell(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Echo Match",
+                screenBuilder: () => EchoMatch(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Echo Fuse",
+                screenBuilder: () => EchoFuse(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Sound - Sight",
+                screenBuilder: () => SoundNSight(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Neuro Pick",
+                screenBuilder: () => NeuroPick(deckID: widget.deckId!),
+              ),
+
+              NavPageBtn(
+                label: "Word Pulse",
+                screenBuilder: () => WordPulse(deck_id: widget.deckId!),
+              ),
+              NavPageBtn(
+                label: "Synonym Pick",
+                screenBuilder: () => Synonympick(deckID: widget.deckId!),
+              ),
             ],
-          ),  
+          ),
         ],
       ),
     );
@@ -87,11 +131,16 @@ class _CardListScreenState extends State<CardListScreen> {
     final cardModel = Provider.of<Cardmodel>(context);
 
     if (widget.deckId != null && cardModel.card.isNotEmpty) {
-      final complexities = cardModel.card.map((c) => c.complexity ?? 1).toList();
+      final complexities = cardModel.card
+          .map((c) => c.complexity ?? 1)
+          .toList();
       if (complexities.isNotEmpty) {
-        final avg = (complexities.reduce((a, b) => a + b) / complexities.length).round();
+        final avg = (complexities.reduce((a, b) => a + b) / complexities.length)
+            .round();
 
-        Future.microtask(() => PlayerProfile.instance.setPreferredDeckLevel(avg));
+        Future.microtask(
+          () => PlayerProfile.instance.setPreferredDeckLevel(avg),
+        );
       }
     }
     final List<Widget> cardWidgets = cardModel.card.map((card) {
@@ -123,7 +172,7 @@ class NavPageBtn extends StatelessWidget {
   const NavPageBtn({
     super.key,
     required this.label,
-    required this.screenBuilder
+    required this.screenBuilder,
   });
 
   @override
@@ -164,10 +213,18 @@ class FlashCardItem extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            PictureHolder(path: (dir != null && card.img != null) ? '$dir/${card.img}' : null),
+            PictureHolder(
+              path: (dir != null && card.img != null)
+                  ? '$dir/${card.img}'
+                  : null,
+            ),
             IPAandWord(card: card),
             CardInformation(card: card, dir: dir),
-            PictureHolder(path: (dir != null && card.synonyms != null) ? '$dir/${card.synonyms}' : null),
+            PictureHolder(
+              path: (dir != null && card.synonyms != null)
+                  ? '$dir/${card.synonyms}'
+                  : null,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -244,7 +301,6 @@ class CardInformation extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               const SizedBox(height: 4),
               TitleAndValue(title: "Meaning", value: card.meaning ?? ''),
               TitleAndValue(title: "Example", value: card.example ?? ''),
@@ -271,17 +327,23 @@ class CardInformation extends StatelessWidget {
           children: [
             SoundTitle(
               title: "sound",
-              value: (dir != null && card.sound != null) ? '$dir/${card.sound}' : '',
+              value: (dir != null && card.sound != null)
+                  ? '$dir/${card.sound}'
+                  : '',
               icon: const Icon(Icons.volume_up),
             ),
             SoundTitle(
               title: "u sound",
-              value: (dir != null && card.usageSound != null) ? '$dir/${card.usageSound}' : '',
+              value: (dir != null && card.usageSound != null)
+                  ? '$dir/${card.usageSound}'
+                  : '',
               icon: const Icon(Icons.volume_up),
             ),
             SoundTitle(
               title: "def sound",
-              value: (dir != null && card.defSound != null) ? '$dir/${card.defSound}' : '',
+              value: (dir != null && card.defSound != null)
+                  ? '$dir/${card.defSound}'
+                  : '',
               icon: const Icon(Icons.volume_up),
             ),
           ],
@@ -304,10 +366,7 @@ class PictureHolder extends StatelessWidget {
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.file(
-            File(path!),
-            fit: BoxFit.fitWidth,
-          ),
+          child: Image.file(File(path!), fit: BoxFit.fitWidth),
         ),
       );
     } else {
@@ -329,13 +388,12 @@ class SoundTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value!=''||value.isNotEmpty) {
+    if (value != '' || value.isNotEmpty) {
       return Column(
         children: [
           IconButton(
             icon: icon,
             onPressed: () async {
-
               await audio.play(DeviceFileSource(value));
             },
           ),
@@ -373,7 +431,7 @@ class TitleAndValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value!='') {
+    if (value != '') {
       return Text.rich(
         TextSpan(
           children: [
@@ -401,37 +459,16 @@ class Complexity extends StatelessWidget {
   final Flashcard card;
   Color _getChipColor(int complexity) {
     if (complexity == 1) {
-      return const Color.fromARGB(
-        255,
-        0,
-        168,
-        6,
-      );
+      return const Color.fromARGB(255, 0, 168, 6);
     } else if (complexity == 2) {
-      return const Color.fromARGB(
-        255,
-        0,
-        97,
-        73,
-      );
+      return const Color.fromARGB(255, 0, 97, 73);
     } else if (complexity == 3) {
-      return const Color.fromARGB(
-        255,
-        0,
-        59,
-        94,
-      );
+      return const Color.fromARGB(255, 0, 59, 94);
     } else if (complexity == 4) {
-      return const Color.fromARGB(
-        255,
-        141,
-        3,
-        106,
-      );
+      return const Color.fromARGB(255, 141, 3, 106);
     } else if (complexity == 5) {
       return const Color.fromARGB(255, 138, 3, 16);
     } else {
-
       return Colors.grey[100]!;
     }
   }
