@@ -55,14 +55,29 @@ class EndScreen extends StatelessWidget {
                     color: AppColor.greenPrimary,
                     size: 30,
                   ),
-                  Text(
-                    less.accuracy,
-                    style: TextStyle(
-                      color: AppColor.greenPrimary,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: less.accPercent.toDouble()),
+                    duration: Duration(seconds: 2),
+                    builder: (context, value, child) {
+                      final current = "${value.toInt()} %";
+                      return Text(
+                        current,
+                        style: TextStyle(
+                          color: AppColor.greenPrimary,
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
                   ),
+                  // Text(
+                  //   less.accuracy,
+                  //   style: TextStyle(
+                  //     color: AppColor.greenPrimary,
+                  //     fontSize: 40,
+                  //     fontWeight: FontWeight.bold,
+                  //   ),
+                  // ),
                 ],
               ),
               AnalystWidget(
@@ -94,7 +109,7 @@ class EndScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
-                          color: AppColor.bluePrimary
+                          color: AppColor.bluePrimary,
                         ),
                       );
                     },

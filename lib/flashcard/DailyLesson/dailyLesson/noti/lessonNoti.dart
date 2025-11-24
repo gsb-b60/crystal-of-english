@@ -141,6 +141,11 @@ class LessonNoti extends ChangeNotifier {
 
     return "$accuracyPercent%";
   }
+  int get accPercent{
+    int limitedAcc = _acc;
+    if (limitedAcc > 7) limitedAcc = 7;
+    return (10-limitedAcc)*10;
+  }
 
   String get accLine => lessonNotiHelper.getAccLine(_acc);
 
