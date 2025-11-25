@@ -14,9 +14,13 @@ class _QuestState extends State<Quest> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => QuestNoti(),
+      create: (context) => QuestNoti()..getUser(),
       child: Consumer<QuestNoti>(
         builder: (context, provider, _) {
+          if(provider.isLoading)
+          {
+            return CircularProgressIndicator();
+          }
           return QuestScreen();
         },
       ),
@@ -34,8 +38,8 @@ class QuestScreen extends StatefulWidget {
 class _QuestScreenState extends State<QuestScreen> {
   @override
   Widget build(BuildContext context) {
-    final provider=context.watch<QuestNoti>();
-    List<String> listQuest=provider.quests;
+    final provider = context.watch<QuestNoti>();
+    final reader = context.read<QuestNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Stack(
@@ -65,7 +69,7 @@ class _QuestScreenState extends State<QuestScreen> {
                               ),
                               child: Center(
                                 child: Text(
-                                  "November",
+                                  provider.month,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: AppColor.greenDeep,
@@ -76,7 +80,7 @@ class _QuestScreenState extends State<QuestScreen> {
                               ),
                             ),
                             Text(
-                              "Junior's Fairy Tale",
+                              "November Ranking - Law Execution",
                               style: TextStyle(
                                 color: AppColor.lightText,
                                 fontWeight: FontWeight.bold,
@@ -91,7 +95,7 @@ class _QuestScreenState extends State<QuestScreen> {
                                 ),
                                 SizedBox(width: 20),
                                 Text(
-                                  "10 DAYS",
+                                  "${provider.remainingdate} DAYS",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: AppColor.greyGreen,
@@ -146,7 +150,7 @@ class _QuestScreenState extends State<QuestScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    "5",
+                                    provider.questPoint,
                                     style: TextStyle(
                                       color: AppColor.greenPrimary,
                                       fontWeight: FontWeight.bold,
@@ -154,7 +158,7 @@ class _QuestScreenState extends State<QuestScreen> {
                                     ),
                                   ),
                                   Text(
-                                    " / 20",
+                                    " / ${provider.QuestGoal}",
                                     style: TextStyle(
                                       color: AppColor.darkBorder,
                                       fontWeight: FontWeight.bold,
@@ -168,7 +172,7 @@ class _QuestScreenState extends State<QuestScreen> {
                           LinearProgressIndicator(
                             color: AppColor.greenPrimary,
                             backgroundColor: AppColor.darkBorder,
-                            value: 0.2,
+                            value: provider.questVal,
                             minHeight: 20,
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -197,7 +201,7 @@ class _QuestScreenState extends State<QuestScreen> {
                           children: [
                             Icon(Icons.timelapse, color: AppColor.bronze),
                             Text(
-                              "13 Hours",
+                              " ${provider.remaining} Hours",
                               style: TextStyle(
                                 fontSize: 30,
                                 color: AppColor.bronze,
@@ -217,47 +221,126 @@ class _QuestScreenState extends State<QuestScreen> {
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: AppColor.darkBorder, width: 2),
                   ),
-                  child: ListView.separated(
-                    itemCount: listQuest.length,
-                    separatorBuilder: (context, index) {
-                      return Divider(color: Colors.grey, thickness: 1);
-                    },
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 19),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              listQuest[index],
-                              style: TextStyle(
-                                color: AppColor.lightText,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          padding: const EdgeInsets.symmetric(horizontal: 19),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Learn ${provider.LessGoal} Lesson",
+                                style: TextStyle(
+                                  color: AppColor.lightText,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: LinearProgressIndicator(
-                                    color: AppColor.greenPrimary,
-                                    backgroundColor: AppColor.darkBorder,
-                                    value: 0.2,
-                                    minHeight: 20,
-                                    borderRadius: BorderRadius.circular(12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: LinearProgressIndicator(
+                                      color: AppColor.greenPrimary,
+                                      backgroundColor: AppColor.darkBorder,
+                                      value: provider.lessVal,
+                                      minHeight: 20,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
-                                ),
-                                Icon(
-                                  Icons.checklist_sharp,
-                                  color: AppColor.greenPrimary,
-                                  size: 30,
-                                ),
-                              ],
-                            ),
-                          ],
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.checklist_sharp,
+                                      color: AppColor.greenPrimary,
+                                      size: 30,
+                                    ),
+                                    onPressed: () {
+                                      reader.getUser();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    },
+                        Divider(color: Colors.grey, thickness: 1),
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          padding: const EdgeInsets.symmetric(horizontal: 19),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Success learn ${provider.RepGoad} times",
+                                style: TextStyle(
+                                  color: AppColor.lightText,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: LinearProgressIndicator(
+                                      color: AppColor.greenPrimary,
+                                      backgroundColor: AppColor.darkBorder,
+                                      value: provider.repVal,
+                                      minHeight: 20,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.checklist_sharp,
+                                    color: AppColor.greenPrimary,
+                                    size: 30,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(color: Colors.grey, thickness: 1),
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          padding: const EdgeInsets.symmetric(horizontal: 19),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Learn ${provider.LearnGoal} Card",
+                                style: TextStyle(
+                                  color: AppColor.lightText,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: LinearProgressIndicator(
+                                      color: AppColor.greenPrimary,
+                                      backgroundColor: AppColor.darkBorder,
+                                      value: provider.learnVal,
+                                      minHeight: 20,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.checklist_sharp,
+                                      color: AppColor.greenPrimary,
+                                      size: 30,
+                                    ),
+                                    onPressed: () {},
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

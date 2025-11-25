@@ -32,9 +32,17 @@ class UserDatabase {
       lastLoginDate TEXT,
       goal INTEGER,
       studiSecond integer
+      TotalLess integer,
+      TotalCard integer,
+      Rep integer,
+      Lapse integer,
+      IndayLess integer,
+      IndayCard integer,
+      QuestPoint integer,
     )
     ''');
   }
+
 
 
   //update
@@ -112,8 +120,10 @@ class UserDatabase {
     final db = await instance.database;
     final result = await db.query('users', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty) {
+      print("old user fetch!");
       return User.fromMap(result.first);
     } else {
+      print("no user");
       final defaultUser = User(
         id: id,
         name: "Dinh Hieu",
