@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/flashcard/screen/blankfill/blankwordscreen.dart';
 import 'package:mygame/flashcard/screen/studymode/echofuse/echofuse.dart';
 import 'package:mygame/flashcard/screen/studymode/echomatch/echomath.dart';
 import 'package:mygame/flashcard/screen/studymode/echospell/echospell.dart';
 import 'package:mygame/flashcard/screen/studymode/flashcard/newwayreview.dart';
-import 'package:mygame/flashcard/screen/studymode/meanfuse/meanfuse.dart';
 import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
 import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
@@ -37,6 +37,7 @@ class CardListScreen extends StatefulWidget {
 }
 
 class _CardListScreenState extends State<CardListScreen> {
+  bool menu = false;
   @override
   void initState() {
     super.initState();
@@ -56,73 +57,7 @@ class _CardListScreenState extends State<CardListScreen> {
   Widget _NavBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              NavPageBtn(
-                label: "review",
-                screenBuilder: () => Newwayreview(deckId: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "blank word",
-                screenBuilder: () => BlankWordScreen(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Mind Field",
-                screenBuilder: () => MindFeild(deckID: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Word Snap",
-                screenBuilder: () => WordSnap(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Phoneme Mix",
-                screenBuilder: () => PhoneMix(deckID: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Synonym Feild",
-                screenBuilder: () => Synonymfield(deckID: widget.deckId!),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              NavPageBtn(
-                label: "Echo Spell",
-                screenBuilder: () => Echospell(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Echo Match",
-                screenBuilder: () => EchoMatch(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Echo Fuse",
-                screenBuilder: () => EchoFuse(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Sound - Sight",
-                screenBuilder: () => SoundNSight(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Neuro Pick",
-                screenBuilder: () => NeuroPick(deckID: widget.deckId!),
-              ),
-
-              NavPageBtn(
-                label: "Word Pulse",
-                screenBuilder: () => WordPulse(deck_id: widget.deckId!),
-              ),
-              NavPageBtn(
-                label: "Synonym Pick",
-                screenBuilder: () => Synonympick(deckID: widget.deckId!),
-              ),
-            ],
-          ),
-        ],
-      ),
+      child: LearnMode(deckID: widget.deckId!),
     );
   }
 
@@ -147,18 +82,125 @@ class _CardListScreenState extends State<CardListScreen> {
       return FlashCardItem(card: card, media: cardModel.media);
     }).toList();
     return Scaffold(
-      appBar: AppBar(title: Text('My Deck')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: cardWidgets.length,
-              itemBuilder: (context, index) {
-                return cardWidgets[index];
-              },
-            ),
+      backgroundColor: AppColor.darkSurface,
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back_ios, color: AppColor.lightText),
+        ),
+        title: Text(
+          widget.deckName ?? "My Deck",
+          style: TextStyle(color: AppColor.lightText, fontSize: 27),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                menu = !menu;
+              });
+            },
+            icon: Icon(Icons.menu, color: AppColor.greenPrimary),
           ),
-          _NavBar(context),
+        ],
+        backgroundColor: AppColor.darkSurface,
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: cardWidgets.length,
+                  itemBuilder: (context, index) {
+                    return cardWidgets[index];
+                  },
+                ),
+              ),
+              //_NavBar(context),
+            ],
+          ),
+          if (menu)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                width: 300,
+                height: double.infinity,
+                color: AppColor.darkSurface,
+                child: LearnMode(deckID: widget.deckId!),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class LearnMode extends StatelessWidget {
+  const LearnMode({super.key, required this.deckID});
+
+  final int deckID;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          NavPageBtn(
+            label: "review",
+            screenBuilder: () => Newwayreview(deckId: deckID),
+          ),
+          NavPageBtn(
+            label: "blank word",
+            screenBuilder: () => BlankWordScreen(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Mind Field",
+            screenBuilder: () => MindFeild(deckID: deckID),
+          ),
+          NavPageBtn(
+            label: "Word Snap",
+            screenBuilder: () => WordSnap(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Phoneme Mix",
+            screenBuilder: () => PhoneMix(deckID: deckID),
+          ),
+          NavPageBtn(
+            label: "Synonym Feild",
+            screenBuilder: () => Synonymfield(deckID: deckID),
+          ),
+          NavPageBtn(
+            label: "Echo Spell",
+            screenBuilder: () => Echospell(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Echo Match",
+            screenBuilder: () => EchoMatch(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Echo Fuse",
+            screenBuilder: () => EchoFuse(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Sound - Sight",
+            screenBuilder: () => SoundNSight(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Neuro Pick",
+            screenBuilder: () => NeuroPick(deckID: deckID),
+          ),
+
+          NavPageBtn(
+            label: "Word Pulse",
+            screenBuilder: () => WordPulse(deck_id: deckID),
+          ),
+          NavPageBtn(
+            label: "Synonym Pick",
+            screenBuilder: () => Synonympick(deckID: deckID),
+          ),
         ],
       ),
     );
@@ -177,8 +219,8 @@ class NavPageBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
+    return GestureDetector(
+      onTap: () {
         final cardModel = Provider.of<Cardmodel>(context, listen: false);
         Navigator.push(
           context,
@@ -190,7 +232,21 @@ class NavPageBtn extends StatelessWidget {
           ),
         );
       },
-      child: Text(label),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+         
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: AppColor.lightText,
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -209,37 +265,28 @@ class FlashCardItem extends StatelessWidget {
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: AppColor.darkerCard,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Column(
+        child: Row(
           children: [
+            Column(
+              children: [
+                IPAandWord(card: card),
+                CardInformation(card: card, dir: dir),
+              ],
+            ),
+            Spacer(),
             PictureHolder(
               path: (dir != null && card.img != null)
                   ? '$dir/${card.img}'
                   : null,
             ),
-            IPAandWord(card: card),
-            CardInformation(card: card, dir: dir),
+
             PictureHolder(
               path: (dir != null && card.synonyms != null)
                   ? '$dir/${card.synonyms}'
                   : null,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ChipTitle(
-                  title: "Interval",
-                  value: card.interval.toString(),
-                  color: Colors.blue[50]!,
-                ),
-                ChipTitle(
-                  title: "Reps",
-                  value: card.reps.toString(),
-                  color: Colors.green[50]!,
-                ),
-                Complexity(card: card),
-              ],
             ),
           ],
         ),
@@ -255,33 +302,33 @@ class IPAandWord extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
+    return Container(
+      width: 300,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
             card.word ?? '',
             style: const TextStyle(
-              fontSize: 28,
+              fontSize: 44,
               fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 167, 14, 77),
+              color: AppColor.lightText,
             ),
             overflow: TextOverflow.fade,
           ),
-        ),
-        if (card.ipa != null)
-          Flexible(
-            child: Text(
+          if (card.ipa != null)
+            Text(
               "/${card.ipa!}/",
               style: TextStyle(
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
                 overflow: TextOverflow.ellipsis,
-                color: Colors.grey[700],
+                color: AppColor.lightText,
+                fontFamily: "roboto",
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -294,61 +341,85 @@ class CardInformation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 4),
-              TitleAndValue(title: "Meaning", value: card.meaning ?? ''),
-              TitleAndValue(title: "Example", value: card.example ?? ''),
-              TitleAndValue(title: "Image", value: card.img ?? ''),
-              TitleAndValue(title: "Sound", value: card.sound ?? ''),
-              TitleAndValue(
-                title: "Definition Sound",
-                value: card.defSound ?? '',
-              ),
-              TitleAndValue(title: "Usage Sound", value: card.usageSound ?? ''),
-              const SizedBox(height: 6),
-              if (card.due != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(
-                    'Due: ${DateFormat('MM/dd').format(card.due!)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
+    return Container(
+      width: 300,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                TitleAndValue(title: "Meaning", value: card.meaning ?? ''),
+                TitleAndValue(title: "Example", value: card.example ?? ''),
+                TitleAndValue(title: "Image", value: card.img ?? ''),
+                TitleAndValue(title: "Sound", value: card.sound ?? ''),
+                TitleAndValue(
+                  title: "Definition Sound",
+                  value: card.defSound ?? '',
                 ),
+                TitleAndValue(
+                  title: "Usage Sound",
+                  value: card.usageSound ?? '',
+                ),
+                if (card.due != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      'Due: ${DateFormat('MM/dd').format(card.due!)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColor.pinkPrimary,
+                      ),
+                    ),
+                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ChipTitle(
+                      title: "Interval",
+                      value: card.interval.toString(),
+                      color: AppColor.greenDeep,
+                    ),
+                    ChipTitle(
+                      title: "Reps",
+                      value: card.reps.toString(),
+                      color: AppColor.greenDeep,
+                    ),
+                    Complexity(card: card),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              SoundTitle(
+                title: "sound",
+                value: (dir != null && card.sound != null)
+                    ? '$dir/${card.sound}'
+                    : '',
+                icon: const Icon(Icons.volume_up),
+              ),
+              SoundTitle(
+                title: "u sound",
+                value: (dir != null && card.usageSound != null)
+                    ? '$dir/${card.usageSound}'
+                    : '',
+                icon: const Icon(Icons.volume_up),
+              ),
+              SoundTitle(
+                title: "def sound",
+                value: (dir != null && card.defSound != null)
+                    ? '$dir/${card.defSound}'
+                    : '',
+                icon: const Icon(Icons.volume_up),
+              ),
             ],
           ),
-        ),
-        Column(
-          children: [
-            SoundTitle(
-              title: "sound",
-              value: (dir != null && card.sound != null)
-                  ? '$dir/${card.sound}'
-                  : '',
-              icon: const Icon(Icons.volume_up),
-            ),
-            SoundTitle(
-              title: "u sound",
-              value: (dir != null && card.usageSound != null)
-                  ? '$dir/${card.usageSound}'
-                  : '',
-              icon: const Icon(Icons.volume_up),
-            ),
-            SoundTitle(
-              title: "def sound",
-              value: (dir != null && card.defSound != null)
-                  ? '$dir/${card.defSound}'
-                  : '',
-              icon: const Icon(Icons.volume_up),
-            ),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -361,8 +432,8 @@ class PictureHolder extends StatelessWidget {
   Widget build(BuildContext context) {
     if (path != null) {
       return Container(
-        width: 400,
-        margin: const EdgeInsets.only(right: 12),
+        width: 220,
+        height: 300,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -396,8 +467,9 @@ class SoundTitle extends StatelessWidget {
             onPressed: () async {
               await audio.play(DeviceFileSource(value));
             },
+            color: AppColor.lightText,
           ),
-          Text(title),
+          Text(title, style: TextStyle(color: AppColor.lightText)),
         ],
       );
     } else {
@@ -419,7 +491,17 @@ class ChipTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(label: Text('$title: $value'), backgroundColor: color);
+    return Chip(
+      label: Text(
+        '$title: $value',
+        style: TextStyle(
+          color: AppColor.lightText,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      side: BorderSide(color: AppColor.darkBorder),
+      backgroundColor: color,
+    );
   }
 }
 
@@ -432,19 +514,25 @@ class TitleAndValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (value != '') {
-      return Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: '$title: ',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
+      return Container(
+        width: 250,
+        child: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '$title: ',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal,
+                ),
               ),
-            ),
-            TextSpan(text: value, style: const TextStyle(fontSize: 15)),
-          ],
+              TextSpan(
+                text: value,
+                style: const TextStyle(fontSize: 15, color: AppColor.lightText),
+              ),
+            ],
+          ),
         ),
       );
     } else {
