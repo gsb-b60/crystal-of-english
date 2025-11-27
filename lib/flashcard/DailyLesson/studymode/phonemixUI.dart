@@ -199,7 +199,7 @@ class ChoiceBtn extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Roboto',
               color: textColor,
-              fontSize: 22,
+              fontSize: 17,
             ),
           ),
         ),

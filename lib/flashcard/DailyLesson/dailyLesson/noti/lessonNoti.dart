@@ -414,8 +414,12 @@ class LessonNoti extends ChangeNotifier {
     List<Flashcard> listCard = _cards.take(4).toList();
     listCard.forEach((c) {
       final currentCard = c;
+      String ipaCheck=c.ipa!;
+     if (!ipaCheck.contains('/')) {
+      ipaCheck = "/$ipaCheck/";
+    }
       list.add(
-        WordIPA(word: currentCard.word ?? "", ipa: currentCard.ipa ?? ""),
+        WordIPA(word: currentCard.word ?? "", ipa: ipaCheck),
       );
     });
     list.shuffle();

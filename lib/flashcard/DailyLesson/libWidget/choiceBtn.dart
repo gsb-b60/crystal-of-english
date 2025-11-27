@@ -37,7 +37,7 @@ class ChoiceBtn extends StatelessWidget {
             value,
             style: TextStyle(
               color: isSelected ? AppColor.greenMuted : Colors.white,
-              fontSize: 28,
+              fontSize: 22,
             ),
           ),
         ),
