@@ -5,10 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
-import 'package:mygame/flashcard/DailyLesson/config/threshold.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/supermemo.dart';
+import 'package:provider/provider.dart';
+import 'package:vibration/vibration.dart';
 
 enum ButtonState { normal, selected, done, wrong }
 
@@ -78,7 +80,31 @@ class LessonNoti extends ChangeNotifier {
   int inARow = 0;
   void haper() {
     if (inARow > 2) {
-      HapticFeedback.vibrate();
+      Vibration.vibrate(
+        pattern: [0, 12, 18, 12, 25],
+        intensities: [40, 70, 40, 60, 0],
+      );
+    }
+  }
+
+  int totalRep = 0;
+  int totalLapse = 0;
+  //push information to db
+  void CallQuest(BuildContext context) {
+    final count = SetUpLessonList.map((e) => e["cIdx"]).toSet().length;
+    context.read<Questnoti>().SetToDB(totalRep, totalRep, count);
+  }
+
+  void ResultHandler(bool succ) {
+    if (succ) {
+      totalRep++;
+      haper();
+      inARow++;
+      print("suc ${_acc} rep :${totalRep}");
+    } else {
+      print("false ${_acc} rep :${totalRep}");
+      _acc++;
+      totalLapse++;
     }
   }
 
@@ -188,9 +214,6 @@ class LessonNoti extends ChangeNotifier {
       right = true;
       notifyListeners();
     }
-    print(
-      " - current at :${currentLessIdx} - ${SetUpLessonList.length} - is options null ${options == null} -current at mode :${mode}",
-    );
   }
 
   List<String> get getOptionsShuffle {
@@ -204,7 +227,7 @@ class LessonNoti extends ChangeNotifier {
     return re;
   }
 
-  String getImagePath() {    
+  String getImagePath() {
     if (File(
       "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}",
     ).existsSync()) {
@@ -219,8 +242,8 @@ class LessonNoti extends ChangeNotifier {
       listWord![currentWordIdx] = trueList![currentWordIdx];
       notifyListeners();
       currentWordIdx++;
-      _acc++;
     } else {
+      ResultHandler(false);
       inARow = 0;
       states![index] = ButtonState.wrong;
       notifyListeners();
@@ -231,8 +254,7 @@ class LessonNoti extends ChangeNotifier {
     }
     if (currentWordIdx == list!.length) {
       answered = true;
-      haper();
-      inARow++;
+      ResultHandler(true);
       notifyListeners();
     }
   }
@@ -264,13 +286,12 @@ class LessonNoti extends ChangeNotifier {
   void checkAnswerMC() {
     if (options?[selectedIndex!] == _cards[cardIdx].word) {
       answered = true;
-      inARow++;
-      haper();
+      ResultHandler(true);
       notifyListeners();
     } else {
       answered = true;
       right = false;
-      _acc++;
+      ResultHandler(false);
       inARow = 0;
       notifyListeners();
     }
@@ -374,7 +395,6 @@ class LessonNoti extends ChangeNotifier {
       return md;
     }
   }
-  
 
   List<WordIPA>? listWI;
   List<String>? listIPA;
@@ -459,8 +479,7 @@ class LessonNoti extends ChangeNotifier {
         selectedIPAIDX = null;
 
         answered = !wordState.contains(ButtonState.normal);
-        if(answered)
-        {
+        if (answered) {
           haper();
         }
         notifyListeners();

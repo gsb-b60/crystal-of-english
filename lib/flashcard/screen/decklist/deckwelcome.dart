@@ -4,7 +4,7 @@ import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/business/Deck.dart';
 import 'package:mygame/flashcard/screen/decklist/achievement/achievement.dart';
 import 'package:mygame/flashcard/screen/learnmode/learnmodescreen.dart';
-import 'package:mygame/profile/Quest/quest.dart';
+import 'package:mygame/profile/Quest/questScreen.dart';
 import 'package:mygame/profile/userprofile/profile.dart';
 import 'package:mygame/profile/userprofile/profileNoti.dart';
 import 'package:provider/provider.dart';

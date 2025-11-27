@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
@@ -12,11 +13,7 @@ import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
-
-
-
 import 'package:provider/provider.dart';
-
 import '../../screen/endscreen.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -32,11 +29,12 @@ class _LessonScreenState extends State<LessonScreen> {
     return MultiProvider(
        providers: [
         ChangeNotifierProvider(create: (context) => LessonNoti()..getFlashcardList(),),
-        ChangeNotifierProvider(create: (context)=>TimerNoti()..start())
+        ChangeNotifierProvider(create: (context)=>TimerNoti()..start()),
+        ChangeNotifierProvider(create: (context)=>Questnoti())
        ],
       
-      child: Consumer2<LessonNoti,TimerNoti>(
-        builder: (context, provider,timer, _) {
+      child: Consumer3<LessonNoti,TimerNoti,Questnoti>(
+        builder: (context, provider,timer,quest, _) {
           if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
           }

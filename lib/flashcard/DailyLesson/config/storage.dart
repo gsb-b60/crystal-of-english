@@ -74,8 +74,9 @@ class lessonNotiHelper {
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
   static List<Map<String, dynamic>> allMode= [
-    {"cIdx": 4, "mode": StudyMode.EndScreen},
     {"cIdx": 0, "mode": StudyMode.meanfuse},
+    {"cIdx": 4, "mode": StudyMode.EndScreen},
+    
     {"cIdx": 1, "mode": StudyMode.wordsnap},
     {"cIdx": 2, "mode": StudyMode.mindField},
     {"cIdx": 3, "mode": StudyMode.echoSpell},

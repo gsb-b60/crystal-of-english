@@ -2,7 +2,6 @@ import 'package:mygame/data/user/user.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-
 class UserDatabase {
   static final UserDatabase instance = UserDatabase._privateConstructor();
   static Database? _database;
@@ -31,23 +30,99 @@ class UserDatabase {
       streak INTEGER NOT NULL,
       lastLoginDate TEXT,
       goal INTEGER,
-      studiSecond integer
+      studiSecond integer,
       TotalLess integer,
       TotalCard integer,
       Rep integer,
       Lapse integer,
       IndayLess integer,
       IndayCard integer,
+      IndayRep integer,
       QuestPoint integer,
+      IsRepClaim bool,
+      IsLessClaim bool,
+      IsLearnClaim bool
     )
     ''');
   }
 
-
-
   //update
+  Future<void> UpdateLogDaySuper() async {
+    User u = await getUser(1);
+    DateTime now = DateTime.now();
+    if (!(u.lastLoginDate!.day == now.day &&
+        u.lastLoginDate!.month == now.month &&
+        u.lastLoginDate!.year == now.year)) {
+      u.lastLoginDate = now;
+      u.IndayCard = 0;
+      u.IndayLess = 0;
+      u.IndayRep=0;
+      u.Lapse = 0;
+      u.Rep = 0;
+      u.IsRepClaim = false;
+      u.IsLessClaim = false;
+      u.IsLearnClaim = false;
+      u.studiSecond = Duration(seconds: 0);
+      await update(u);
+    }
+  }
+
+  Future<void> UpdateQuestPoint() async {
+    User u = await getUser(1);
+    u.QuestPoint =(u.QuestPoint??0)+1;
+    print(u);
+    print("add quest point");
+    await update(u);
+  }
+
+  Future<void> UpdateClaimLess() async {
+    User u = await getUser(1);
+    u.IsLessClaim = true;
+    print(u);
+    print("less claim");
+    await update(u);
+  }
+
+  Future<void> UpdateClaimLearn() async {
+    User u = await getUser(1);
+    u.IsLearnClaim = true;
+    await update(u);
+  }
+
+  Future<void> UpdateClaimRep() async {
+    User u = await getUser(1);
+    u.IsRepClaim = true;
+    await update(u);
+  }
+
+  Future<void> UpdateLess() async {
+    User u = await getUser(1);
+    u.TotalLess = (u.TotalLess ?? 0) + 1;
+    u.IndayLess = (u.IndayLess ?? 0) + 1;
+    await update(u);
+  }
+
+  Future<void> UpdateRep(int rep) async {
+    User u = await getUser(1);
+    u.Rep = (u.Rep ?? 0) + rep;
+    await update(u);
+  }
+
+  Future<void> UpdateLapse(int lapse) async {
+    User u = await getUser(1);
+    u.Lapse = (u.Lapse ?? 0) + lapse;
+    await update(u);
+  }
+
+  Future<void> UpdateNoCard(int cq) async {
+    User u = await getUser(1);
+    u.IndayCard = (u.IndayCard ?? 0) + cq;
+    u.TotalCard = (u.TotalCard ?? 0) + cq;
+    await update(u);
+  }
+
   Future<void> UpdateLogDay() async {
-    final db = await database;
+    final db = await UserDatabase.instance.database;
     await db.update(
       'users',
       {'lastLoginDate': DateTime.now().toIso8601String()},
@@ -55,8 +130,9 @@ class UserDatabase {
       whereArgs: [1],
     );
   }
+
   Future<void> UpdateTime(Duration studyTime) async {
-    final db = await database;
+    final db = await UserDatabase.instance.database;
     await db.update(
       'users',
       {'studiSecond': studyTime.inSeconds},
@@ -64,9 +140,10 @@ class UserDatabase {
       whereArgs: [1],
     );
   }
+
   Future<void> UpdateStreak(int streak) async {
-    final db = await database;
-    
+    final db = await UserDatabase.instance.database;
+
     await db.update(
       'users',
       {'streak': streak},
@@ -74,10 +151,9 @@ class UserDatabase {
       whereArgs: [1],
     );
   }
-  
 
   Future<void> UpdateGoal(int newGoal) async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
     await db.update(
       'users',
       {'goal': newGoal},
@@ -88,21 +164,19 @@ class UserDatabase {
 
   //add -create
   Future<int> create(User user) async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
     return await db.insert('users', user.toMap());
   }
 
-
-
-  
   Future<List<User>> readAllUsers() async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
     final result = await db.query('users');
     return result.map((e) => User.fromMap(e)).toList();
   }
 
   Future<int> update(User user) async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
+    print("in update ${user}");
     return db.update(
       'users',
       user.toMap(),
@@ -112,15 +186,14 @@ class UserDatabase {
   }
 
   Future<int> delete(int id) async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
     return await db.delete('users', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<User> getUser(int id) async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
     final result = await db.query('users', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty) {
-      print("old user fetch!");
       return User.fromMap(result.first);
     } else {
       print("no user");
@@ -131,13 +204,18 @@ class UserDatabase {
         streak: 5,
         goal: 15,
         lastLoginDate: DateTime.now(),
+        TotalLess: 0,
+        TotalCard: 0,
+        Rep: 0,
+        Lapse: 0,
+        IndayLess: 0,
+        IndayCard: 0,
+        QuestPoint: 0,
+        studiSecond: Duration(seconds: 0),
       );
-      try
-      {
+      try {
         await db.insert('users', defaultUser.toMap());
-      }
-      catch(e)
-      {
+      } catch (e) {
         print("Error creating default user: $e");
       }
       return defaultUser;
@@ -145,7 +223,7 @@ class UserDatabase {
   }
 
   Future<void> updateStreak() async {
-    final db = await instance.database;
+    final db = await UserDatabase.instance.database;
     final now = DateTime.now();
     final user = await getUser(1);
     final lastLogin = user.lastLoginDate;

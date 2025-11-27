@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
@@ -33,10 +34,11 @@ class _AllModeState extends State<AllMode> {
           create: (context) => LessonNoti()..getFlashcardListAllMode(),
         ),
         ChangeNotifierProvider(create: (context) => TimerNoti()..start()),
+        ChangeNotifierProvider(create: (context)=>Questnoti())
       ],
 
-      child: Consumer2<LessonNoti, TimerNoti>(
-        builder: (context, provider, timer, _) {
+      child: Consumer3<LessonNoti, TimerNoti,Questnoti>(
+        builder: (context, provider, timer,quest, _) {
           if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
           }

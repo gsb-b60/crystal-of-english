@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/profile/Quest/questNoti.dart';
+import 'package:mygame/profile/Quest/questScreenNoti.dart';
 import 'package:provider/provider.dart';
 
 class Quest extends StatefulWidget {
@@ -17,8 +17,7 @@ class _QuestState extends State<Quest> {
       create: (context) => QuestNoti()..getUser(),
       child: Consumer<QuestNoti>(
         builder: (context, provider, _) {
-          if(provider.isLoading)
-          {
+          if (provider.isLoading) {
             return CircularProgressIndicator();
           }
           return QuestScreen();
@@ -224,120 +223,37 @@ class _QuestScreenState extends State<QuestScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          padding: const EdgeInsets.symmetric(horizontal: 19),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Learn ${provider.LessGoal} Lesson",
-                                style: TextStyle(
-                                  color: AppColor.lightText,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: LinearProgressIndicator(
-                                      color: AppColor.greenPrimary,
-                                      backgroundColor: AppColor.darkBorder,
-                                      value: provider.lessVal,
-                                      minHeight: 20,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.checklist_sharp,
-                                      color: AppColor.greenPrimary,
-                                      size: 30,
-                                    ),
-                                    onPressed: () {
-                                      reader.getUser();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        QuestBar(
+                          line: "Learn ${provider.LessGoal} Lesson",
+                          value: provider.lessVal,
+                          progress: provider.lessP,
+                          goal: provider.LessGoal,
+                          claimable: provider.lessClaim,
+                          claiming: () {
+                            reader.ClaimLess();
+                          },
                         ),
                         Divider(color: Colors.grey, thickness: 1),
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          padding: const EdgeInsets.symmetric(horizontal: 19),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Success learn ${provider.RepGoad} times",
-                                style: TextStyle(
-                                  color: AppColor.lightText,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: LinearProgressIndicator(
-                                      color: AppColor.greenPrimary,
-                                      backgroundColor: AppColor.darkBorder,
-                                      value: provider.repVal,
-                                      minHeight: 20,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.checklist_sharp,
-                                    color: AppColor.greenPrimary,
-                                    size: 30,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        QuestBar(
+                          line: "Success learn ${provider.RepGoal} times",
+                          value: provider.repVal.toDouble(),
+                          progress: provider.repP,
+                          goal: provider.RepGoal,
+                          claimable: provider.repClaim,
+                          claiming: () {
+                            reader.ClaimRep();
+                          },
                         ),
                         Divider(color: Colors.grey, thickness: 1),
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          padding: const EdgeInsets.symmetric(horizontal: 19),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Learn ${provider.LearnGoal} Card",
-                                style: TextStyle(
-                                  color: AppColor.lightText,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: LinearProgressIndicator(
-                                      color: AppColor.greenPrimary,
-                                      backgroundColor: AppColor.darkBorder,
-                                      value: provider.learnVal,
-                                      minHeight: 20,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.checklist_sharp,
-                                      color: AppColor.greenPrimary,
-                                      size: 30,
-                                    ),
-                                    onPressed: () {},
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        QuestBar(
+                          line: "Learn ${provider.LearnGoal} Card",
+                          value: provider.learnVal,
+                          progress: provider.cardP,
+                          goal: provider.LearnGoal,
+                          claimable: provider.learnClaim,
+                          claiming: () {
+                            reader.ClaimLearn();
+                          },
                         ),
                       ],
                     ),
@@ -354,6 +270,114 @@ class _QuestScreenState extends State<QuestScreen> {
               },
               icon: Icon(Icons.arrow_back_ios, color: AppColor.lightText),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+//
+class QuestBar extends StatelessWidget {
+  QuestBar({
+    super.key,
+    required this.line,
+    required this.value,
+    required this.progress,
+    required this.goal,
+    required this.claimable,
+    required this.claiming,
+  });
+
+  String line;
+  double value;
+  int progress;
+  int goal;
+  ClaimState claimable;
+  VoidCallback claiming;
+  @override
+  Widget build(BuildContext context) {
+    String str = "LEARN";
+    Color btnColor = AppColor.darkCard;
+    switch (claimable) {
+      case ClaimState.unclaimed:
+        str = "LEARN";
+        btnColor = AppColor.darkCard;
+      case ClaimState.claimable:
+        str = "CLAIM";
+        btnColor = AppColor.greenPrimary;
+      case ClaimState.claimed:
+        str = "Claimed";
+        btnColor = AppColor.darkCard;
+    }
+    return Container(
+      margin: EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 19),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                line,
+                style: TextStyle(
+                  color: AppColor.lightText,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Spacer(),
+              Text(
+                "${progress} /${goal}",
+                style: TextStyle(
+                  color: AppColor.lightText,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(width: 42),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: LinearProgressIndicator(
+                  color: AppColor.greenPrimary,
+                  backgroundColor: AppColor.darkBorder,
+                  value: value,
+                  minHeight: 25,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (claimable == ClaimState.claimable) {
+                    claiming.call();
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: btnColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border(
+                      bottom: BorderSide(color: btnColor, width: 6),
+                    ),
+                  ),
+                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Center(
+                    child: Text(
+                      str,
+                      style: TextStyle(
+                        color: AppColor.darkBase,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

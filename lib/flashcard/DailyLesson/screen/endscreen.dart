@@ -11,10 +11,13 @@ class EndScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final timer = context.watch<TimerNoti>();
     final reader = context.read<TimerNoti>();
+    
     reader.stop();
     final elipse = timer.formatted;
 
     final less = context.watch<LessonNoti>();
+    final lessReader=context.watch<LessonNoti>();
+    lessReader.CallQuest(context);
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Column(
