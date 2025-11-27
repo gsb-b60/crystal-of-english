@@ -44,7 +44,8 @@ class DatabaseHelper {
       }
 
       final Map<String, String> expected = {
-        'complexity': 'ALTER TABLE cards ADD COLUMN complexity INTEGER DEFAULT 1',
+        'complexity':
+            'ALTER TABLE cards ADD COLUMN complexity INTEGER DEFAULT 1',
         'synonyms': 'ALTER TABLE cards ADD COLUMN synonyms TEXT',
         'defSound': 'ALTER TABLE cards ADD COLUMN defSound TEXT',
         'usageSound': 'ALTER TABLE cards ADD COLUMN usageSound TEXT',
@@ -54,7 +55,9 @@ class DatabaseHelper {
         if (!existing.contains(entry.key)) {
           try {
             await db.execute(entry.value);
-            debugPrint('Added missing column `${entry.key}` to cards table at runtime');
+            debugPrint(
+              'Added missing column `${entry.key}` to cards table at runtime',
+            );
           } catch (e) {
             debugPrint('Failed to add column ${entry.key}: $e');
           }
@@ -63,7 +66,6 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('Runtime schema reconciliation failed: $e');
     }
-
 
     try {
       await migrateDueDateStrings(db);
@@ -74,15 +76,10 @@ class DatabaseHelper {
     return db;
   }
 
-
-
-
   Future<void> migrateDueDateStrings(Database db) async {
     try {
-
       final rows = await db.rawQuery('SELECT rowid, * FROM cards');
       for (final row in rows) {
-
         final dueVal = row['due'];
         final dueDateVal = row['due_date'];
         if ((dueVal == null || dueVal == 0) && dueDateVal != null) {
@@ -160,7 +157,6 @@ class DatabaseHelper {
       )
 ''');
 
-
     await db.execute('''
       create table player_profile(
         id integer primary key autoincrement,
@@ -198,7 +194,6 @@ class DatabaseHelper {
     });
   }
 
-
   Future<void> deleteDeck(int id) async {
     final db = await database;
     await db.delete('decks', where: 'id=?', whereArgs: [id]);
@@ -216,15 +211,38 @@ class DatabaseHelper {
       return Flashcard.fromMap(maps[i]);
     });
   }
+
   Future<List<Flashcard>> getAllCard() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'cards'
-    );
+    final List<Map<String, dynamic>> maps = await db.query('cards');
     return List.generate(maps.length, (i) {
       return Flashcard.fromMap(maps[i]);
     });
   }
+
+  Future<List<Flashcard>> getCardLimit(int limit) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+    SELECT *
+    FROM cards
+    WHERE sound IS NOT NULL
+      AND word IS NOT NULL
+      AND word NOT LIKE '% %'
+      AND ipa IS NOT NULL
+      AND img IS NOT NULL
+      AND meaning IS NOT NULL
+    LIMIT ?
+    ''',
+      [limit],
+    );
+
+    return List.generate(maps.length, (i) {
+      return Flashcard.fromMap(maps[i]);
+    });
+  }
+
   Future<List<Flashcard>> getDueCards() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -236,11 +254,12 @@ class DatabaseHelper {
       return Flashcard.fromMap(maps[i]);
     });
   }
+
   Future<List<Flashcard>> getCardByLevel(int level) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'cards',
-      where: 'level=?',
+      where: 'complexity=?',
       whereArgs: [level],
     );
     return List.generate(maps.length, (i) {
@@ -259,12 +278,7 @@ class DatabaseHelper {
       'ease_factor': card.easeFactor,
     };
 
-    await db.update(
-      'cards',
-      row,
-      where: 'id=?',
-      whereArgs: [card.id],
-    );
+    await db.update('cards', row, where: 'id=?', whereArgs: [card.id]);
   }
 
   Future<void> deleteCard(int cardId) async {
@@ -295,7 +309,7 @@ class DatabaseHelper {
 
   Future<String?> pickAndCopyFile() async {
     final pickedFile = await pickApkgFile();
-    
+
     if (pickedFile == null || pickedFile.isEmpty) return null;
 
     final appDir = await getApplicationDocumentsDirectory();
@@ -343,7 +357,7 @@ class DatabaseHelper {
   Future<Directory> CreateUnZipFolder() async {
     final dir = await getApplicationDocumentsDirectory();
     final myAppFolder = Directory('${dir.path}/anki');
-      if (!myAppFolder.existsSync()) {
+    if (!myAppFolder.existsSync()) {
       myAppFolder.createSync();
       debugPrint("init folder anki at ${myAppFolder.path}");
     }
@@ -410,7 +424,7 @@ class DatabaseHelper {
     );
 
     for (final row in cards) {
-  debugPrint("model :${row['mid']}");
+      debugPrint("model :${row['mid']}");
       final newCard = mapRowToFlashcard(row, deckId);
       if (newCard != null) {
         insertCard(newCard);
@@ -441,15 +455,15 @@ class DatabaseHelper {
           final newFile = File('${deckDir.path}/${entry.value}');
           await oldFile.copy(newFile.path);
         } else {
-    debugPrint('cant find ${oldFile.path}');
+          debugPrint('cant find ${oldFile.path}');
         }
       }
 
       try {
         await outputDir.delete(recursive: true);
-  debugPrint("clean unzip ${outputDir.path}");
+        debugPrint("clean unzip ${outputDir.path}");
       } catch (e) {
-  debugPrint("delete bug $e");
+        debugPrint("delete bug $e");
       }
     } catch (e) {
       debugPrint('import bug $e');
@@ -473,6 +487,7 @@ class DatabaseHelper {
     }
     return null;
   }
+
   Future<void> importFromAssetApkg(String assetPath) async {
     final tmpDir = await getTemporaryDirectory();
     final outPath = join(tmpDir.path, 'demo.apkg');
@@ -501,7 +516,6 @@ class DatabaseHelper {
       debugPrint('Failed to delete learning_card.db: $e');
     }
   }
-
 
   Future<void> savePlayerProfileSlot(
     int slot, {
@@ -542,7 +556,12 @@ class DatabaseHelper {
 
   Future<Map<String, Object?>?> loadPlayerProfileSlot(int slot) async {
     final db = await database;
-    final res = await db.query('player_profile', where: 'slot=?', whereArgs: [slot], limit: 1);
+    final res = await db.query(
+      'player_profile',
+      where: 'slot=?',
+      whereArgs: [slot],
+      limit: 1,
+    );
     if (res.isNotEmpty) return res.first;
     return null;
   }

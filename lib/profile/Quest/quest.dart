@@ -34,6 +34,8 @@ class QuestScreen extends StatefulWidget {
 class _QuestScreenState extends State<QuestScreen> {
   @override
   Widget build(BuildContext context) {
+    final provider=context.watch<QuestNoti>();
+    List<String> listQuest=provider.quests;
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Stack(
@@ -216,7 +218,7 @@ class _QuestScreenState extends State<QuestScreen> {
                     border: Border.all(color: AppColor.darkBorder, width: 2),
                   ),
                   child: ListView.separated(
-                    itemCount: 3,
+                    itemCount: listQuest.length,
                     separatorBuilder: (context, index) {
                       return Divider(color: Colors.grey, thickness: 1);
                     },
@@ -227,7 +229,7 @@ class _QuestScreenState extends State<QuestScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Earn 10 XP",
+                              listQuest[index],
                               style: TextStyle(
                                 color: AppColor.lightText,
                                 fontSize: 30,

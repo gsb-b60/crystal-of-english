@@ -1,29 +1,52 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtnVertical.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
+import 'package:mygame/flashcard/screen/studymode/synonympick/synonympickNoti.dart';
 import 'package:provider/provider.dart';
 
-class NeuroPickUI extends StatefulWidget {
-  const NeuroPickUI({super.key});
+import '../neuropick/neuropickUI.dart';
 
+class Synonympick extends StatefulWidget {
+  Synonympick({super.key,required this.deckID});
+  int deckID;
   @override
-  State<NeuroPickUI> createState() => _NeuroPickUIState();
+  State<Synonympick> createState() => _SynonympickState();
 }
 
-class _NeuroPickUIState extends State<NeuroPickUI> {
+class _SynonympickState extends State<Synonympick> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LessonNoti>();
-    final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
-    List<String> options = provider.getOptionsShuffle;
-    List<bool> states = provider.getOptionStateBool();
+    return ChangeNotifierProvider(
+      create: (context) => SynonympickNoti()..getFlashcardList(widget.deckID),
+      child: Consumer<SynonympickNoti>(
+        builder: (context,provider,build)
+        {
+          if(provider.isLoading)
+          {
+            return CircularProgressIndicator();
+          }
+          return SynonympickUI();
 
+        },
+        child: SynonympickUI()));
+  }
+}
+
+class SynonympickUI extends StatefulWidget {
+  const SynonympickUI({super.key});
+
+  @override
+  State<SynonympickUI> createState() => _SynonympickUIState();
+}
+
+class _SynonympickUIState extends State<SynonympickUI> {
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<SynonympickNoti>();
+    List<String> options = provider.getOptions();
+    List<bool> states = provider.getOptionState();
+    final reader = context.read<SynonympickNoti>();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -42,7 +65,13 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
             ),
           ],
         ),
-        title: ProgressBar(value: provider.value, inARow: provider.inARow),
+        title: LinearProgressIndicator(
+          value: provider.value,
+          backgroundColor: AppColor.darkCard,
+          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
+          minHeight: 18,
+          borderRadius: BorderRadius.circular(9),
+        ),
         backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
@@ -77,7 +106,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
                         borderRadius: BorderRadius.circular(8),
                         child: Image.file(
                           File(provider.getImagePath()),
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fitWidth,
                         ),
                       ),
                     ),
@@ -93,7 +122,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               return Center(
-                                child: ChoiceBtnVertical(
+                                child: ChoiceBtn(
                                   value: options[index],
                                   isSelected: states[index],
                                   onPressed: () {
@@ -107,7 +136,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
                         CheckBtn(
                           isChecked: provider.checkable,
                           onCheck: () {
-                            reader.checkAnswerMC();
+                            reader.checkAnswer(provider.selectedIndex!);
                           },
                         ),
                       ],
@@ -137,6 +166,3 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
     );
   }
 }
-
-
-

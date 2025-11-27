@@ -1,29 +1,53 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtnVertical.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
+import 'package:mygame/flashcard/business/Deck.dart';
+import 'package:mygame/flashcard/screen/studymode/synonymfield/synonymfieldNoti.dart';
 import 'package:provider/provider.dart';
 
-class NeuroPickUI extends StatefulWidget {
-  const NeuroPickUI({super.key});
+import '../wordpulse/wordpulseUI.dart';
 
+class Synonymfield extends StatefulWidget {
+  Synonymfield({super.key, required this.deckID});
+  final int deckID;
   @override
-  State<NeuroPickUI> createState() => _NeuroPickUIState();
+  State<Synonymfield> createState() => _SynonymfieldState();
 }
 
-class _NeuroPickUIState extends State<NeuroPickUI> {
+class _SynonymfieldState extends State<Synonymfield> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<LessonNoti>();
-    final reader = context.read<LessonNoti>();
-    provider.fetchMedia();
-    List<String> options = provider.getOptionsShuffle;
-    List<bool> states = provider.getOptionStateBool();
+    return ChangeNotifierProvider(
+      create: (context) => SynonymfieldNoti()..getFlashcardList(widget.deckID),
+      child: Consumer<SynonymfieldNoti>(
+        builder: (context, provider, value) {
+          if (provider.isLoading) {
+            return CircularProgressIndicator();
+          }
+          return SynonymfieldUI();
+        },
+        child: SynonymfieldUI(),
+      ),
+    );
+  }
+}
 
+class SynonymfieldUI extends StatefulWidget {
+  const SynonymfieldUI({super.key});
+
+  @override
+  State<SynonymfieldUI> createState() => _SynonymfieldUIState();
+}
+
+class _SynonymfieldUIState extends State<SynonymfieldUI> {
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<SynonymfieldNoti>();
+    List<String> options = provider.getOptionList;
+    List<bool> states = provider.GetListState();
+    final reader = context.read<SynonymfieldNoti>();
+    final path=provider.getImagePath();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -42,7 +66,13 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
             ),
           ],
         ),
-        title: ProgressBar(value: provider.value, inARow: provider.inARow),
+        title: LinearProgressIndicator(
+          value: provider.value,
+          backgroundColor: AppColor.darkCard,
+          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
+          minHeight: 18,
+          borderRadius: BorderRadius.circular(9),
+        ),
         backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
@@ -65,7 +95,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  if (provider.getImagePath() != "")
+                  if (path != "")
                     Container(
                       width: 390,
                       height: 270,
@@ -76,8 +106,8 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.file(
-                          File(provider.getImagePath()),
-                          fit: BoxFit.cover,
+                          File(path),
+                          fit: BoxFit.fitWidth,
                         ),
                       ),
                     ),
@@ -93,7 +123,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               return Center(
-                                child: ChoiceBtnVertical(
+                                child: ChoiceBtn(
                                   value: options[index],
                                   isSelected: states[index],
                                   onPressed: () {
@@ -107,7 +137,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
                         CheckBtn(
                           isChecked: provider.checkable,
                           onCheck: () {
-                            reader.checkAnswerMC();
+                            reader.checkAnswer(provider.selectedIndex!);
                           },
                         ),
                       ],
@@ -128,7 +158,7 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
               right: provider.right,
               answer: provider.answer,
               onPressed: () {
-                reader.nextCard();
+                reader.SetNext();
               },
             ),
           ),
@@ -137,6 +167,3 @@ class _NeuroPickUIState extends State<NeuroPickUI> {
     );
   }
 }
-
-
-

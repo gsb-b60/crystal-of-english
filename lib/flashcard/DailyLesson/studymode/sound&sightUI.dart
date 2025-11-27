@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn4States.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:provider/provider.dart';
 
 class SoundNSightUI extends StatefulWidget {
@@ -41,13 +44,7 @@ class _MyWidgetState extends State<SoundNSightUI> {
             ),
           ],
         ),
-        title: LinearProgressIndicator(
-          value: provider.value,
-          backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
-          minHeight: 18,
-          borderRadius: BorderRadius.circular(9),
-        ),
+        title: ProgressBar(value: provider.value, inARow: provider.inARow),
         backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
@@ -136,7 +133,7 @@ class _MyWidgetState extends State<SoundNSightUI> {
 
                             children: List.generate(list.length, (index) {
                               final value = list[index];
-                              return ChoiceBtn(
+                              return ChoiceBtnStates(
                                 value: value,
                                 state: listState[index],
                                 onChoose: () {
@@ -161,6 +158,8 @@ class _MyWidgetState extends State<SoundNSightUI> {
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
+              right: true,
+              answer: "",
               onPressed: () {
                 reader.nextCard();
               },
@@ -172,158 +171,5 @@ class _MyWidgetState extends State<SoundNSightUI> {
   }
 }
 
-class ChoiceBtn extends StatelessWidget {
-  ChoiceBtn({
-    super.key,
-    required this.value,
-    required this.state,
-    required this.onChoose,
-  });
 
-  String value;
-  ButtonState state;
-  VoidCallback onChoose;
-  @override
-  Widget build(BuildContext context) {
-    Color backgroundColor = AppColor.darkBase;
-    Color textColor = Colors.white;
-    Color borderColor = AppColor.darkCard;
 
-    switch (state) {
-      case ButtonState.selected:
-        backgroundColor = AppColor.darkSurface;
-        borderColor = AppColor.BlueMuted;
-        textColor = AppColor.BlueMuted;
-        break;
-      case ButtonState.done:
-        backgroundColor = AppColor.darkBase;
-        borderColor = AppColor.darkCard;
-        textColor = AppColor.darkerCard;
-        break;
-      case ButtonState.normal:
-        backgroundColor = AppColor.darkBase;
-        borderColor = AppColor.darkCard;
-        textColor = Colors.white;
-        break;
-      case ButtonState.wrong:
-        backgroundColor = AppColor.darkSurface;
-        borderColor = AppColor.redMuted;
-        textColor = AppColor.redMuted;
-        break;
-    }
-    return GestureDetector(
-      onTap: () {
-        if (state != ButtonState.done) {
-          onChoose.call();
-        }
-      },
-      child: Container(
-        height: 60,
-        width: 60,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: BoxBorder.all(color: borderColor, width: 4),
-          color: backgroundColor,
-        ),
-        child: Center(
-          child: Text(
-            value,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 35,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Roboto',
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ReviewScreen extends StatelessWidget {
-  ReviewScreen({super.key, required this.onPressed});
-  VoidCallback onPressed;
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: SizedBox(
-        width: double.infinity,
-        height: 250,
-        child: Container(
-          color: AppColor.darkSurface,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Row(
-                children: [
-                  SizedBox(width: 30),
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: AppColor.greenBright,
-                    size: 40,
-                  ),
-                  SizedBox(width: 20),
-                  Text(
-                    "Great job!",
-                    style: TextStyle(
-                      color: AppColor.greenBright,
-                      fontSize: 50,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-              Stack(
-                children: [
-                  SizedBox(
-                    width: 650,
-                    height: 80,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onPressed.call();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        elevation: 10,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: AppColor.greenPrimary,
-                      ),
-                      child: Text(
-                        "CONTINUE",
-                        style: TextStyle(
-                          color: AppColor.darkBase,
-                          fontSize: 50,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border(
-                            bottom: BorderSide(
-                              color: AppColor.greenAccent,
-
-                              width: 6,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

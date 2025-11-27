@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 
-class WordPulseNoti extends ChangeNotifier {
+class SynonymfieldNoti extends ChangeNotifier {
     static final _dbhelper = DatabaseHelper.instance;
   List<Flashcard> _cards = [];
   String media = "";
@@ -173,9 +173,9 @@ class WordPulseNoti extends ChangeNotifier {
   }
   String getImagePath()
   {
-    if(File("/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].img}").existsSync())
+    if(File("/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].synonyms}").existsSync())
     {
-      return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].img}";
+      return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[currentCardIdx].synonyms}";
     }
     return "";
   }

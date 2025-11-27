@@ -25,19 +25,26 @@ class NeuroPickNoti extends ChangeNotifier {
   Future<void> getFlashcardList(int deck_id) async {
     isLoading = true;
     notifyListeners();
-    final data = await _dbhelper.getCardForDeck(deck_id);
-    media=await _dbhelper.getMediaFile(deck_id);
-    _cards.clear();
-    _cards.addAll(data);
-    _cards = _cards
-        .where(
-          (card) =>
-              card.word != null &&
-              card.img != null &&
-              !(card.word?.contains(" ") ?? true),
-        )
-        .toList();
-    isLoading = false;
+    if (deck_id == 0) {
+      final data = await DatabaseHelper.instance.getCardLimit(10);
+      _cards.clear();
+      _cards.addAll(data);
+      
+    } else {
+      final data = await DatabaseHelper.instance.getCardForDeck(deck_id);
+      _cards.clear();
+      _cards.addAll(data);
+      _cards = _cards
+          .where(
+            (c) =>
+                c.word != null &&
+                c.meaning != null &&
+                !(c.word?.contains(" ") ?? true),
+          )
+          .toList();
+    }
+    media=(await DatabaseHelper.instance.getMediaFile(_cards[0].deckId))!;
+    isLoading=false;
     notifyListeners();
   }
 
@@ -74,12 +81,13 @@ class NeuroPickNoti extends ChangeNotifier {
     }
   }
 
-  void nextCard() {
+  Future<void> nextCard() async{
     if (currentCardIdx < _cards.length - 1) {
       currentCardIdx++;
       options = null;
       answered = false;
       selectedIndex = null;
+      media=(await DatabaseHelper.instance.getMediaFile(_cards[currentCardIdx].deckId))!;
       notifyListeners();
       right=true;
       notifyListeners();

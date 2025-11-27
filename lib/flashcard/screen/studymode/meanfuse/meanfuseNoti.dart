@@ -5,7 +5,7 @@ import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/flashcard/screen/studymode/echospell/echospellUI.dart';
 
-class EchospellNoti extends ChangeNotifier {
+class Meanfusenoti extends ChangeNotifier {
   static final _dbhelper = DatabaseHelper.instance;
   List<Flashcard> _cards = [];
   String media = "";
@@ -21,30 +21,27 @@ class EchospellNoti extends ChangeNotifier {
   int currentIndex = 0;
   bool answered = false;
   double get value => (_cards.isEmpty) ? 0 : currentCardIdx / _cards.length;
-
+  String get mean => _cards[currentCardIdx].meaning ?? "";
   bool done = false;
 
   Future<void> getFlashcardList(int deck_id) async {
     isLoading = true;
     notifyListeners();
     if (deck_id == 0) {
-      final data = await DatabaseHelper.instance.getCardLimit(10);
+      final data = await _dbhelper.getCardLimit(10);
       _cards.clear();
       _cards.addAll(data);
+      media = (await _dbhelper.getMediaFile(_cards[0].deckId)) ?? "";
     } else {
-      final data = await DatabaseHelper.instance.getCardForDeck(deck_id);
+      final data = await _dbhelper.getCardForDeck(deck_id);
+      media = (await _dbhelper.getMediaFile(deck_id)) ?? "";
       _cards.clear();
       _cards.addAll(data);
-      _cards = _cards
-          .where(
-            (c) =>
-                c.word != null &&
-                c.meaning != null &&
-                !(c.word?.contains(" ") ?? true),
-          )
-          .toList();
     }
-    media = (await DatabaseHelper.instance.getMediaFile(_cards[0].deckId))!;
+
+    _cards = _cards
+        .where((c) => c.sound != null && !(c.word?.contains(" ") ?? true))
+        .toList();
     isLoading = false;
     notifyListeners();
   }
@@ -93,23 +90,10 @@ class EchospellNoti extends ChangeNotifier {
     currentIndex = 0;
     answered = false;
     currentCardIdx++;
-    media = (await DatabaseHelper.instance.getMediaFile(
-      _cards[currentCardIdx].deckId,
-    ))!;
+    media = (await _dbhelper.getMediaFile(_cards[currentCardIdx].deckId)) ?? "";
     notifyListeners();
   }
 
-  // void SetUpList()
-  // {
-  //   if(list!=null)
-  //   {
-
-  //   }
-  //   if(listWord!=null)
-  //   {
-
-  //   }
-  // }
   List<String> SetUpList() {
     if (list == null) {
       list = _cards[currentCardIdx].word?.split("");

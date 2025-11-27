@@ -6,7 +6,7 @@ import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 
 class Mindfieldnoti extends ChangeNotifier {
   static final _dbhelper = DatabaseHelper.instance;
-  final List<Flashcard> _cards = [];
+  List<Flashcard> _cards = [];
   bool IsLoading = false;
   int currentIndex = 0;
   List<String>? options;
@@ -18,10 +18,25 @@ class Mindfieldnoti extends ChangeNotifier {
   Future<void> getFlashcardList(int deckID) async {
     IsLoading = true;
     notifyListeners();
-    final data = await _dbhelper.getCardForDeck(deckID);
-    _cards.clear();
-    _cards.addAll(data);
-    IsLoading = false;
+    if (deckID == 0) {
+      final data = await DatabaseHelper.instance.getCardLimit(10);
+      _cards.clear();
+      _cards.addAll(data);
+      
+    } else {
+      final data = await DatabaseHelper.instance.getCardForDeck(deckID);
+      _cards.clear();
+      _cards.addAll(data);
+      _cards = _cards
+          .where(
+            (c) =>
+                c.word != null &&
+                c.meaning != null &&
+                !(c.word?.contains(" ") ?? true),
+          )
+          .toList();
+    }
+    IsLoading=false;
     notifyListeners();
   }
 

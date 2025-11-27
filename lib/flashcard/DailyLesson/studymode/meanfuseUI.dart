@@ -1,28 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/checkBtn.dart';
-import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtn4States.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:provider/provider.dart';
 
+class MeanfuseUI extends StatelessWidget {
+  const MeanfuseUI({super.key});
 
-class MindFeildUI extends StatefulWidget {
-  const MindFeildUI({super.key});
-
-  @override
-  State<MindFeildUI> createState() => _MindFeildUIState();
-}
-
-class _MindFeildUIState extends State<MindFeildUI> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
-    final options = provider.getOptionList;
-    final mean=provider.meaning;
-    final states = provider.getOptionStateBool();
+    final list = provider.SetUpList();
+    final listWord = provider.SetUpListWord();
+    final listState = provider.GetListState();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -47,12 +40,13 @@ class _MindFeildUIState extends State<MindFeildUI> {
       body: Stack(
         children: [
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Row(
                 children: [
                   SizedBox(width: 40),
                   Text(
-                    "Select the correct answer",
+                    "Tap to build the word.",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 40,
@@ -62,11 +56,10 @@ class _MindFeildUIState extends State<MindFeildUI> {
                 ],
               ),
               Container(
-                height: 150,
                 width: 650,
                 child: Center(
                   child: Text(
-                    mean,
+                    provider.meaning,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -75,49 +68,51 @@ class _MindFeildUIState extends State<MindFeildUI> {
                   ),
                 ),
               ),
-              Container(
-                height: 150,
-                width: 750,
-                child: Row(
-                  children: [
-                    ListView.builder(
-                      itemCount: options.length,
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return Center(
-                          child: ChoiceBtn(
-                            value: options[index],
-                            isSelected: states[index],
-                            onPressed: () {
-                              reader.selectOption(index);
-                            },
-                          ),
-                        );
-                      },
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: List.generate(listWord.length, (index) {
+                  String value = listWord[index];
+                  return Text(
+                    value,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Roboto',
                     ),
-                    SizedBox(width: 50),
-                    CheckBtn(
-                      isChecked: provider.checkable,
-                      onCheck: () {
-                        reader.checkAnswerMC();
-                      },
-                    ),
-                  ],
-                ),
+                  );
+                }),
+              ),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+
+                children: List.generate(list.length, (index) {
+                  final value = list[index];
+                  return ChoiceBtnStates(
+                    value: value,
+                    state: listState[index],
+                    onChoose: () {
+                      reader.CheckAnswer(value, index);
+                    },
+                  );
+                }),
               ),
             ],
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom: provider.answered? 0 : -MediaQuery.of(context).size.height,
+            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
-              right: provider.right,
-              answer: provider.answer,
+              right: true,
+              answer: "",
               onPressed: () {
                 reader.nextCard();
               },
@@ -128,6 +123,3 @@ class _MindFeildUIState extends State<MindFeildUI> {
     );
   }
 }
-
-
-

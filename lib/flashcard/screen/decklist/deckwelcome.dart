@@ -1,17 +1,13 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/lessonScreen.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/timerNoti.dart';
-import 'package:mygame/flashcard/DailyLesson/screen/endscreen.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/business/Deck.dart';
 import 'package:mygame/flashcard/screen/decklist/achievement/achievement.dart';
-import 'package:mygame/components/Menu/usersetting/setting.dart';
+import 'package:mygame/flashcard/screen/learnmode/learnmodescreen.dart';
 import 'package:mygame/profile/Quest/quest.dart';
 import 'package:mygame/profile/userprofile/profile.dart';
 import 'package:mygame/profile/userprofile/profileNoti.dart';
 import 'package:provider/provider.dart';
-
 import 'cardlistscreen.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 
@@ -146,7 +142,8 @@ class _DeckListScreenState extends State<DeckListScreen> {
             ButtomNav(
               value: "Daily lesson",
               ico: Icons.flash_on_rounded,
-              screenBuilder: () => LessonScreen(),
+              //screenBuilder: () => LessonScreen(),
+              screenBuilder: () => LearnModeScreen(),
             ),
             ButtomNav(
               value: "Profile",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
+import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
-import 'package:mygame/data/flashcard/database_helper.dart';
 import 'package:path/path.dart';
 
 import 'phonemixUI.dart';
@@ -28,10 +29,7 @@ class phoneMixNoti extends ChangeNotifier {
   double get value => (_cards.isEmpty) ? 0 : currentIndex / _cards.length;
 
 
-  void setCardLength()
-  {
-
-  }
+  
 
   void NextTask() {
     options = null;
@@ -110,17 +108,24 @@ class phoneMixNoti extends ChangeNotifier {
   Future<void> getFlashcardList(int deckID) async {
     isLoading = true;
     notifyListeners();
-    final data = await _dbhelper.getCardForDeck(deckID);
-    _cards.clear();
-    _cards.addAll(data);
-
-    _cards = _cards
-        .where(
-          (c) =>
-              !(c.word?.contains(" ") ?? true) && c.ipa != null && c.ipa != '',
-        )
-        .toList();
-
+    if (deckID == 0) {
+      final data = await _dbhelper.getCardLimit(12);
+      _cards.clear();
+      _cards.addAll(data);
+      
+    } else {
+      final data = await _dbhelper.getCardForDeck(deckID);
+      _cards.clear();
+      _cards.addAll(data);
+      _cards = _cards
+          .where(
+            (c) =>
+                c.word != null &&
+                c.meaning != null &&
+                !(c.word?.contains(" ") ?? true),
+          )
+          .toList();
+    }
     isLoading = false;
     notifyListeners();
   }
@@ -160,23 +165,4 @@ class phoneMixNoti extends ChangeNotifier {
     }
     return listWord!;
   }
-}
-
-// @override
-//   void initState() {
-//     super.initState();
-//     word = options.map((e) => e.word).toList();
-//     word.shuffle();
-//     ipa = options.map((e) => e.ipa).toList();
-//     ipa.shuffle();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final provider=context.watch<phoneMixNoti>();
-//     final options=provider.setOptionList();
-class WordIPA {
-  final String word;
-  final String ipa;
-  WordIPA({required this.word, required this.ipa});
 }

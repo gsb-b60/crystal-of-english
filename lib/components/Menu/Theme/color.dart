@@ -40,4 +40,21 @@ class AppColor {
   static const diamond = Color(0xFFB9F2FF);
   static const master = Color(0xFFFF4500); // tùy chọn
   static const challenger = Color(0xFF8A2BE2); // tùy chọn
+
+  static const pinkPrimary = Color.fromRGBO(255, 135, 206, 1);
+
+
+   static const meanFuse      = Color(0xFF4A7C59); // green moss
+  static const wordSnap      = Color(0xFF3C6E71); // blue-grey teal
+  static const mindField     = Color(0xFF735D78); // dusty purple
+
+  static const echoSpell     = Color(0xFF1C7C54); // deep emerald
+  static const echoMatch     = Color(0xFF20639B); // deep blue
+  static const echoFuse      = Color(0xFF6A0572); // purple magenta
+
+  static const neuroPick     = Color(0xFF916953); // bronze brown
+  static const wordPulse     = Color(0xFF6B8E23); // olive green
+  static const soundSight    = Color(0xFF2E8B57); // sea green
+
+  static const phoneMix      = Color(0xFF364958); // dark steel blue
 }

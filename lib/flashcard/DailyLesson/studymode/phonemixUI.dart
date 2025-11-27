@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
-import 'package:mygame/flashcard/screen/studymode/phonemix/phonemixNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
+
 import 'package:provider/provider.dart';
 
 class PhoneMixUI extends StatefulWidget {
@@ -13,10 +16,10 @@ class PhoneMixUI extends StatefulWidget {
 class _PhoneMixUIState extends State<PhoneMixUI> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<phoneMixNoti>();
-    final reader = context.read<phoneMixNoti>();
-    
-    provider.setOptionList();
+    final provider = context.watch<LessonNoti>();
+    final reader = context.read<LessonNoti>();
+
+    provider.setOptionListPhone();
     final word = provider.getWord();
     final ipa = provider.getIPA();
 
@@ -38,13 +41,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
             ),
           ],
         ),
-        title: LinearProgressIndicator(
-          value: provider.value,
-          backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
-          minHeight: 18,
-          borderRadius: BorderRadius.circular(9),
-        ),
+        title: ProgressBar(value: provider.value, inARow: provider.inARow),
         backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
@@ -78,7 +75,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                         return Center(
                           child: ChoiceBtn(
                             value: word[index],
-                            state:ButtonState.normal ,//provider.wordState[index],
+                            state: provider.wordState[index],
                             onChoose: () {
                               reader.selectWord(index);
                             },
@@ -86,7 +83,6 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                         );
                       },
                     ),
-                    
                   ],
                 ),
               ),
@@ -105,7 +101,7 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
                         return Center(
                           child: ChoiceBtn(
                             value: ipa[index],
-                            state:ButtonState.normal,// provider.ipaState[index],
+                            state: provider.ipaState[index],
                             onChoose: () {
                               reader.selectIPA(index);
                             },
@@ -122,13 +118,15 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            bottom: provider.answer ? 0 : -MediaQuery.of(context).size.height,
+            bottom: provider.answered ? 0 : -MediaQuery.of(context).size.height,
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
+              right: true,
+              answer: "",
               onPressed: () {
-                reader.NextTask();
+                reader.nextCard();
               },
             ),
           ),
@@ -137,95 +135,6 @@ class _PhoneMixUIState extends State<PhoneMixUI> {
     );
   }
 }
-
-class ReviewScreen extends StatelessWidget {
-  ReviewScreen({super.key, required this.onPressed});
-  VoidCallback onPressed;
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: SizedBox(
-        width: double.infinity,
-        height: 250,
-        child: Container(
-          color: AppColor.darkSurface,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Row(
-                children: [
-                  SizedBox(width: 30),
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: AppColor.greenBright,
-                    size: 40,
-                  ),
-                  SizedBox(width: 20),
-                  Text(
-                    "Great job!",
-                    style: TextStyle(
-                      color: AppColor.greenBright,
-                      fontSize: 50,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-              Stack(
-                children: [
-                  SizedBox(
-                    width: 650,
-                    height: 80,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onPressed.call();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        elevation: 10,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: AppColor.greenPrimary,
-                      ),
-                      child: Text(
-                        "CONTINUE",
-                        style: TextStyle(
-                          color: AppColor.darkBase,
-                          fontSize: 50,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border(
-                            bottom: BorderSide(
-                              color: AppColor.greenAccent,
-
-                              width: 6,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-enum ButtonState { normal, selected, done, wrong }
 
 class ChoiceBtn extends StatelessWidget {
   String value;
