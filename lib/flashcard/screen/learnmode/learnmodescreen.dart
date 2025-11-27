@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/allmode.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/learnLevel.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
@@ -215,7 +216,7 @@ class DailyLearnScreenNav extends StatelessWidget {
           LearnModeCard(
             co: AppColor.greenPrimary,
             line: "DAILY LEARN",
-            screenBuilder: () => LessonScreen(),
+            screenBuilder: () => LessonScreen(fetchMode: FetchMode.testing,),
           ),
           LearnModeCard(
             co: AppColor.pinkPrimary,
@@ -226,6 +227,11 @@ class DailyLearnScreenNav extends StatelessWidget {
             co: AppColor.bluePrimary,
             line: "SHUFFLE MODE",
             screenBuilder: () => Shufflemode(),
+          ),
+          LearnModeCard(
+            co: AppColor.yellowPrimary,
+            line: "SupperMemmo 2",
+            screenBuilder: () => LessonScreen(fetchMode: FetchMode.SM2,),
           ),
         ],
       ),

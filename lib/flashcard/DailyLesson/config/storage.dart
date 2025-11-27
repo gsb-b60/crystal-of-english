@@ -17,7 +17,10 @@ enum StudyMode {
   phonemix, //4 ipa
   EndScreen,
 }
-
+enum FetchMode{
+  SM2,
+  testing,
+}
 class WordIPA {
   final String word;
   final String ipa;

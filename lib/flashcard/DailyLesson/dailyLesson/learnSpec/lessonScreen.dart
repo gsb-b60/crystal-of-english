@@ -17,8 +17,8 @@ import 'package:provider/provider.dart';
 import '../../screen/endscreen.dart';
 
 class LessonScreen extends StatefulWidget {
-  const LessonScreen({super.key});
-
+  LessonScreen({super.key,required this.fetchMode});
+  FetchMode fetchMode;
   @override
   State<LessonScreen> createState() => _LessonScreenState();
 }
@@ -28,7 +28,7 @@ class _LessonScreenState extends State<LessonScreen> {
   Widget build(BuildContext context) {
     return MultiProvider(
        providers: [
-        ChangeNotifierProvider(create: (context) => LessonNoti()..getFlashcardList(),),
+        ChangeNotifierProvider(create: (context) => LessonNoti()..getFlashcardList(widget.fetchMode),),
         ChangeNotifierProvider(create: (context)=>TimerNoti()..start()),
         ChangeNotifierProvider(create: (context)=>Questnoti())
        ],

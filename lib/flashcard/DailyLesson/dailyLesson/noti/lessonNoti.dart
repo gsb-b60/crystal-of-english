@@ -109,15 +109,23 @@ class LessonNoti extends ChangeNotifier {
   }
 
   //get variant
-  Future<void> getFlashcardList() async {
+  Future<void> getFlashcardList(FetchMode fetchMode) async {
     isLoading = true;
     notifyListeners();
+    var data;
+    switch (fetchMode) {
+      case FetchMode.SM2:
+        data = await _dbhelper.getDueCardLimit(10);
+        break;
+      case FetchMode.testing:
+        data = await _dbhelper.getCardLimit(10);
+        break;
+    }
 
-    final data = await _dbhelper.getCardLimit(10);
     _cards.clear();
     _cards.addAll(data);
     mode = SetUpLessonList[currentLessIdx]["mode"];
-
+    _cards.forEach((c)=>print(c.due));
     isLoading = false;
     notifyListeners();
   }
