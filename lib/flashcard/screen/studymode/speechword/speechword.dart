@@ -39,6 +39,8 @@ class _SpeechWordUIState extends State<SpeechWordUI> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SpeechWordNoti>();
+    final reader= context.read<SpeechWordNoti>();
+    provider.initSTT();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -100,7 +102,9 @@ class _SpeechWordUIState extends State<SpeechWordUI> {
               ),
               Spacer(),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  reader.startListening();
+                },
                 child: Container(
                   height: 100,
                   width: 400,
@@ -133,7 +137,9 @@ class _SpeechWordUIState extends State<SpeechWordUI> {
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
-            child: ReviewScreen(right: true, answer: "", onPressed: () {}),
+            child: ReviewScreen(right: provider.right, answer: provider.word, onPressed: () {
+              reader.SetNext();
+            }),
           ),
         ],
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
+import 'package:path/path.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class SpeechWordNoti extends ChangeNotifier {
   static final _dbhelper = DatabaseHelper.instance;
@@ -9,6 +11,7 @@ class SpeechWordNoti extends ChangeNotifier {
 
   int currentCardIdx = 0;
   bool answered = false;
+  bool right = true;
 
   double get value => (_cards.isEmpty) ? 0 : currentCardIdx / _cards.length;
   String get word => _cards[currentCardIdx].word ?? "none";
@@ -48,5 +51,49 @@ class SpeechWordNoti extends ChangeNotifier {
     }
     isLoading = false;
     notifyListeners();
+  }
+
+  //speech
+  final SpeechToText stt = SpeechToText();
+
+  Future<void> initSTT() async {
+    bool available = await stt.initialize(
+      onStatus: (status) => print('STT status: $status'),
+      onError: (errorNotification) => print('STT error: $errorNotification'),
+    );
+
+    if (!available) {
+      print('STT not available or permission denied');
+    }
+  }
+
+  void startListening() async {
+    String re = "";
+    await stt.listen(
+      onResult: (result) {
+        print("user said ${result.recognizedWords}");
+        re = result.recognizedWords;
+      },
+      localeId: "en_US",
+    );
+    await Future.delayed(Duration(seconds: 5));
+    await stt.stop();
+    CheckAnswer(re);
+  }
+
+  void CheckAnswer(String re) {
+    re = re.toLowerCase().trim();
+    var wordtrim = word.toLowerCase().trim();
+    answered = true;
+    if (normalize(re) == normalize(wordtrim)) {
+      right = true;
+    } else {
+      right=false;
+    }
+    notifyListeners();
+  }
+
+  void stopListen() async {
+    await stt.stop();
   }
 }

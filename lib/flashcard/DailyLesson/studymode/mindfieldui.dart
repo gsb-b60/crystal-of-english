@@ -69,14 +69,14 @@ class _MindFeildUIState extends State<MindFeildUI> {
                     mean,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
               Container(
-                height: 150,
+                height: 120,
                 width: 750,
                 child: Row(
                   children: [

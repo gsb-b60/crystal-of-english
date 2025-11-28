@@ -60,7 +60,7 @@ class _QuestScreenState extends State<QuestScreen> {
                           children: [
                             Container(
                               height: 30,
-                              width: 90,
+                              width: 100,
                               padding: EdgeInsets.all(3),
                               decoration: BoxDecoration(
                                 color: AppColor.lightText,

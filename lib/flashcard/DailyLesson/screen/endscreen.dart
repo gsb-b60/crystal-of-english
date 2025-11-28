@@ -150,7 +150,7 @@ class AnalystWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 130,
-      height: 120,
+      height: 130,
       margin: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: co,

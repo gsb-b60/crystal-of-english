@@ -105,9 +105,6 @@ class Flashcard {
   }
 
   factory Flashcard.fromMap(Map<String, dynamic> map) {
-    print(
-      "card taken ${map['due'] != null ? DateTime.fromMillisecondsSinceEpoch(map['due'] as int) : null}",
-    );
     return Flashcard(
       id: map['id'] as int?,
       deckId: map['deck_id'] as int,
