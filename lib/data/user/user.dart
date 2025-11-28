@@ -55,9 +55,9 @@ class User {
       'IndayCard': IndayCard,
       'IndayRep': IndayRep,
       'QuestPoint': QuestPoint,
-      'IsRepClaim': (IsRepClaim ?? true) ? 1 : 0,
-      'IsLessClaim': (IsLessClaim ?? true) ? 1 : 0,
-      'IsLearnClaim': (IsLearnClaim ?? true) ? 1 : 0,
+      'IsRepClaim': (IsRepClaim ?? false) ? 1 : 0,
+      'IsLessClaim': (IsLessClaim ?? false) ? 1 : 0,
+      'IsLearnClaim': (IsLearnClaim ?? false) ? 1 : 0,
     };
   }
 
