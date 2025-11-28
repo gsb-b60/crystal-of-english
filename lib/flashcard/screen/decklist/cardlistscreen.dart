@@ -10,6 +10,7 @@ import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
 import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
 import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
+import 'package:mygame/flashcard/screen/studymode/speechword/speechword.dart';
 import 'package:mygame/flashcard/screen/studymode/synonymfield/synonymfield.dart';
 import 'package:mygame/flashcard/screen/studymode/synonympick/synonympick.dart';
 import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
@@ -200,6 +201,10 @@ class LearnMode extends StatelessWidget {
           NavPageBtn(
             label: "Synonym Pick",
             screenBuilder: () => Synonympick(deckID: deckID),
+          ),
+          NavPageBtn(
+            label: "Speech Word",
+            screenBuilder: () => Speechword(deck_id: deckID),
           ),
         ],
       ),
