@@ -47,7 +47,7 @@ class QuestNoti extends ChangeNotifier {
   }
 
   double get learnVal {
-    return (_user.TotalCard ?? 1) / LearnGoal;
+    return (_user.IndayCard ?? 1) / LearnGoal;
   }
 
   double get questVal {

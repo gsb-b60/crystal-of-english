@@ -14,8 +14,14 @@ enum StudyMode {
   wordpulse, //picture - shuffle word
   soundAndSight, //picture - arrange letters
 
+  synonympick,// synonym - shuffle word
+  synonymfeild,// synonym - other word
+
+  speechword,//speak with word and ipa
+
   phonemix, //4 ipa
   EndScreen,
+  StartScreen,
 }
 enum FetchMode{
   SM2,
@@ -77,7 +83,9 @@ class lessonNotiHelper {
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
   static List<Map<String, dynamic>> allMode= [
-    {"cIdx": 0, "mode": StudyMode.meanfuse},
+    {"cIdx": 0, "mode": StudyMode.StartScreen},
+    {"cIdx": 0, "mode": StudyMode.synonympick},
+
     {"cIdx": 4, "mode": StudyMode.EndScreen},
     
     {"cIdx": 1, "mode": StudyMode.wordsnap},

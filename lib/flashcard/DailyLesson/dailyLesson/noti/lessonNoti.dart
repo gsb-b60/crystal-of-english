@@ -125,7 +125,7 @@ class LessonNoti extends ChangeNotifier {
     _cards.clear();
     _cards.addAll(data);
     mode = SetUpLessonList[currentLessIdx]["mode"];
-    _cards.forEach((c)=>print(c.due));
+    _cards.forEach((c) => print(c.due));
     isLoading = false;
     notifyListeners();
   }
@@ -240,6 +240,16 @@ class LessonNoti extends ChangeNotifier {
       "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}",
     ).existsSync()) {
       return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}";
+    }
+    return "";
+  }
+
+  String getSynonymPath() {
+    print("sysm");
+    if (File(
+      "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}",
+    ).existsSync()) {
+      return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}";
     }
     return "";
   }
@@ -414,13 +424,11 @@ class LessonNoti extends ChangeNotifier {
     List<Flashcard> listCard = _cards.take(4).toList();
     listCard.forEach((c) {
       final currentCard = c;
-      String ipaCheck=c.ipa!;
-     if (!ipaCheck.contains('/')) {
-      ipaCheck = "/$ipaCheck/";
-    }
-      list.add(
-        WordIPA(word: currentCard.word ?? "", ipa: ipaCheck),
-      );
+      String ipaCheck = c.ipa!;
+      if (!ipaCheck.contains('/')) {
+        ipaCheck = "/$ipaCheck/";
+      }
+      list.add(WordIPA(word: currentCard.word ?? "", ipa: ipaCheck));
     });
     list.shuffle();
     return list;
@@ -509,5 +517,59 @@ class LessonNoti extends ChangeNotifier {
         });
       }
     }
+  }
+
+  int learn = 0;
+  int practice = 0;
+  int speak = 0;
+  int review = 0;
+  int estimate=0;
+  //count learn mode //start screen provider
+  void countLearn() {
+    for (int i = 0; i < SetUpLessonList.length; i++) {
+      switch (SetUpLessonList[i]["mode"]) {
+        case StudyMode.soundAndSight:
+          practice++;
+          break;
+        case StudyMode.wordsnap:
+          practice++;
+          break;
+        case StudyMode.echoSpell:
+          practice++;
+          break;
+        case StudyMode.echoMatch:
+          practice++;
+          break;
+        case StudyMode.echofuse:
+          practice++;
+          break;
+        case StudyMode.mindField:
+          learn++;
+          break;
+        case StudyMode.neuropick:
+          practice++;
+          break;
+        case StudyMode.phonemix:
+          practice++;
+          break;
+        case StudyMode.wordpulse:
+          practice++;
+          break;
+        case StudyMode.meanfuse:
+          learn++;
+          break;
+        case StudyMode.synonympick:
+          practice++;
+          break;
+        case StudyMode.synonymfeild:
+          practice++;
+          break;
+        case StudyMode.speechword:
+          speak++;
+          break;
+      }
+    }
+    estimate=((learn+practice+speak)*0.5).round();
+
   }
 }

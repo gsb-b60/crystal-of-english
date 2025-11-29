@@ -3,6 +3,7 @@ import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/screen/startscreen.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echospellUI.dart';
@@ -11,13 +12,16 @@ import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart'
+    show SynonympickUI;
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
+
 import 'package:provider/provider.dart';
 import '../../screen/endscreen.dart';
 
 class LessonScreen extends StatefulWidget {
-  LessonScreen({super.key,required this.fetchMode});
+  LessonScreen({super.key, required this.fetchMode});
   FetchMode fetchMode;
   @override
   State<LessonScreen> createState() => _LessonScreenState();
@@ -27,14 +31,16 @@ class _LessonScreenState extends State<LessonScreen> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-       providers: [
-        ChangeNotifierProvider(create: (context) => LessonNoti()..getFlashcardList(widget.fetchMode),),
-        ChangeNotifierProvider(create: (context)=>TimerNoti()..start()),
-        ChangeNotifierProvider(create: (context)=>Questnoti())
-       ],
-      
-      child: Consumer3<LessonNoti,TimerNoti,Questnoti>(
-        builder: (context, provider,timer,quest, _) {
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => LessonNoti()..getFlashcardList(widget.fetchMode),
+        ),
+        ChangeNotifierProvider(create: (context) => TimerNoti()..start()),
+        ChangeNotifierProvider(create: (context) => Questnoti()),
+      ],
+
+      child: Consumer3<LessonNoti, TimerNoti, Questnoti>(
+        builder: (context, provider, timer, quest, _) {
           if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
           }
@@ -61,6 +67,14 @@ class _LessonScreenState extends State<LessonScreen> {
               return EndScreen();
             case StudyMode.meanfuse:
               return MeanfuseUI();
+            case StudyMode.StartScreen:
+              return StartScreen();
+            case StudyMode.synonympick:
+              return SynonympickUI();
+            case StudyMode.synonymfeild:
+              return SynonympickUI();
+            case StudyMode.speechword:
+              return SynonympickUI();
             default:
               return Text("Select a Study Mode");
           }
@@ -69,4 +83,3 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 }
-
