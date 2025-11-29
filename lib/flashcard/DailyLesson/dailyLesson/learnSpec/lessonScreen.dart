@@ -12,11 +12,13 @@ import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/speechword.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/synonymfeildUI.dart';
-import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart'
-    show SynonympickUI;
+import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
+
+
 
 import 'package:provider/provider.dart';
 import '../../screen/endscreen.dart';
@@ -75,7 +77,7 @@ class _LessonScreenState extends State<LessonScreen> {
             case StudyMode.synonymfeild:
               return SynonymfeildUI();
             case StudyMode.speechword:
-              return SynonympickUI();
+              return SpeechWordUI();
             default:
               return Text("Select a Study Mode");
           }

@@ -61,20 +61,26 @@ class LessonNoti extends ChangeNotifier {
   //lession logic
   StudyMode? mode;
   List<Map<String, dynamic>> SetUpLessonList = [
-    {"cIdx": 0, "mode": StudyMode.phonemix},
+    {"cIdx": 0, "mode": StudyMode.StartScreen},
+
     {"cIdx": 0, "mode": StudyMode.meanfuse},
-    {"cIdx": 0, "mode": StudyMode.mindField},
-    {"cIdx": 0, "mode": StudyMode.wordsnap},
+    {"cIdx": 1, "mode": StudyMode.wordsnap},
+    {"cIdx": 2, "mode": StudyMode.mindField},
+
     {"cIdx": 1, "mode": StudyMode.echoSpell},
-    {"cIdx": 1, "mode": StudyMode.echofuse},
-    {"cIdx": 1, "mode": StudyMode.echoMatch},
+    {"cIdx": 2, "mode": StudyMode.echofuse},
+    {"cIdx": 0, "mode": StudyMode.echoMatch},
+
     {"cIdx": 2, "mode": StudyMode.soundAndSight},
-    {"cIdx": 2, "mode": StudyMode.neuropick},
-    {"cIdx": 2, "mode": StudyMode.wordpulse},
-    {"cIdx": 3, "mode": StudyMode.wordsnap},
-    {"cIdx": 3, "mode": StudyMode.echoMatch},
-    {"cIdx": 3, "mode": StudyMode.meanfuse},
+    {"cIdx": 1, "mode": StudyMode.neuropick},
+    {"cIdx": 0, "mode": StudyMode.wordpulse},
+
+    {"cIdx": 0, "mode": StudyMode.speechword},
+    {"cIdx": 1, "mode": StudyMode.speechword},
+    {"cIdx": 2, "mode": StudyMode.speechword},
+
     {"cIdx": 4, "mode": StudyMode.phonemix},
+
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
 
@@ -527,13 +533,17 @@ class LessonNoti extends ChangeNotifier {
   int estimate = 0;
   //count learn mode //start screen provider
   void countLearn() {
+    learn = 0;
+    practice = 0;
+    speak = 0;
+
     for (int i = 0; i < SetUpLessonList.length; i++) {
       switch (SetUpLessonList[i]["mode"]) {
         case StudyMode.soundAndSight:
           practice++;
           break;
         case StudyMode.wordsnap:
-          practice++;
+          learn++;
           break;
         case StudyMode.echoSpell:
           practice++;

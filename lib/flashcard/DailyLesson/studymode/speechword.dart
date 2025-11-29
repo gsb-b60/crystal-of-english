@@ -16,7 +16,7 @@ class _SpeechWordUIState extends State<SpeechWordUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader= context.read<LessonNoti>();
-    //provider.initSTT();
+    provider.initSTT();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
