@@ -9,7 +9,9 @@ import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/supermemo.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 import 'package:vibration/vibration.dart';
 
 enum ButtonState { normal, selected, done, wrong }
@@ -522,7 +524,7 @@ class LessonNoti extends ChangeNotifier {
   int practice = 0;
   int speak = 0;
   int review = 0;
-  int estimate=0;
+  int estimate = 0;
   //count learn mode //start screen provider
   void countLearn() {
     for (int i = 0; i < SetUpLessonList.length; i++) {
@@ -568,7 +570,49 @@ class LessonNoti extends ChangeNotifier {
           break;
       }
     }
-    estimate=((learn+practice+speak)*0.5).round();
+    estimate = ((learn + practice + speak) * 0.5).round();
+  }
 
+  //
+  Future<void> initSTT() async {
+    bool available = await stt.initialize(
+      onStatus: (status) => print('STT status: $status'),
+      onError: (errorNotification) => print('STT error: $errorNotification'),
+    );
+
+    if (!available) {
+      print('STT not available or permission denied');
+    }
+  }
+
+  final SpeechToText stt = SpeechToText();
+  void startListening() async {
+    String re = "";
+    await stt.listen(
+      onResult: (result) {
+        print("user said ${result.recognizedWords}");
+        re = result.recognizedWords;
+      },
+      localeId: "en_US",
+    );
+    await Future.delayed(Duration(seconds: 5));
+    await stt.stop();
+    CheckAnswerSpeech(re);
+  }
+
+  void CheckAnswerSpeech(String re) {
+    re = re.toLowerCase().trim();
+    var wordtrim = answer.toLowerCase().trim();
+    answered = true;
+    if (normalize(re) == normalize(wordtrim)) {
+      right = true;
+    } else {
+      right = false;
+    }
+    notifyListeners();
+  }
+
+  void stopListen() async {
+    await stt.stop();
   }
 }
