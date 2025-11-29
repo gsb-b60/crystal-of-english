@@ -245,7 +245,6 @@ class LessonNoti extends ChangeNotifier {
   }
 
   String getSynonymPath() {
-    print("sysm");
     if (File(
       "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}",
     ).existsSync()) {

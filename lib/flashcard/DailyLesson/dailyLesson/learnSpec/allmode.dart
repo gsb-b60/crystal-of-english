@@ -12,6 +12,7 @@ import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/synonymfeildUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
@@ -72,7 +73,7 @@ class _AllModeState extends State<AllMode> {
             case StudyMode.synonympick:
               return SynonympickUI();
             case StudyMode.synonymfeild:
-              return SynonympickUI();
+              return SynonymfeildUI();
             case StudyMode.speechword:
               return SynonympickUI();
             default:

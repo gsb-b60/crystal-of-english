@@ -8,21 +8,22 @@ import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:provider/provider.dart';
 
-class SynonympickUI extends StatefulWidget {
-  const SynonympickUI({super.key});
+class SynonymfeildUI extends StatefulWidget {
+  const SynonymfeildUI({super.key});
 
   @override
-  State<SynonympickUI> createState() => _SynonympickUIState();
+  State<SynonymfeildUI> createState() => _SynonymfeildUIState();
 }
 
-class _SynonympickUIState extends State<SynonympickUI> {
+class _SynonymfeildUIState extends State<SynonymfeildUI> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader = context.read<LessonNoti>();
-     provider.fetchMedia();
-    List<String> options = provider.getOptionsShuffle;
+    List<String> options = provider.getOptionList;
     List<bool> states = provider.getOptionStateBool();
+    final path = provider.getSynonymPath();
+    provider.fetchMedia();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -64,7 +65,7 @@ class _SynonympickUIState extends State<SynonympickUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  if (provider.getSynonymPath() != "")
+                  if (path!= "")
                     Container(
                       width: 390,
                       height: 270,
@@ -75,7 +76,7 @@ class _SynonympickUIState extends State<SynonympickUI> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.file(
-                          File(provider.getSynonymPath()),
+                          File(path),
                           fit: BoxFit.fitWidth,
                         ),
                       ),

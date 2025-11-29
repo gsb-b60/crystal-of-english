@@ -84,7 +84,7 @@ class lessonNotiHelper {
   ];
   static List<Map<String, dynamic>> allMode= [
     {"cIdx": 0, "mode": StudyMode.StartScreen},
-    {"cIdx": 0, "mode": StudyMode.synonympick},
+    {"cIdx": 0, "mode": StudyMode.synonymfeild},
 
     {"cIdx": 4, "mode": StudyMode.EndScreen},
     
