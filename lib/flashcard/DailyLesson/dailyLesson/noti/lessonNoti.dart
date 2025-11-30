@@ -625,4 +625,11 @@ class LessonNoti extends ChangeNotifier {
   void stopListen() async {
     await stt.stop();
   }
+  void callDone()
+  {
+    answered=true;
+    print("answer up");
+    notifyListeners();
+  }
+  List<Flashcard> get card=>_cards.take(3).toList();
 }

@@ -12,7 +12,7 @@ import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
-import 'package:mygame/flashcard/DailyLesson/studymode/speechword.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/speechwordUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/synonymfeildUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';

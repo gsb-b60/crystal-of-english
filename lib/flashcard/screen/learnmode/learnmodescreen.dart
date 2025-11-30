@@ -84,7 +84,6 @@ class _LearnModeScreenState extends State<LearnModeScreen> {
   }
 }
 
-
 class LearnByMode extends StatefulWidget {
   const LearnByMode({super.key});
 
@@ -109,12 +108,12 @@ class _LearnByModeState extends State<LearnByMode> {
           LearnModeCard(
             co: AppColor.wordSnap,
             line: "Word Snap", // meaning - other letters
-            screenBuilder: () => WordSnap(deck_id: 0,),
+            screenBuilder: () => WordSnap(deck_id: 0),
           ),
           LearnModeCard(
             co: AppColor.mindField,
             line: "Mind Field", // meaning - shuffle word
-            screenBuilder: () => MindFeild(deckID: 0,),
+            screenBuilder: () => MindFeild(deckID: 0),
           ),
           LearnModeCard(
             co: AppColor.echoSpell,
@@ -124,32 +123,32 @@ class _LearnByModeState extends State<LearnByMode> {
           LearnModeCard(
             co: AppColor.echoMatch,
             line: "Echo Match", // ipa+sound - shuffle word
-            screenBuilder: () => EchoMatch(deck_id: 0,),
+            screenBuilder: () => EchoMatch(deck_id: 0),
           ),
           LearnModeCard(
             co: AppColor.echoFuse,
             line: "Echo Fuse", // ipa+sound - other letters
-            screenBuilder: () => EchoFuse(deck_id: 0,),
+            screenBuilder: () => EchoFuse(deck_id: 0),
           ),
           LearnModeCard(
             co: AppColor.neuroPick,
             line: "Neuro Pick", // picture - fuse
-            screenBuilder: () => NeuroPick(deckID: 0,),
+            screenBuilder: () => NeuroPick(deckID: 0),
           ),
           LearnModeCard(
             co: AppColor.wordPulse,
             line: "Word Pulse", // picture - shuffle word
-            screenBuilder: () => WordPulse(deck_id: 0,),
+            screenBuilder: () => WordPulse(deck_id: 0),
           ),
           LearnModeCard(
             co: AppColor.soundSight,
             line: "Sound and Sight", // picture - arrange letters
-            screenBuilder: () => SoundNSight(deck_id: 0,),
+            screenBuilder: () => SoundNSight(deck_id: 0),
           ),
           LearnModeCard(
             co: AppColor.phoneMix,
             line: "Phonemix", // 4 ipa
-            screenBuilder: () => PhoneMix(deckID: 0,),
+            screenBuilder: () => PhoneMix(deckID: 0),
           ),
         ],
       ),
@@ -216,22 +215,25 @@ class DailyLearnScreenNav extends StatelessWidget {
           LearnModeCard(
             co: AppColor.greenPrimary,
             line: "DAILY LEARN",
-            screenBuilder: () => LessonScreen(fetchMode: FetchMode.testing,),
+            screenBuilder: () => LessonScreen(fetchMode: FetchMode.testing),
           ),
+          SizedBox(width: 20),
+          LearnModeCard(
+            co: AppColor.yellowPrimary,
+            line: "SupperMemmo 2",
+            screenBuilder: () => LessonScreen(fetchMode: FetchMode.SM2),
+          ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.pinkPrimary,
             line: "ALL MODE",
             screenBuilder: () => AllMode(),
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.bluePrimary,
             line: "SHUFFLE MODE",
             screenBuilder: () => Shufflemode(),
-          ),
-          LearnModeCard(
-            co: AppColor.yellowPrimary,
-            line: "SupperMemmo 2",
-            screenBuilder: () => LessonScreen(fetchMode: FetchMode.SM2,),
           ),
         ],
       ),
@@ -260,8 +262,6 @@ class LearnModeCard extends StatelessWidget {
         ),
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-
         width: 175,
         decoration: BoxDecoration(
           color: co,

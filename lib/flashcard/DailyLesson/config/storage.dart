@@ -14,19 +14,20 @@ enum StudyMode {
   wordpulse, //picture - shuffle word
   soundAndSight, //picture - arrange letters
 
-  synonympick,// synonym - shuffle word
-  synonymfeild,// synonym - other word
+  synonympick, // synonym - shuffle word
+  synonymfeild, // synonym - other word
 
-  speechword,//speak with word and ipa
+  speechword, //speak with word and ipa
 
   phonemix, //4 ipa
+  reviewcard,
+
   EndScreen,
   StartScreen,
 }
-enum FetchMode{
-  SM2,
-  testing,
-}
+
+enum FetchMode { SM2, testing }
+
 class WordIPA {
   final String word;
   final String ipa;
@@ -65,6 +66,7 @@ class lessonNotiHelper {
 
     return re;
   }
+
   List<Map<String, dynamic>> SetUpLessonList = [
     {"cIdx": 0, "mode": StudyMode.phonemix},
     {"cIdx": 0, "mode": StudyMode.meanfuse},
@@ -82,12 +84,12 @@ class lessonNotiHelper {
     {"cIdx": 4, "mode": StudyMode.phonemix},
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
-  static List<Map<String, dynamic>> allMode= [
+  static List<Map<String, dynamic>> allMode = [
     {"cIdx": 0, "mode": StudyMode.StartScreen},
-    {"cIdx": 0, "mode": StudyMode.speechword},
+    {"cIdx": 0, "mode": StudyMode.reviewcard},
 
     {"cIdx": 4, "mode": StudyMode.EndScreen},
-    
+
     {"cIdx": 1, "mode": StudyMode.wordsnap},
     {"cIdx": 2, "mode": StudyMode.mindField},
     {"cIdx": 3, "mode": StudyMode.echoSpell},

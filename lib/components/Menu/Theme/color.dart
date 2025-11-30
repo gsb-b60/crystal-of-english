@@ -7,6 +7,8 @@ class AppColor {
   static const Color lightText = Colors.white;
   static const Color darkText = Colors.black;
 
+  static const Color accentTeal = Color.fromARGB(255, 10, 114, 104);
+
   static const darkBase = Color.fromRGBO(18, 32, 35, 1);
   static const darkSurface = Color.fromRGBO(33, 46, 54, 1);
   static const darkCard = Color.fromRGBO(53, 70, 78, 1);
