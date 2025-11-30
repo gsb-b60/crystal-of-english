@@ -70,6 +70,7 @@ class _ReviewUIState extends State<ReviewUI> {
               int index=(properties.index)% list.length;
               return SizedBox.expand(
                 child: FlipCard(
+                  direction: FlipDirection.VERTICAL,
                   front: Card(
                     color: AppColor.darkBase,
                     child: Center(
@@ -87,14 +88,17 @@ class _ReviewUIState extends State<ReviewUI> {
                   back: Card(
                     color: AppColor.darkBase,
                     child: Center(
-                      child: Text(
-                        list[index].meaning??"",
-                        style: TextStyle(
-                          color: AppColor.lightText,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                      child: Container(
+                        width: 400,
+                        child: Text(
+                          list[index].meaning??"",
+                          style: TextStyle(
+                            color: AppColor.lightText,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center
                         ),
-                        textAlign: TextAlign.center
                       ),
                     ),
                   ),

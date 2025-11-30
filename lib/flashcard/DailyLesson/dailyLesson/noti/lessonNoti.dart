@@ -79,7 +79,13 @@ class LessonNoti extends ChangeNotifier {
     {"cIdx": 1, "mode": StudyMode.speechword},
     {"cIdx": 2, "mode": StudyMode.speechword},
 
+    {"cIdx": 1, "mode": StudyMode.synonympick},
+    {"cIdx": 0, "mode": StudyMode.synonympick},
+    {"cIdx": 2, "mode": StudyMode.synonymfeild},
+
     {"cIdx": 4, "mode": StudyMode.phonemix},
+
+    {"cIdx": 4, "mode": StudyMode.reviewcard},
 
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
