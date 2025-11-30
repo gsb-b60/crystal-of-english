@@ -80,15 +80,15 @@ class _EchoMatchUIState extends State<EchoMatchUI> {
                             size: 30,
                           ),
                         ),
-                        Text(
-                          ipa,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
+                        // Text(
+                        //   ipa,
+                        //   style: TextStyle(
+                        //     color: Colors.white,
+                        //     fontSize: 40,
+                        //     fontWeight: FontWeight.bold,
+                        //     fontFamily: 'Roboto',
+                        //   ),
+                        // ),
                       ],
                     ),
                     Container(

@@ -139,7 +139,9 @@ class LessonNoti extends ChangeNotifier {
     _cards.clear();
     _cards.addAll(data);
     mode = SetUpLessonList[currentLessIdx]["mode"];
-    _cards.forEach((c) => print(c.due));
+    _cards.forEach((c) {
+      print("${c.word} - ${c.due}");
+    });
     isLoading = false;
     notifyListeners();
   }
@@ -205,14 +207,10 @@ class LessonNoti extends ChangeNotifier {
 
   String get accLine => lessonNotiHelper.getAccLine(_acc);
 
-  void updateCard() {
-    SMNoti n = SMNoti();
-    int rate = right ? 3 : 2;
-    n.updateCardAfterReview(_cards[cardIdx], rate);
-  }
-
   void nextCard() {
-    updateCard();
+    print("ehyy");
+    updateRateCard(right);
+    print(RateCard);
     if (currentLessIdx < SetUpLessonList.length) {
       trueList = null;
       listWord = null;
@@ -263,6 +261,11 @@ class LessonNoti extends ChangeNotifier {
       "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}",
     ).existsSync()) {
       return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}";
+    }
+    if (File(
+      "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}",
+    ).existsSync()) {
+      return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}";
     }
     return "";
   }
@@ -601,9 +604,10 @@ class LessonNoti extends ChangeNotifier {
     }
   }
 
+  String re = "";
   final SpeechToText stt = SpeechToText();
   void startListening() async {
-    String re = "";
+    re = "";
     await stt.listen(
       onResult: (result) {
         print("user said ${result.recognizedWords}");
@@ -622,7 +626,9 @@ class LessonNoti extends ChangeNotifier {
     answered = true;
     if (normalize(re) == normalize(wordtrim)) {
       right = true;
+      ResultHandler(true);
     } else {
+      ResultHandler(false);
       right = false;
     }
     notifyListeners();
@@ -631,11 +637,51 @@ class LessonNoti extends ChangeNotifier {
   void stopListen() async {
     await stt.stop();
   }
-  void callDone()
-  {
-    answered=true;
+
+  void callDone() {
+    answered = true;
     print("answer up");
     notifyListeners();
   }
-  List<Flashcard> get card=>_cards.take(3).toList();
+
+  String get correctspeak {
+    String str= "right is: ${answer}";
+    if(re!="")
+    {
+      str+="  you said ${re}";
+    }
+   return  str; 
+  }
+
+  List<Flashcard> get card => _cards.take(3).toList();
+  //sm2
+  void updateCard() {
+    SMNoti n = SMNoti();
+    RateCard.forEach((c) {
+      int rate = (c["rate"] ?? 3).clamp(0, 5);
+      n.updateCardAfterReview(_cards[c["idx"] ?? 0], rate);
+    });
+  }
+
+  List<Map<String, int>> RateCard = [
+    {"idx": 0, "rate": 3},
+    {"idx": 1, "rate": 3},
+    {"idx": 2, "rate": 3},
+  ];
+  void updateRateCard(bool rating) {
+    if (SetUpLessonList[currentLessIdx]["mode"] != StudyMode.phonemix &&
+        SetUpLessonList[currentLessIdx]["mode"] != StudyMode.StartScreen &&
+        SetUpLessonList[currentLessIdx]["mode"] != StudyMode.EndScreen &&
+        SetUpLessonList[currentLessIdx]["mode"] != StudyMode.reviewcard) {
+      try {
+        var updateCard = RateCard.firstWhere(
+          (c) => c["idx"] == SetUpLessonList[currentLessIdx]["cIdx"],
+        );
+        int currentRate = updateCard["rate"] ?? 0;
+        updateCard["rate"] = currentRate + (rating ? 1 : -1);
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
 }

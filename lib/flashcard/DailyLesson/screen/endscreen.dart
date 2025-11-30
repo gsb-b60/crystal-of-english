@@ -18,6 +18,7 @@ class EndScreen extends StatelessWidget {
     final less = context.watch<LessonNoti>();
     final lessReader=context.watch<LessonNoti>();
     lessReader.CallQuest(context);
+    less.updateCard();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Column(

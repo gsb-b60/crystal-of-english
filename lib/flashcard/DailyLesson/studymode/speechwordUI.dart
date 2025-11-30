@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
 import 'package:provider/provider.dart';
 
@@ -35,13 +36,7 @@ class _SpeechWordUIState extends State<SpeechWordUI> {
             ),
           ],
         ),
-        title: LinearProgressIndicator(
-          value: provider.value,
-          backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
-          minHeight: 18,
-          borderRadius: BorderRadius.circular(9),
-        ),
+        title: ProgressBar(value: provider.value, inARow: provider.inARow),
         backgroundColor: AppColor.darkBase,
       ),
       body: Stack(
@@ -119,7 +114,7 @@ class _SpeechWordUIState extends State<SpeechWordUI> {
             height: MediaQuery.of(context).size.height,
             child: ReviewScreen(
               right: provider.right,
-              answer: provider.answer,
+              answer: provider.correctspeak,
               onPressed: () {
                 reader.nextCard();
               },
