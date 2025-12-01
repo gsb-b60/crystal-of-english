@@ -22,27 +22,29 @@ class EndScreen extends StatelessWidget {
     Color gradeColor;
     if (percent >= 0.85) {
       band = "Band 8-9 / C1+";
-      tip = "Excellent! Focus on advanced grammar and complex vocabulary.";
+      tip = "Recommend Deck: \n 4000 Essential English Words";
       gradeColor = Colors.greenAccent;
     } else if (percent >= 0.7) {
       band = "Band 7 / B2+";
-      tip = "Good! Improve accuracy and fluency in writing & speaking.";
+      tip =
+          "Recommend Deck: \n Cambridge_Vocabulary_for_IELTS_-_Advanced\n 4000 Essential English Words";
       gradeColor = Colors.tealAccent;
     } else if (percent >= 0.5) {
       band = "Band 5-6 / B1";
-      tip = "Fair. Work on grammar basics and expand vocabulary.";
+      tip =
+          "Recommend Deck: \n Cambridge_Vocabulary_for_IELTS_-_Advanced\n 4000 Essential English Words";
       gradeColor = Colors.orangeAccent;
     } else {
       band = "Band 3-4 / A2-B1";
-      tip = "Needs improvement. Focus on simple sentences and core vocabulary.";
+      tip = "Recommend Deck: \n Cambridge_Vocabulary_for_IELTS_-_Advanced";
       gradeColor = Colors.redAccent;
     }
 
     final Map<String, String> skillAnalysis = {
-      "Listening": percent >= 0.7 ? "Strong" : "Weak",
-      "Reading": percent >= 0.5 ? "Average" : "Weak",
-      "Writing": percent >= 0.7 ? "Good" : "Needs Practice",
-      "Speaking": percent >= 0.85 ? "Excellent" : "Practice Needed",
+      "Grammar Accuracy": percent >= 0.6 ? "Strong" : "OK",
+      "Tense Control": percent >= 0.5 ? "Average" : "Ok",
+      "Sentence Structures": percent >= 0.7 ? "Excellent" : "Good",
+      "Error Patterns": percent >= 0.85 ? "Excellent" : "Good",
     };
 
     return Scaffold(
@@ -137,29 +139,50 @@ class EndScreen extends StatelessWidget {
                       }
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text(
-                          "${entry.key}: ${entry.value}",
-                          style: TextStyle(color: skillColor, fontSize: 20),
+
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 200,
+                              child: Text(
+                                "${entry.key}:",
+                                style: TextStyle(
+                                  color: skillColor,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              "${entry.value}",
+                              style: TextStyle(color: skillColor, fontSize: 20),
+                            ),
+                          ],
                         ),
                       );
                     }).toList(),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: gradeColor,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: gradeColor,
+                          ),
+                          child: Text(
+                            'Back to Levels',
+                            style: TextStyle(fontSize: 22, color: Colors.black),
+                          ),
+                        ),
                       ),
-                      child: Text(
-                        'Back to Levels',
-                        style: TextStyle(fontSize: 22, color: Colors.black),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
