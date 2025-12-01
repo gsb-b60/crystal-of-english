@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/vocab/placementtest/library/placementtest.dart';
 
 import 'package:mygame/vocab/placementtest/library/widget.dart';
@@ -50,7 +51,6 @@ class _QuizScreenState extends State<QuizScreen> {
       showQuote = true;
     });
 
-
     Future.delayed(const Duration(milliseconds: 800), () {
       setState(() => showQuote = false);
 
@@ -76,10 +76,36 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(
-          'Question ${currentIndex + 1}/${widget.questions.length}',
-          style: TextStyle(color: Colors.teal, fontSize: 28),
+        title: Stack(
+          alignment: Alignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: LinearProgressIndicator(
+                value: (currentIndex + 1) / widget.questions.length,
+                minHeight: 30,
+                color: AppColor.accentTeal,
+                backgroundColor: Colors.grey[850],
+              ),
+            ),
+            Text(
+              'Question ${currentIndex + 1}/${widget.questions.length}',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                shadows: [
+                  Shadow(
+                    color: Colors.black54,
+                    offset: Offset(1, 1),
+                    blurRadius: 2,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
+
         backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -108,41 +134,36 @@ class _QuizScreenState extends State<QuizScreen> {
             },
           ),
 
-          if (showQuote)
-            Center(
-              child: AnimatedOpacity(
-                opacity: showQuote ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 800),
-                child: Container(
-                  height: 420,
-                  width: 800,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(
-                      255,
-                      249,
-                      180,
-                      252,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child:  Text(
-                      currentQuote,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 255, 255, 255),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // if (showQuote)
+          //   Center(
+          //     child: AnimatedOpacity(
+          //       opacity: showQuote ? 1.0 : 0.0,
+          //       duration: const Duration(milliseconds: 800),
+          //       child: Container(
+          //         height: 420,
+          //         width: 800,
+          //         padding: const EdgeInsets.symmetric(
+          //           horizontal: 24,
+          //           vertical: 16,
+          //         ),
+          //         decoration: BoxDecoration(
+          //           color: const Color.fromARGB(255, 249, 180, 252),
+          //           borderRadius: BorderRadius.circular(12),
+          //         ),
+          //         child: Center(
+          //           child: Text(
+          //             currentQuote,
+          //             textAlign: TextAlign.center,
+          //             style: TextStyle(
+          //               fontSize: 34,
+          //               fontWeight: FontWeight.bold,
+          //               color: Color.fromARGB(255, 255, 255, 255),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
         ],
       ),
     );

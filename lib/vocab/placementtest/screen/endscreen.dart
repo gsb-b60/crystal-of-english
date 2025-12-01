@@ -17,7 +17,6 @@ class EndScreen extends StatelessWidget {
     double percent = (score / total);
     int percentInt = (percent * 100).toInt();
 
-
     String band;
     String tip;
     Color gradeColor;
@@ -39,7 +38,6 @@ class EndScreen extends StatelessWidget {
       gradeColor = Colors.redAccent;
     }
 
-
     final Map<String, String> skillAnalysis = {
       "Listening": percent >= 0.7 ? "Strong" : "Weak",
       "Reading": percent >= 0.5 ? "Average" : "Weak",
@@ -55,7 +53,6 @@ class EndScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-
             Expanded(
               flex: 5,
               child: Column(
@@ -99,13 +96,12 @@ class EndScreen extends StatelessWidget {
 
             const SizedBox(width: 40),
 
-
             Expanded(
               flex: 4,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
                   Text(
                     'Progress',
                     style: TextStyle(
@@ -148,22 +144,21 @@ class EndScreen extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: gradeColor,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 15,
-                      ),
-                    ),
-                    onPressed: () {
+                  GestureDetector(
+                    onTap: () {
                       Navigator.pop(context);
                       Navigator.pop(context);
                     },
-                    child: const Text(
-                      'Back to Levels',
-                      style: TextStyle(fontSize: 22, color: Colors.black),
+                    child: Container(
+                      padding: EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: gradeColor,
+                      ),
+                      child: Text(
+                        'Back to Levels',
+                        style: TextStyle(fontSize: 22, color: Colors.black),
+                      ),
                     ),
                   ),
                 ],

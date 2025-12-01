@@ -7,6 +7,7 @@ import 'package:mygame/flashcard/screen/learnmode/learnmodescreen.dart';
 import 'package:mygame/profile/Quest/questScreen.dart';
 import 'package:mygame/profile/userprofile/profile.dart';
 import 'package:mygame/profile/userprofile/profileNoti.dart';
+import 'package:mygame/vocab/placementtest/screen/screenmain.dart';
 import 'package:provider/provider.dart';
 import 'cardlistscreen.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
@@ -81,19 +82,29 @@ class _DeckListScreenState extends State<DeckListScreen> {
         leading: const Icon(Icons.menu_book, color: Colors.white),
         backgroundColor: AppColor.darkSurface,
         title: const Text(
-          "My Decks",
+          "All Deck Card",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 60),
-            child: IconButton(
-              onPressed: () {
-                Provider.of<Deckmodel>(context, listen: false).filePicker();
-              },
-              icon: const Icon(Icons.assignment_returned_rounded, color: Colors.white),
+          IconButton(
+            icon: const Icon(Icons.assignment,color: Colors.white,),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QuizApp()),
+              );
+            },
+          ),
+          IconButton(
+            onPressed: () {
+              Provider.of<Deckmodel>(context, listen: false).filePicker();
+            },
+            icon: const Icon(
+              Icons.assignment_returned_rounded,
+              color: Colors.white,
             ),
           ),
+          
           Padding(
             padding: const EdgeInsets.only(right: 60),
             child: IconButton(
