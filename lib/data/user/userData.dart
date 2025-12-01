@@ -49,6 +49,7 @@ class UserDatabase {
   //update
   Future<void> UpdateLogDaySuper() async {
     User u = await getUser(1);
+    print("yes i do");
     DateTime now = DateTime.now();
     if (!(u.lastLoginDate!.day == now.day &&
         u.lastLoginDate!.month == now.month &&
@@ -191,6 +192,7 @@ class UserDatabase {
   }
 
   Future<User> getUser(int id) async {
+    
     final db = await UserDatabase.instance.database;
     final result = await db.query('users', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty) {

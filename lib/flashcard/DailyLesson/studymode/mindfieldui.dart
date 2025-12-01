@@ -96,7 +96,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
                         );
                       },
                     ),
-                    SizedBox(width: 50),
+                    SizedBox(width: 10),
                     CheckBtn(
                       isChecked: provider.checkable,
                       onCheck: () {

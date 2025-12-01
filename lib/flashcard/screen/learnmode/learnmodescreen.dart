@@ -16,7 +16,6 @@ import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
 import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
 import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
 import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnap.dart';
-import 'package:path/path.dart';
 
 class LearnModeScreen extends StatefulWidget {
   const LearnModeScreen({super.key});
@@ -90,15 +89,6 @@ class LearnByMode extends StatefulWidget {
   @override
   State<LearnByMode> createState() => _LearnByModeState();
 }
-
-
-
-
-
-
-
-
-
 class _LearnByModeState extends State<LearnByMode> {
   @override
   Widget build(BuildContext context) {
@@ -242,28 +232,28 @@ class DailyLearnScreenNav extends StatelessWidget {
           LearnModeCard(
             co: AppColor.greenAccent,
             line: "DAILY LEARN",
-            screenBuilder: () => LessonScreen(fetchMode: FetchMode.testing),
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.daily),
             aPath: "assets/illumode/school-75.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.yellowAccent,
-            line: "SupperMemmo 2",
-            screenBuilder: () => LessonScreen(fetchMode: FetchMode.SM2),
-            aPath: "assets/illumode/rocket-launch-61.png",
+            line: "Super Memmo 2",
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.sm),
+            aPath: "assets/illumode/team-brainstorming-5-1.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.pinkPrimary,
             line: "ALL MODE",
-            screenBuilder: () => AllMode(),
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.all),
             aPath: "assets/illumode/super-dad-28.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.bluePrimary,
             line: "SHUFFLE MODE",
-            screenBuilder: () => Shufflemode(),
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.shuffle),
             aPath: "assets/illumode/twitter-66.png",
           ),
         ],

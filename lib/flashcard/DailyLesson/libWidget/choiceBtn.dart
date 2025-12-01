@@ -17,7 +17,7 @@ class ChoiceBtn extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
-        width: 160,
+        width: 175,
         height: 70,
         child: ElevatedButton(
           onPressed: onPressed,

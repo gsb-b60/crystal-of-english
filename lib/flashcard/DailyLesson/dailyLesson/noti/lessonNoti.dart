@@ -60,6 +60,7 @@ class LessonNoti extends ChangeNotifier {
 
   //lession logic
   StudyMode? mode;
+  LearnMode how = LearnMode.daily;
   List<Map<String, dynamic>> SetUpLessonList = [
     {"cIdx": 0, "mode": StudyMode.StartScreen},
 
@@ -123,16 +124,40 @@ class LessonNoti extends ChangeNotifier {
   }
 
   //get variant
-  Future<void> getFlashcardList(FetchMode fetchMode) async {
+  Future<void> getFlashcardList(LearnMode fetchMode) async {
     isLoading = true;
     notifyListeners();
     var data;
     switch (fetchMode) {
-      case FetchMode.SM2:
+      case LearnMode.sm:
+        how = LearnMode.sm;
+        data = await _dbhelper.getDueCardLimit(10);
+        SetUpLessonList = lessonNotiHelper.sm2;
+        break;
+      case LearnMode.daily:
+        how = LearnMode.daily;
         data = await _dbhelper.getDueCardLimit(10);
         break;
-      case FetchMode.testing:
-        data = await _dbhelper.getCardLimit(10);
+      case LearnMode.all:
+        how = LearnMode.all;
+        data = await _dbhelper.getDueCardLimit(15);
+        SetUpLessonList = lessonNotiHelper.allMode;
+        break;
+      case LearnMode.shuffle:
+        how = LearnMode.daily;
+        data = await _dbhelper.getDueCardLimit(15);
+        SetUpLessonList = lessonNotiHelper.allMode;
+        final start = SetUpLessonList.first;
+        final end = SetUpLessonList.last;
+
+        // copy phần giữa
+        final middle = SetUpLessonList.sublist(1, SetUpLessonList.length - 1);
+
+        // shuffle phần giữa
+        middle.shuffle();
+
+        // ghép lại
+        SetUpLessonList = [start, ...middle, end];
         break;
     }
 
@@ -142,6 +167,7 @@ class LessonNoti extends ChangeNotifier {
     _cards.forEach((c) {
       print("${c.word} - ${c.due}");
     });
+    await fetchMedia();
     isLoading = false;
     notifyListeners();
   }
@@ -149,8 +175,8 @@ class LessonNoti extends ChangeNotifier {
   Future<void> getFlashcardListAllMode() async {
     isLoading = true;
     notifyListeners();
-
-    final data = await _dbhelper.getCardLimit(10);
+    how = LearnMode.all;
+    final data = await _dbhelper.getDueCardLimit(15);
     _cards.clear();
     _cards.addAll(data);
     SetUpLessonList = lessonNotiHelper.allMode;
@@ -163,11 +189,23 @@ class LessonNoti extends ChangeNotifier {
   Future<void> getFlashcardListShuffleMode() async {
     isLoading = true;
     notifyListeners();
-
-    final data = await _dbhelper.getCardLimit(10);
+    how = LearnMode.shuffle;
+    final data = await _dbhelper.getDueCardLimit(15);
     _cards.clear();
     _cards.addAll(data);
-    SetUpLessonList.shuffle();
+    // giữ nguyên phần đầu và cuối
+    SetUpLessonList = lessonNotiHelper.allMode;
+    final start = SetUpLessonList.first;
+    final end = SetUpLessonList.last;
+
+    // copy phần giữa
+    final middle = SetUpLessonList.sublist(1, SetUpLessonList.length - 1);
+
+    // shuffle phần giữa
+    middle.shuffle();
+
+    // ghép lại
+    SetUpLessonList = [start, ...middle, end];
     mode = SetUpLessonList[currentLessIdx]["mode"];
 
     isLoading = false;
@@ -207,8 +245,7 @@ class LessonNoti extends ChangeNotifier {
 
   String get accLine => lessonNotiHelper.getAccLine(_acc);
 
-  void nextCard() {
-    print("ehyy");
+  Future<void> nextCard() async {
     updateRateCard(right);
     print(RateCard);
     if (currentLessIdx < SetUpLessonList.length) {
@@ -223,11 +260,13 @@ class LessonNoti extends ChangeNotifier {
       statesBool = null;
       currentLessIdx++;
       mode = SetUpLessonList[currentLessIdx]["mode"];
+
       listWI = null;
       listIPA = null;
       listWordPhone = null;
       selectedIPAIDX = null;
       selectedWordIDX = null;
+      await fetchMedia();
       wordState = List.filled(4, ButtonState.normal);
       ipaState = List.filled(4, ButtonState.normal);
       notifyListeners();
@@ -418,15 +457,20 @@ class LessonNoti extends ChangeNotifier {
   //function
 
   Future<String> fetchMedia() async {
-    int deck_id = _cards[cardIdx].deckId;
-    if (mediaMap.containsKey(deck_id)) {
-      media = mediaMap[deck_id] ?? "";
-      return mediaMap[deck_id]!;
-    } else {
-      String md = await _dbhelper.getMediaFile(deck_id) ?? "";
-      mediaMap[deck_id] = md;
-      media = mediaMap[deck_id] ?? "";
-      return md;
+    try {
+      int deck_id = _cards[cardIdx].deckId;
+      if (mediaMap.containsKey(deck_id)) {
+        media = mediaMap[deck_id] ?? "";
+        return mediaMap[deck_id]!;
+      } else {
+        String md = await _dbhelper.getMediaFile(deck_id) ?? "";
+        mediaMap[deck_id] = md;
+        media = mediaMap[deck_id] ?? "";
+        return md;
+      }
+    } catch (e) {
+      print(e);
+      return "";
     }
   }
 
@@ -589,7 +633,7 @@ class LessonNoti extends ChangeNotifier {
           break;
       }
     }
-    estimate = ((learn + practice + speak) * 0.5).round();
+    estimate = ((learn + practice + speak) * 0.2).round();
   }
 
   //
@@ -645,15 +689,26 @@ class LessonNoti extends ChangeNotifier {
   }
 
   String get correctspeak {
-    String str= "right is: ${answer}";
-    if(re!="")
-    {
-      str+="  you said ${re}";
+    String str = "right is: ${answer}";
+    if (re != "") {
+      str += "  you said ${re}";
     }
-   return  str; 
+    return str;
   }
 
-  List<Flashcard> get card => _cards.take(3).toList();
+  List<Flashcard> get card3 {
+    switch (how) {
+      case LearnMode.shuffle:
+        return _cards.take(14).toList();
+      case LearnMode.all:
+        return _cards.take(14).toList();
+      case LearnMode.daily:
+        return _cards.take(3).toList();
+      case LearnMode.sm:
+        return _cards.take(5).toList();
+    }
+  }
+
   //sm2
   void updateCard() {
     SMNoti n = SMNoti();
@@ -668,6 +723,25 @@ class LessonNoti extends ChangeNotifier {
     {"idx": 1, "rate": 3},
     {"idx": 2, "rate": 3},
   ];
+  void createRateCard() {
+    int count;
+
+    switch (how) {
+      case LearnMode.shuffle:
+      case LearnMode.all:
+        count = 15;
+        break;
+      case LearnMode.daily:
+        count = 3;
+        break;
+      case LearnMode.sm:
+        count = 5;
+        break;
+    }
+
+    RateCard = List.generate(count, (i) => {"idx": i, "rate": 3});
+  }
+
   void updateRateCard(bool rating) {
     if (SetUpLessonList[currentLessIdx]["mode"] != StudyMode.phonemix &&
         SetUpLessonList[currentLessIdx]["mode"] != StudyMode.StartScreen &&

@@ -13,7 +13,7 @@ class CheckBtnVertical extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(3.0),
         height: 60,
-        width: 200,
+        width: 240,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border(

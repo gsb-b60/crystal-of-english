@@ -56,13 +56,13 @@ class MeanfuseUI extends StatelessWidget {
                 ],
               ),
               Container(
-                width: 650,
+                width: 675,
                 child: Center(
                   child: Text(
                     provider.meaning,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
