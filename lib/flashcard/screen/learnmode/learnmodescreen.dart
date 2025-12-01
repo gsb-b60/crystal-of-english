@@ -184,19 +184,13 @@ class LevelLearnScreenNav extends StatefulWidget {
 
 class _LevelLearnScreenNavState extends State<LevelLearnScreenNav> {
   List<Map<String, dynamic>> listLevel = [
-    {"level": 1, "co": Color(0xFF7A4A21)}, // Bronze - đồng cổ sang
-    {
-      "level": 2,
-      "co": Color.fromARGB(255, 109, 109, 187),
-    }, // Silver - bạc thép đậm
-    {"level": 3, "co": Color(0xFFAA7A13)}, // Gold - vàng hoàng gia đậm
-    {
-      "level": 4,
-      "co": Color.fromARGB(255, 112, 148, 255),
-    }, // Platinum - xám bạch kim lạnh
-    {"level": 5, "co": Color(0xFF0F6F82)}, // Diamond - xanh kim cương sâu
-    {"level": 6, "co": Color(0xFFA01717)}, // Master - đỏ quyền lực
-    {"level": 7, "co": Color(0xFF351A6E)}, // Challenger - tím đỉnh cao
+    {"level": 1, "co": Color(0xFF7A4A21) ,"path":"assets/illumode/global-warming-68.png"} ,
+    {"level": 2, "co": Color.fromARGB(255, 109, 109, 187),"path":"assets/illumode/global-warming-2-100.png"},
+    {"level": 3, "co": Color(0xFFAA7A13),"path":"assets/illumode/global-warming-4.png"},
+    {"level": 4, "co": Color.fromARGB(255, 112, 148, 255),"path":"assets/illumode/global-warming-2-30.png"},
+    {"level": 5, "co": Color(0xFF0F6F82),"path":"assets/illumode/global-warming-1-5.png"},
+    {"level": 6, "co": Color(0xFFA01717),"path":"assets/illumode/global-warming-2-50.png"},
+    {"level": 7, "co": Color(0xFF351A6E),"path":"assets/illumode/global-warming-76.png"},
   ];
 
   @override
@@ -214,7 +208,7 @@ class _LevelLearnScreenNavState extends State<LevelLearnScreenNav> {
                   co: listLevel[i]["co"],
                   line: "level ${listLevel[i]["level"].toString()}",
                   screenBuilder: () => Learnlevel(level: listLevel[i]["level"]),
-                  aPath: "",
+                  aPath: listLevel[i]["path"],
                 ),
                 SizedBox(width: 20),
               ],
@@ -303,10 +297,7 @@ class LearnModeCard extends StatelessWidget {
             if (aPath != "")
               Align(
                 alignment: AlignmentGeometry.center,
-                child: Container(
-                  width: 160,
-                  child: Image.asset(aPath),
-                ),
+                child: Container(width: 160, child: Image.asset(aPath)),
               ),
             Align(
               alignment: AlignmentGeometry.bottomCenter,
