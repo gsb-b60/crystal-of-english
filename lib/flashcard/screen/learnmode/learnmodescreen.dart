@@ -104,51 +104,70 @@ class _LearnByModeState extends State<LearnByMode> {
             co: AppColor.meanFuse,
             line: "Mean Fuse", // meaning - fuse
             screenBuilder: () => Meanfuse(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordSnap,
             line: "Word Snap", // meaning - other letters
             screenBuilder: () => WordSnap(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.mindField,
             line: "Mind Field", // meaning - shuffle word
             screenBuilder: () => MindFeild(deckID: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoSpell,
             line: "Echo Spell", // ipa+sound - fuse
             screenBuilder: () => Echospell(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoMatch,
             line: "Echo Match", // ipa+sound - shuffle word
             screenBuilder: () => EchoMatch(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoFuse,
             line: "Echo Fuse", // ipa+sound - other letters
             screenBuilder: () => EchoFuse(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.neuroPick,
             line: "Neuro Pick", // picture - fuse
             screenBuilder: () => NeuroPick(deckID: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordPulse,
             line: "Word Pulse", // picture - shuffle word
             screenBuilder: () => WordPulse(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.soundSight,
             line: "Sound and Sight", // picture - arrange letters
             screenBuilder: () => SoundNSight(deck_id: 0),
+            aPath: "",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.phoneMix,
             line: "Phonemix", // 4 ipa
             screenBuilder: () => PhoneMix(deckID: 0),
+            aPath: "",
           ),
         ],
       ),
@@ -189,10 +208,16 @@ class _LevelLearnScreenNavState extends State<LevelLearnScreenNav> {
           SizedBox(width: 20),
           ...List.generate(
             listLevel.length,
-            (i) => LearnModeCard(
-              co: listLevel[i]["co"],
-              line: "level ${listLevel[i]["level"].toString()}",
-              screenBuilder: () => Learnlevel(level: listLevel[i]["level"]),
+            (i) => Row(
+              children: [
+                LearnModeCard(
+                  co: listLevel[i]["co"],
+                  line: "level ${listLevel[i]["level"].toString()}",
+                  screenBuilder: () => Learnlevel(level: listLevel[i]["level"]),
+                  aPath: "",
+                ),
+                SizedBox(width: 20),
+              ],
             ),
           ),
         ],
@@ -213,27 +238,31 @@ class DailyLearnScreenNav extends StatelessWidget {
         children: [
           SizedBox(width: 20),
           LearnModeCard(
-            co: AppColor.greenPrimary,
+            co: AppColor.greenAccent,
             line: "DAILY LEARN",
             screenBuilder: () => LessonScreen(fetchMode: FetchMode.testing),
+            aPath: "assets/illumode/school-75.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
-            co: AppColor.yellowPrimary,
+            co: AppColor.yellowAccent,
             line: "SupperMemmo 2",
             screenBuilder: () => LessonScreen(fetchMode: FetchMode.SM2),
+            aPath: "assets/illumode/rocket-launch-61.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.pinkPrimary,
             line: "ALL MODE",
             screenBuilder: () => AllMode(),
+            aPath: "assets/illumode/super-dad-28.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.bluePrimary,
             line: "SHUFFLE MODE",
             screenBuilder: () => Shufflemode(),
+            aPath: "assets/illumode/twitter-66.png",
           ),
         ],
       ),
@@ -247,10 +276,12 @@ class LearnModeCard extends StatelessWidget {
     required this.co,
     required this.line,
     required this.screenBuilder,
+    required this.aPath,
   });
   Color co;
   String line;
   Widget Function() screenBuilder;
+  String aPath;
 
   @override
   Widget build(BuildContext context) {
@@ -267,16 +298,29 @@ class LearnModeCard extends StatelessWidget {
           color: co,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Align(
-          alignment: AlignmentGeometry.bottomCenter,
-          child: Text(
-            line,
-            style: TextStyle(
-              color: AppColor.lightText,
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
+        child: Stack(
+          children: [
+            if (aPath != "")
+              Align(
+                alignment: AlignmentGeometry.center,
+                child: Container(
+                  width: 160,
+                  child: Image.asset(aPath),
+                ),
+              ),
+            Align(
+              alignment: AlignmentGeometry.bottomCenter,
+              child: Text(
+                line,
+                style: TextStyle(
+                  color: AppColor.lightText,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

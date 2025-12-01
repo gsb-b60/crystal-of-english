@@ -34,7 +34,8 @@ class AppColor {
   static const bluePrimary = Color.fromRGBO(33, 152, 215, 1);
 
   static const yellowPrimary = Color.fromRGBO(255, 201, 4, 1);
-
+  static const yellowAccent = const Color.fromARGB(255, 214, 183, 9);
+  
   static const bronze = Color(0xFFCD7F32);
   static const silver = Color(0xFFC0C0C0);
   static const gold = Color(0xFFFFD700);
@@ -45,18 +46,17 @@ class AppColor {
 
   static const pinkPrimary = Color.fromRGBO(255, 135, 206, 1);
 
+  static const meanFuse = Color(0xFF4A7C59); // green moss
+  static const wordSnap = Color(0xFF3C6E71); // blue-grey teal
+  static const mindField = Color(0xFF735D78); // dusty purple
 
-   static const meanFuse      = Color(0xFF4A7C59); // green moss
-  static const wordSnap      = Color(0xFF3C6E71); // blue-grey teal
-  static const mindField     = Color(0xFF735D78); // dusty purple
+  static const echoSpell = Color(0xFF1C7C54); // deep emerald
+  static const echoMatch = Color(0xFF20639B); // deep blue
+  static const echoFuse = Color(0xFF6A0572); // purple magenta
 
-  static const echoSpell     = Color(0xFF1C7C54); // deep emerald
-  static const echoMatch     = Color(0xFF20639B); // deep blue
-  static const echoFuse      = Color(0xFF6A0572); // purple magenta
+  static const neuroPick = Color(0xFF916953); // bronze brown
+  static const wordPulse = Color(0xFF6B8E23); // olive green
+  static const soundSight = Color(0xFF2E8B57); // sea green
 
-  static const neuroPick     = Color(0xFF916953); // bronze brown
-  static const wordPulse     = Color(0xFF6B8E23); // olive green
-  static const soundSight    = Color(0xFF2E8B57); // sea green
-
-  static const phoneMix      = Color(0xFF364958); // dark steel blue
+  static const phoneMix = Color(0xFF364958); // dark steel blue
 }
