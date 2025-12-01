@@ -91,6 +91,14 @@ class LearnByMode extends StatefulWidget {
   State<LearnByMode> createState() => _LearnByModeState();
 }
 
+
+
+
+
+
+
+
+
 class _LearnByModeState extends State<LearnByMode> {
   @override
   Widget build(BuildContext context) {
@@ -104,70 +112,70 @@ class _LearnByModeState extends State<LearnByMode> {
             co: AppColor.meanFuse,
             line: "Mean Fuse", // meaning - fuse
             screenBuilder: () => Meanfuse(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/fitness-1-44.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordSnap,
             line: "Word Snap", // meaning - other letters
             screenBuilder: () => WordSnap(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/surfing-91.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.mindField,
             line: "Mind Field", // meaning - shuffle word
             screenBuilder: () => MindFeild(deckID: 0),
-            aPath: "",
+            aPath: "assets/illumode/baseball-22.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoSpell,
             line: "Echo Spell", // ipa+sound - fuse
             screenBuilder: () => Echospell(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/coach-82.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoMatch,
             line: "Echo Match", // ipa+sound - shuffle word
             screenBuilder: () => EchoMatch(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/diving-71.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoFuse,
             line: "Echo Fuse", // ipa+sound - other letters
             screenBuilder: () => EchoFuse(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/soccer-64.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.neuroPick,
             line: "Neuro Pick", // picture - fuse
             screenBuilder: () => NeuroPick(deckID: 0),
-            aPath: "",
+            aPath: "assets/illumode/parachute-11.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordPulse,
             line: "Word Pulse", // picture - shuffle word
             screenBuilder: () => WordPulse(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/video-call-1-72.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.soundSight,
             line: "Sound and Sight", // picture - arrange letters
             screenBuilder: () => SoundNSight(deck_id: 0),
-            aPath: "",
+            aPath: "assets/illumode/fitness-99.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.phoneMix,
             line: "Phonemix", // 4 ipa
             screenBuilder: () => PhoneMix(deckID: 0),
-            aPath: "",
+            aPath: "assets/illumode/rocket-launch-59.png",
           ),
         ],
       ),
