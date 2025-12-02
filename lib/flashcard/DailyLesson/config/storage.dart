@@ -33,7 +33,9 @@ class WordIPA {
   final String ipa;
   WordIPA({required this.word, required this.ipa});
 }
+
 enum LearnMode { daily, all, sm, shuffle }
+
 class lessonNotiHelper {
   static String getAccLine(int acc) {
     if (acc <= ThresholdAcc.excellent) {
@@ -65,6 +67,10 @@ class lessonNotiHelper {
     re.shuffle();
 
     return re;
+  }
+
+  static List<Map<String, dynamic>> createListForLevel(int count, StudyMode st) {
+    return List.generate(count, (i) => {"cIdx": i, "mode": st});
   }
 
   List<Map<String, dynamic>> SetUpLessonList = [

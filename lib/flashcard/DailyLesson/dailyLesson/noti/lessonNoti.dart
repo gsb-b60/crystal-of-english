@@ -144,7 +144,7 @@ class LessonNoti extends ChangeNotifier {
         SetUpLessonList = lessonNotiHelper.allMode;
         break;
       case LearnMode.shuffle:
-        how = LearnMode.daily;
+        how = LearnMode.shuffle;
         data = await _dbhelper.getDueCardLimit(15);
         SetUpLessonList = lessonNotiHelper.allMode;
         final start = SetUpLessonList.first;
@@ -168,63 +168,29 @@ class LessonNoti extends ChangeNotifier {
       print("${c.word} - ${c.due}");
     });
     await fetchMedia();
+    createRateCard();
     isLoading = false;
     notifyListeners();
   }
+  
 
-  Future<void> getFlashcardListAllMode() async {
-    isLoading = true;
-    notifyListeners();
-    how = LearnMode.all;
-    final data = await _dbhelper.getDueCardLimit(15);
-    _cards.clear();
-    _cards.addAll(data);
-    SetUpLessonList = lessonNotiHelper.allMode;
-    mode = SetUpLessonList[currentLessIdx]["mode"];
-
-    isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> getFlashcardListShuffleMode() async {
-    isLoading = true;
-    notifyListeners();
-    how = LearnMode.shuffle;
-    final data = await _dbhelper.getDueCardLimit(15);
-    _cards.clear();
-    _cards.addAll(data);
-    // giữ nguyên phần đầu và cuối
-    SetUpLessonList = lessonNotiHelper.allMode;
-    final start = SetUpLessonList.first;
-    final end = SetUpLessonList.last;
-
-    // copy phần giữa
-    final middle = SetUpLessonList.sublist(1, SetUpLessonList.length - 1);
-
-    // shuffle phần giữa
-    middle.shuffle();
-
-    // ghép lại
-    SetUpLessonList = [start, ...middle, end];
-    mode = SetUpLessonList[currentLessIdx]["mode"];
-
-    isLoading = false;
-    notifyListeners();
-  }
+  
 
   Future<void> getByLevel(int level) async {
     isLoading = true;
     notifyListeners();
-
-    final data = await _dbhelper.getCardByLevel(level);
+    var data;
+    how=LearnMode.daily;
+    data = await _dbhelper.getCardByLevel(level,15);
     _cards.clear();
     _cards.addAll(data);
-    _cards = _cards
-        .where((c) => c.sound != null && !(c.word?.contains(" ") ?? true))
-        .toList();
+    _cards.forEach((c) {
+      print("${c.word} - ${c.due}");
+    });
+    await fetchMedia();
     mode = SetUpLessonList[currentLessIdx]["mode"];
-
     isLoading = false;
+    createRateCard();
     notifyListeners();
   }
 
@@ -691,12 +657,12 @@ class LessonNoti extends ChangeNotifier {
   String get correctspeak {
     String str = "right is: ${answer}";
     if (re != "") {
-      str += "  you said ${re}";
+      str += "  you said: ${re}";
     }
     return str;
   }
 
-  List<Flashcard> get card3 {
+  List<Flashcard> get card {
     switch (how) {
       case LearnMode.shuffle:
         return _cards.take(14).toList();

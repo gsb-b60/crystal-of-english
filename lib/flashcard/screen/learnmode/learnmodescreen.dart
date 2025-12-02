@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/allmode.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/learnLevel.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/shufflemode.dart';
+
 import 'package:mygame/flashcard/screen/studymode/echofuse/echofuse.dart';
 import 'package:mygame/flashcard/screen/studymode/echomatch/echomath.dart';
 import 'package:mygame/flashcard/screen/studymode/echospell/echospell.dart';
