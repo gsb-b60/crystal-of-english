@@ -23,7 +23,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
     final provider = context.watch<Mindfieldnoti>();
     final card = provider.currentCard;
     final options = provider.getOptionList;
-    final progress=provider.getProgress();
+    final progress = provider.getProgress();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       appBar: AppBar(
@@ -45,9 +45,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
         title: LinearProgressIndicator(
           value: progress,
           backgroundColor: AppColor.darkCard,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            AppColor.greenPrimary,
-          ),
+          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenPrimary),
           minHeight: 18,
           borderRadius: BorderRadius.circular(9),
         ),
@@ -72,20 +70,23 @@ class _MindFeildUIState extends State<MindFeildUI> {
               ),
               Container(
                 height: 150,
-                width: 650,
+                width: 750,
                 child: Center(
-                  child: Text(
-                    card.meaning ?? "no meaning",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                  child: SingleChildScrollView(
+                    child: Text(
+                      card.meaning ?? "no meaning",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ),
               Container(
-                height: 150,
+                height: 120,
                 width: 750,
                 child: Row(
                   children: [
@@ -131,18 +132,21 @@ class _MindFeildUIState extends State<MindFeildUI> {
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height,
-            child: ReviewScreen(right: right, card: card, onPressed: () {
-              context.read<Mindfieldnoti>().nextCard();
-              setState(() {
-                answered=false;
-                selectedIndex=null;
+            child: ReviewScreen(
+              right: right,
+              card: card,
+              onPressed: () {
+                context.read<Mindfieldnoti>().nextCard();
+                setState(() {
+                  answered = false;
+                  selectedIndex = null;
 
-                Future.delayed(Duration(milliseconds: 400),()
-                {
-                  right=false;
+                  Future.delayed(Duration(milliseconds: 400), () {
+                    right = false;
+                  });
                 });
-              });
-            }),
+              },
+            ),
           ),
         ],
       ),
@@ -177,18 +181,14 @@ class ReviewScreen extends StatelessWidget {
                   SizedBox(width: 30),
                   Icon(
                     right ? Icons.check_circle_rounded : Icons.cancel,
-                    color: right
-                        ? AppColor.greenBright
-                        : AppColor.redPrimary,
+                    color: right ? AppColor.greenBright : AppColor.redPrimary,
                     size: 40,
                   ),
                   SizedBox(width: 20),
                   Text(
                     right ? "Great job!" : "Incorrect",
                     style: TextStyle(
-                      color: right
-                          ? AppColor.greenBright
-                          : AppColor.redPrimary,
+                      color: right ? AppColor.greenBright : AppColor.redPrimary,
                       fontSize: 50,
                       fontWeight: FontWeight.w900,
                     ),
@@ -303,9 +303,7 @@ class ChoiceBtn extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             side: BorderSide(
-              color: isSelected
-                  ? AppColor.greenMuted
-                  : AppColor.darkCard,
+              color: isSelected ? AppColor.greenMuted : AppColor.darkCard,
               width: 4,
             ),
             backgroundColor: isSelected
@@ -315,7 +313,7 @@ class ChoiceBtn extends StatelessWidget {
           child: Text(
             value,
             style: TextStyle(
-              color: isSelected ? AppColor.greenMuted: Colors.white,
+              color: isSelected ? AppColor.greenMuted : Colors.white,
               fontSize: 28,
             ),
           ),
@@ -378,7 +376,7 @@ class CheckBtn extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: isChecked
-                          ?  AppColor.greenAccent
+                          ? AppColor.greenAccent
                           : Colors.transparent,
                       width: 6,
                     ),

@@ -68,20 +68,23 @@ class _WordSnapUIState extends State<WordSnapUI> {
               ),
               Container(
                 height: 150,
-                width: 650,
+                width: 750,
                 child: Center(
-                  child: Text(
-                    mean,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                  child: SingleChildScrollView(
+                    child: Text(
+                      mean,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ),
               Container(
-                height: 150,
+                height: 120,
                 width: 750,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -149,7 +152,7 @@ class ChoiceBtn extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
-        width: 150,
+        width: 165,
         height: 70,
         child: ElevatedButton(
           onPressed: onPressed,
@@ -169,7 +172,7 @@ class ChoiceBtn extends StatelessWidget {
             value,
             style: TextStyle(
               color: isSelected ? AppColor.greenMuted : Colors.white,
-              fontSize: 28,
+              fontSize: 22,
             ),
           ),
         ),
@@ -190,7 +193,7 @@ class CheckBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         height: 70,
-        width: 150,
+        width: 165,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border(
