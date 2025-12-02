@@ -69,8 +69,16 @@ class lessonNotiHelper {
     return re;
   }
 
-  static List<Map<String, dynamic>> createListForLevel(int count, StudyMode st) {
-    return List.generate(count, (i) => {"cIdx": i, "mode": st});
+  static List<Map<String, dynamic>> createListForLevel(
+    int count,
+    StudyMode st,
+  ) {
+    List<Map<String, dynamic>> re = [
+      {"cIdx": 0, "mode": StudyMode.StartScreen},
+    ];
+    re.addAll(List.generate(count, (i) => {"cIdx": i, "mode": st}));
+    re.add({"cIdx": 0, "mode": StudyMode.EndScreen});
+    return re;
   }
 
   List<Map<String, dynamic>> SetUpLessonList = [

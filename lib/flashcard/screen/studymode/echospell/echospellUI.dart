@@ -193,8 +193,8 @@ class ChoiceBtn extends StatelessWidget {
         }
       },
       child: Container(
-        height: 60,
-        width: 60,
+        height: 50,
+        width: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: BoxBorder.all(color: borderColor, width: 4),
@@ -205,7 +205,7 @@ class ChoiceBtn extends StatelessWidget {
             value,
             style: TextStyle(
               color: textColor,
-              fontSize: 35,
+              fontSize: 27,
               fontWeight: FontWeight.bold,
               fontFamily: 'Roboto',
             ),

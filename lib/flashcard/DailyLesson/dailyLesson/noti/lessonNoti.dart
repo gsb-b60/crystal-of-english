@@ -172,22 +172,38 @@ class LessonNoti extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
-  
-
-  
 
   Future<void> getByLevel(int level) async {
     isLoading = true;
     notifyListeners();
     var data;
-    how=LearnMode.daily;
-    data = await _dbhelper.getCardByLevel(level,15);
+    how = LearnMode.daily;
+    data = await _dbhelper.getCardByLevel(level, 15);
     _cards.clear();
     _cards.addAll(data);
     _cards.forEach((c) {
       print("${c.word} - ${c.due}");
     });
     await fetchMedia();
+    mode = SetUpLessonList[currentLessIdx]["mode"];
+    isLoading = false;
+    createRateCard();
+    notifyListeners();
+  }
+
+  Future<void> getByMode(StudyMode st) async {
+    isLoading = true;
+    notifyListeners();
+    var data;
+    how = LearnMode.all;
+    data = await _dbhelper.getDueCardLimit(15);
+    _cards.clear();
+    _cards.addAll(data);
+    _cards.forEach((c) {
+      print("${c.word} - ${c.due}");
+    });
+    await fetchMedia();
+    SetUpLessonList = lessonNotiHelper.createListForLevel(14, st);
     mode = SetUpLessonList[currentLessIdx]["mode"];
     isLoading = false;
     createRateCard();
