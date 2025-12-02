@@ -79,9 +79,9 @@
   },
   {
     "id": 14,
-    "question": "She insisted _____ him to apologise.",
-    "choices": ["on asking", "asking", "to ask"],
-    "correctIndex": 2
+    "question": "She insisted on _____ him to apologise.",
+    "choices": ["ask", "asking", "to ask"],
+    "correctIndex": 1
   },
   {
     "id": 15,
