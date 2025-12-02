@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mygame/components/Menu/Theme/color.dart';
 
 class QuestionCard extends StatelessWidget {
   final String question;
@@ -22,20 +23,50 @@ class QuestionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(question,
-              style: const TextStyle(color: Colors.white, fontSize: 30)),
+            Text(
+              question,
+              style: const TextStyle(color: Colors.white, fontSize: 30),
+            ),
             const SizedBox(height: 16),
             ...List.generate(choices.length, (index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+              return Column(
+                children: [
+                  GestureDetector(
+                    onTap: () => onSelected(index),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      height: 50,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: AppColor.primaryTeal,
+                        borderRadius: BorderRadius.circular(12)
+                      ),
+                      child: Text(
+                        choices[index],
+                        style: const TextStyle(color: Colors.white, fontSize: 23),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
-                  onPressed: () => onSelected(index),
-                  child: Text(choices[index],
-                    style: const TextStyle(color: Colors.white, fontSize: 23)),
-                ),
+
+                  // Padding(
+                  //   padding: const EdgeInsets.symmetric(vertical: 4),
+                  //   child: ElevatedButton(
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: Colors.teal,
+                  //     ),
+                  //     onPressed: () => onSelected(index),
+                  //     child: Text(
+                  //       choices[index],
+                  //       style: const TextStyle(
+                  //         color: Colors.white,
+                  //         fontSize: 23,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                ],
               );
             }),
           ],

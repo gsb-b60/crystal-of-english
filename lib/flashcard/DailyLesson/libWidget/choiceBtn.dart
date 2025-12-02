@@ -17,7 +17,7 @@ class ChoiceBtn extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
-        width: 150,
+        width: 175,
         height: 70,
         child: ElevatedButton(
           onPressed: onPressed,
@@ -37,7 +37,7 @@ class ChoiceBtn extends StatelessWidget {
             value,
             style: TextStyle(
               color: isSelected ? AppColor.greenMuted : Colors.white,
-              fontSize: 28,
+              fontSize: 22,
             ),
           ),
         ),

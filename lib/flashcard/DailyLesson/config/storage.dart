@@ -14,16 +14,26 @@ enum StudyMode {
   wordpulse, //picture - shuffle word
   soundAndSight, //picture - arrange letters
 
+  synonympick, // synonym - shuffle word
+  synonymfeild, // synonym - other word
+
+  speechword, //speak with word and ipa
+
   phonemix, //4 ipa
+  reviewcard,
+
   EndScreen,
+  StartScreen,
 }
+
+enum FetchMode { SM2, testing }
 
 class WordIPA {
   final String word;
   final String ipa;
   WordIPA({required this.word, required this.ipa});
 }
-
+enum LearnMode { daily, all, sm, shuffle }
 class lessonNotiHelper {
   static String getAccLine(int acc) {
     if (acc <= ThresholdAcc.excellent) {
@@ -56,6 +66,7 @@ class lessonNotiHelper {
 
     return re;
   }
+
   List<Map<String, dynamic>> SetUpLessonList = [
     {"cIdx": 0, "mode": StudyMode.phonemix},
     {"cIdx": 0, "mode": StudyMode.meanfuse},
@@ -73,18 +84,73 @@ class lessonNotiHelper {
     {"cIdx": 4, "mode": StudyMode.phonemix},
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
-  static List<Map<String, dynamic>> allMode= [
-    {"cIdx": 4, "mode": StudyMode.EndScreen},
+  static List<Map<String, dynamic>> allMode = [
+    {"cIdx": 0, "mode": StudyMode.StartScreen},
+
     {"cIdx": 0, "mode": StudyMode.meanfuse},
     {"cIdx": 1, "mode": StudyMode.wordsnap},
     {"cIdx": 2, "mode": StudyMode.mindField},
+
     {"cIdx": 3, "mode": StudyMode.echoSpell},
     {"cIdx": 4, "mode": StudyMode.echofuse},
     {"cIdx": 5, "mode": StudyMode.echoMatch},
+
     {"cIdx": 6, "mode": StudyMode.soundAndSight},
     {"cIdx": 7, "mode": StudyMode.neuropick},
     {"cIdx": 8, "mode": StudyMode.wordpulse},
-    {"cIdx": 9, "mode": StudyMode.phonemix},
+
+    {"cIdx": 9, "mode": StudyMode.speechword},
+    {"cIdx": 10, "mode": StudyMode.speechword},
+    {"cIdx": 11, "mode": StudyMode.speechword},
+
+    {"cIdx": 12, "mode": StudyMode.synonympick},
+    {"cIdx": 13, "mode": StudyMode.synonympick},
+    {"cIdx": 14, "mode": StudyMode.synonymfeild},
+
+    {"cIdx": 14, "mode": StudyMode.phonemix},
+
+    {"cIdx": 4, "mode": StudyMode.reviewcard},
+
+    {"cIdx": 4, "mode": StudyMode.EndScreen},
+  ];
+  static List<Map<String, dynamic>> sm2 = [
+    {"cIdx": 0, "mode": StudyMode.StartScreen},
+
+    {"cIdx": 0, "mode": StudyMode.meanfuse},
+    {"cIdx": 1, "mode": StudyMode.wordsnap},
+    {"cIdx": 2, "mode": StudyMode.mindField},
+    {"cIdx": 4, "mode": StudyMode.wordsnap},
+    {"cIdx": 3, "mode": StudyMode.mindField},
+
+    {"cIdx": 3, "mode": StudyMode.echoMatch},
+    {"cIdx": 1, "mode": StudyMode.echoSpell},
+    {"cIdx": 2, "mode": StudyMode.echofuse},
+    {"cIdx": 0, "mode": StudyMode.echoMatch},
+    {"cIdx": 4, "mode": StudyMode.echofuse},
+
+    {"cIdx": 2, "mode": StudyMode.soundAndSight},
+    {"cIdx": 4, "mode": StudyMode.wordpulse},
+    {"cIdx": 1, "mode": StudyMode.neuropick},
+    {"cIdx": 0, "mode": StudyMode.wordpulse},
+    {"cIdx": 3, "mode": StudyMode.soundAndSight},
+
+    {"cIdx": 0, "mode": StudyMode.speechword},
+    {"cIdx": 1, "mode": StudyMode.speechword},
+    {"cIdx": 2, "mode": StudyMode.speechword},
+    {"cIdx": 3, "mode": StudyMode.speechword},
+    {"cIdx": 4, "mode": StudyMode.speechword},
+
+    {"cIdx": 1, "mode": StudyMode.synonympick},
+    {"cIdx": 3, "mode": StudyMode.synonympick},
+    {"cIdx": 0, "mode": StudyMode.synonympick},
+    {"cIdx": 4, "mode": StudyMode.synonympick},
+    {"cIdx": 2, "mode": StudyMode.synonymfeild},
+
+    {"cIdx": 4, "mode": StudyMode.phonemix},
+    {"cIdx": 4, "mode": StudyMode.phonemix},
+
+    {"cIdx": 4, "mode": StudyMode.reviewcard},
+
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
 }

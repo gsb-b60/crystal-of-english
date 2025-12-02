@@ -17,7 +17,7 @@ class ChoiceBtnVertical extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(3.0),
       child: SizedBox(
-        width: 200,
+        width: 240,
         height: 60,
         child: ElevatedButton(
           onPressed: onPressed,

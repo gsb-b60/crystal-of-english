@@ -11,10 +11,14 @@ class EndScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final timer = context.watch<TimerNoti>();
     final reader = context.read<TimerNoti>();
+    
     reader.stop();
     final elipse = timer.formatted;
 
     final less = context.watch<LessonNoti>();
+    final lessReader=context.watch<LessonNoti>();
+    lessReader.CallQuest(context);
+    less.updateCard();
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Column(
@@ -147,7 +151,7 @@ class AnalystWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 130,
-      height: 120,
+      height: 130,
       margin: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: co,

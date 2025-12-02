@@ -10,6 +10,7 @@ import 'package:mygame/flashcard/screen/studymode/mindfield/mindfeild.dart';
 import 'package:mygame/flashcard/screen/studymode/neuropick/neuropick.dart';
 import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
 import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
+import 'package:mygame/flashcard/screen/studymode/speechword/speechword.dart';
 import 'package:mygame/flashcard/screen/studymode/synonymfield/synonymfield.dart';
 import 'package:mygame/flashcard/screen/studymode/synonympick/synonympick.dart';
 import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
@@ -201,6 +202,10 @@ class LearnMode extends StatelessWidget {
             label: "Synonym Pick",
             screenBuilder: () => Synonympick(deckID: deckID),
           ),
+          NavPageBtn(
+            label: "Speech Word",
+            screenBuilder: () => Speechword(deck_id: deckID),
+          ),
         ],
       ),
     );
@@ -235,9 +240,7 @@ class NavPageBtn extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-         
-        ),
+        decoration: BoxDecoration(),
         child: Text(
           label,
           style: TextStyle(
@@ -268,22 +271,40 @@ class FlashCardItem extends StatelessWidget {
       color: AppColor.darkerCard,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Row(
+        child: Column(
           children: [
-            Column(
+            Row(
               children: [
                 IPAandWord(card: card),
-                CardInformation(card: card, dir: dir),
+                SoundTitle(
+                  title: "sound",
+                  value: (dir != null && card.sound != null)
+                      ? '$dir/${card.sound}'
+                      : '',
+                  icon: const Icon(Icons.volume_up),
+                ),
               ],
             ),
-            Spacer(),
-            PictureHolder(
-              path: (dir != null && card.img != null)
-                  ? '$dir/${card.img}'
-                  : null,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Column(
+                  children: [CardInformation(card: card, dir: dir)],
+                ),
+                SizedBox(width: 20,),
+                PictureHolder(
+                  w: 350,
+                  h: 210,
+                  path: (dir != null && card.img != null)
+                      ? '$dir/${card.img}'
+                      : null,
+                ),
+              ],
             ),
-
+            SizedBox(height: 20,),
             PictureHolder(
+              w: 760,
+              h: 200,
               path: (dir != null && card.synonyms != null)
                   ? '$dir/${card.synonyms}'
                   : null,
@@ -303,14 +324,14 @@ class IPAandWord extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      height: 75,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             card.word ?? '',
             style: const TextStyle(
-              fontSize: 44,
+              fontSize: 33,
               fontWeight: FontWeight.bold,
               color: AppColor.lightText,
             ),
@@ -342,7 +363,7 @@ class CardInformation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
+      width: 400,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -394,14 +415,8 @@ class CardInformation extends StatelessWidget {
             ),
           ),
           Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SoundTitle(
-                title: "sound",
-                value: (dir != null && card.sound != null)
-                    ? '$dir/${card.sound}'
-                    : '',
-                icon: const Icon(Icons.volume_up),
-              ),
               SoundTitle(
                 title: "u sound",
                 value: (dir != null && card.usageSound != null)
@@ -426,14 +441,21 @@ class CardInformation extends StatelessWidget {
 
 class PictureHolder extends StatelessWidget {
   final String? path;
-  const PictureHolder({super.key, required this.path});
+  final double w;
+  final double h;
+  const PictureHolder({
+    super.key,
+    required this.path,
+    required this.w,
+    required this.h,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (path != null) {
       return Container(
-        width: 220,
-        height: 300,
+        width: w,
+        height: h,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -515,7 +537,7 @@ class TitleAndValue extends StatelessWidget {
   Widget build(BuildContext context) {
     if (value != '') {
       return Container(
-        width: 250,
+        width: 400,
         child: Text.rich(
           TextSpan(
             children: [

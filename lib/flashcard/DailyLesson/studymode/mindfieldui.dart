@@ -69,14 +69,14 @@ class _MindFeildUIState extends State<MindFeildUI> {
                     mean,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
               Container(
-                height: 150,
+                height: 120,
                 width: 750,
                 child: Row(
                   children: [
@@ -96,7 +96,7 @@ class _MindFeildUIState extends State<MindFeildUI> {
                         );
                       },
                     ),
-                    SizedBox(width: 50),
+                    SizedBox(width: 10),
                     CheckBtn(
                       isChecked: provider.checkable,
                       onCheck: () {

@@ -78,15 +78,15 @@ class _EchoFuseUIState extends State<EchoFuseUI> {
                             size: 30,
                           ),
                         ),
-                        Text(
-                          ipa,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
+                        // Text(
+                        //   ipa,
+                        //   style: TextStyle(
+                        //     color: Colors.white,
+                        //     fontSize: 40,
+                        //     fontWeight: FontWeight.bold,
+                        //     fontFamily: 'Roboto',
+                        //   ),
+                        // ),
                       ],
                     ),
                     Container(

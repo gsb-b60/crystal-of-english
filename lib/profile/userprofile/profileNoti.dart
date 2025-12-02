@@ -31,6 +31,7 @@ class ProfileNoti extends ChangeNotifier {
   Future<void> loadUser() async {
     isLoading = true;
     notifyListeners();
+    await _db.UpdateLogDaySuper();
     _user = await _db.getUser(1);
     isLoading = false;
     notifyListeners();

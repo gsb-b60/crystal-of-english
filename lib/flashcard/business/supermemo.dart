@@ -29,10 +29,13 @@ Flashcard updateCardReview(Flashcard card, int feed) {
   final random = Random();
   final jitter = 0.95 + random.nextDouble() * 0.1;
 
-  double newEase = (card.easeFactor??1.5 + easeChange - 0.005).clamp(1.3, 2.3);
-  int nowLapse = card.lapses??0;
-  int nowRep = card.reps??0;
-  int newInterval = card.interval==0?1:card.interval!;
+  double newEase = (card.easeFactor ?? 1.5 + easeChange - 0.005).clamp(
+    1.3,
+    2.3,
+  );
+  int nowLapse = card.lapses ?? 0;
+  int nowRep = card.reps ?? 0;
+  int newInterval = card.interval == 0 ? 1 : card.interval!;
   Duration addDue;
 
   if (feed < 3) {
@@ -44,9 +47,10 @@ Flashcard updateCardReview(Flashcard card, int feed) {
     nowRep++;
     newInterval = (newInterval * newEase * jitter).round().clamp(1, 9999);
     addDue = (nowRep) < 3
-        ? Duration(minutes: (newInterval) * (nowRep)+5)
+        ? Duration(minutes: (newInterval) * (nowRep) + 5)
         : Duration(days: newInterval);
   }
+  print("${card.word} got due day ${DateTime.now().add(addDue)}");
   return card.copyWith(
     reps: nowRep,
     lapses: nowLapse,
@@ -56,10 +60,11 @@ Flashcard updateCardReview(Flashcard card, int feed) {
     due: DateTime.now().add(addDue),
   );
 }
+
 class SMNoti {
   static final _db = DatabaseHelper.instance;
-   Future<void> updateCardAfterReview(Flashcard card,int rate) async {
-    final c= updateCardReview(card, rate);
+  Future<void> updateCardAfterReview(Flashcard card, int rate) async {
+    final c = updateCardReview(card, rate);
     _db.updateCard(c);
   }
 }

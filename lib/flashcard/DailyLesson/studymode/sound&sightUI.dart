@@ -75,7 +75,7 @@ class _MyWidgetState extends State<SoundNSightUI> {
                       if (img != "")
                         Container(
                           width: 350,
-                          height: 270,
+                          height: 250,
                           margin: const EdgeInsets.only(right: 12),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),

@@ -243,6 +243,29 @@ class DatabaseHelper {
     });
   }
 
+  Future<List<Flashcard>> getDueCardLimit(int limit) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+    SELECT *
+    FROM cards
+    WHERE sound IS NOT NULL
+      AND word IS NOT NULL
+      AND word NOT LIKE '% %'
+      AND ipa IS NOT NULL
+      AND img IS NOT NULL
+      AND meaning IS NOT NULL
+      AND due <= ?
+    LIMIT ?
+    ''',
+      [DateTime.now().millisecondsSinceEpoch, limit],
+    );
+
+    return List.generate(maps.length, (i) {
+      return Flashcard.fromMap(maps[i]);
+    });
+  }
+
   Future<List<Flashcard>> getDueCards() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(

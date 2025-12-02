@@ -76,15 +76,15 @@ class _EchospellUIState extends State<EchospellUI> {
                     ),
                   ),
                   SizedBox(width: 30),
-                  Text(
-                    ipa,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
+                  // Text(
+                  //   ipa,
+                  //   style: TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 40,
+                  //     fontWeight: FontWeight.bold,
+                  //     fontFamily: 'Roboto',
+                  //   ),
+                  // ),
                 ],
               ),
               SizedBox(height: 15),
@@ -105,7 +105,6 @@ class _EchospellUIState extends State<EchospellUI> {
                   );
                 }),
               ),
-              SizedBox(height: 50),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,

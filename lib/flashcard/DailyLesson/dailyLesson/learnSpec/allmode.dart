@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/screen/startscreen.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echospellUI.dart';
@@ -9,7 +11,11 @@ import 'package:mygame/flashcard/DailyLesson/studymode/meanfuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/reviewUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/speechwordUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/synonymfeildUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
 
@@ -33,10 +39,11 @@ class _AllModeState extends State<AllMode> {
           create: (context) => LessonNoti()..getFlashcardListAllMode(),
         ),
         ChangeNotifierProvider(create: (context) => TimerNoti()..start()),
+        ChangeNotifierProvider(create: (context) => Questnoti()),
       ],
 
-      child: Consumer2<LessonNoti, TimerNoti>(
-        builder: (context, provider, timer, _) {
+      child: Consumer3<LessonNoti, TimerNoti, Questnoti>(
+        builder: (context, provider, timer, quest, _) {
           if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
           }
@@ -63,6 +70,16 @@ class _AllModeState extends State<AllMode> {
               return EndScreen();
             case StudyMode.meanfuse:
               return MeanfuseUI();
+            case StudyMode.StartScreen:
+              return StartScreen();
+            case StudyMode.synonympick:
+              return SynonympickUI();
+            case StudyMode.synonymfeild:
+              return SynonymfeildUI();
+            case StudyMode.speechword:
+              return SpeechWordUI();
+            case StudyMode.reviewcard:
+              return ReviewUI();
             default:
               return Text("Select a Study Mode");
           }

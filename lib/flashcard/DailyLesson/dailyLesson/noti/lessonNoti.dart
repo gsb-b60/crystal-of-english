@@ -5,10 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
-import 'package:mygame/flashcard/DailyLesson/config/threshold.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/supermemo.dart';
+import 'package:path/path.dart';
+import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:vibration/vibration.dart';
 
 enum ButtonState { normal, selected, done, wrong }
 
@@ -56,21 +60,34 @@ class LessonNoti extends ChangeNotifier {
 
   //lession logic
   StudyMode? mode;
+  LearnMode how = LearnMode.daily;
   List<Map<String, dynamic>> SetUpLessonList = [
-    {"cIdx": 0, "mode": StudyMode.phonemix},
+    {"cIdx": 0, "mode": StudyMode.StartScreen},
+
     {"cIdx": 0, "mode": StudyMode.meanfuse},
-    {"cIdx": 0, "mode": StudyMode.mindField},
-    {"cIdx": 0, "mode": StudyMode.wordsnap},
+    {"cIdx": 1, "mode": StudyMode.wordsnap},
+    {"cIdx": 2, "mode": StudyMode.mindField},
+
     {"cIdx": 1, "mode": StudyMode.echoSpell},
-    {"cIdx": 1, "mode": StudyMode.echofuse},
-    {"cIdx": 1, "mode": StudyMode.echoMatch},
+    {"cIdx": 2, "mode": StudyMode.echofuse},
+    {"cIdx": 0, "mode": StudyMode.echoMatch},
+
     {"cIdx": 2, "mode": StudyMode.soundAndSight},
-    {"cIdx": 2, "mode": StudyMode.neuropick},
-    {"cIdx": 2, "mode": StudyMode.wordpulse},
-    {"cIdx": 3, "mode": StudyMode.wordsnap},
-    {"cIdx": 3, "mode": StudyMode.echoMatch},
-    {"cIdx": 3, "mode": StudyMode.meanfuse},
+    {"cIdx": 1, "mode": StudyMode.neuropick},
+    {"cIdx": 0, "mode": StudyMode.wordpulse},
+
+    {"cIdx": 0, "mode": StudyMode.speechword},
+    {"cIdx": 1, "mode": StudyMode.speechword},
+    {"cIdx": 2, "mode": StudyMode.speechword},
+
+    {"cIdx": 1, "mode": StudyMode.synonympick},
+    {"cIdx": 0, "mode": StudyMode.synonympick},
+    {"cIdx": 2, "mode": StudyMode.synonymfeild},
+
     {"cIdx": 4, "mode": StudyMode.phonemix},
+
+    {"cIdx": 4, "mode": StudyMode.reviewcard},
+
     {"cIdx": 4, "mode": StudyMode.EndScreen},
   ];
 
@@ -78,20 +95,79 @@ class LessonNoti extends ChangeNotifier {
   int inARow = 0;
   void haper() {
     if (inARow > 2) {
-      HapticFeedback.vibrate();
+      Vibration.vibrate(
+        pattern: [0, 12, 18, 12, 25],
+        intensities: [40, 70, 40, 60, 0],
+      );
+    }
+  }
+
+  int totalRep = 0;
+  int totalLapse = 0;
+  //push information to db
+  void CallQuest(BuildContext context) {
+    final count = SetUpLessonList.map((e) => e["cIdx"]).toSet().length;
+    context.read<Questnoti>().SetToDB(totalRep, totalRep, count);
+  }
+
+  void ResultHandler(bool succ) {
+    if (succ) {
+      totalRep++;
+      haper();
+      inARow++;
+      print("suc ${_acc} rep :${totalRep}");
+    } else {
+      print("false ${_acc} rep :${totalRep}");
+      _acc++;
+      totalLapse++;
     }
   }
 
   //get variant
-  Future<void> getFlashcardList() async {
+  Future<void> getFlashcardList(LearnMode fetchMode) async {
     isLoading = true;
     notifyListeners();
+    var data;
+    switch (fetchMode) {
+      case LearnMode.sm:
+        how = LearnMode.sm;
+        data = await _dbhelper.getDueCardLimit(10);
+        SetUpLessonList = lessonNotiHelper.sm2;
+        break;
+      case LearnMode.daily:
+        how = LearnMode.daily;
+        data = await _dbhelper.getDueCardLimit(10);
+        break;
+      case LearnMode.all:
+        how = LearnMode.all;
+        data = await _dbhelper.getDueCardLimit(15);
+        SetUpLessonList = lessonNotiHelper.allMode;
+        break;
+      case LearnMode.shuffle:
+        how = LearnMode.daily;
+        data = await _dbhelper.getDueCardLimit(15);
+        SetUpLessonList = lessonNotiHelper.allMode;
+        final start = SetUpLessonList.first;
+        final end = SetUpLessonList.last;
 
-    final data = await _dbhelper.getCardLimit(10);
+        // copy phần giữa
+        final middle = SetUpLessonList.sublist(1, SetUpLessonList.length - 1);
+
+        // shuffle phần giữa
+        middle.shuffle();
+
+        // ghép lại
+        SetUpLessonList = [start, ...middle, end];
+        break;
+    }
+
     _cards.clear();
     _cards.addAll(data);
     mode = SetUpLessonList[currentLessIdx]["mode"];
-
+    _cards.forEach((c) {
+      print("${c.word} - ${c.due}");
+    });
+    await fetchMedia();
     isLoading = false;
     notifyListeners();
   }
@@ -99,8 +175,8 @@ class LessonNoti extends ChangeNotifier {
   Future<void> getFlashcardListAllMode() async {
     isLoading = true;
     notifyListeners();
-
-    final data = await _dbhelper.getCardLimit(10);
+    how = LearnMode.all;
+    final data = await _dbhelper.getDueCardLimit(15);
     _cards.clear();
     _cards.addAll(data);
     SetUpLessonList = lessonNotiHelper.allMode;
@@ -113,11 +189,23 @@ class LessonNoti extends ChangeNotifier {
   Future<void> getFlashcardListShuffleMode() async {
     isLoading = true;
     notifyListeners();
-
-    final data = await _dbhelper.getCardLimit(10);
+    how = LearnMode.shuffle;
+    final data = await _dbhelper.getDueCardLimit(15);
     _cards.clear();
     _cards.addAll(data);
-    SetUpLessonList.shuffle();
+    // giữ nguyên phần đầu và cuối
+    SetUpLessonList = lessonNotiHelper.allMode;
+    final start = SetUpLessonList.first;
+    final end = SetUpLessonList.last;
+
+    // copy phần giữa
+    final middle = SetUpLessonList.sublist(1, SetUpLessonList.length - 1);
+
+    // shuffle phần giữa
+    middle.shuffle();
+
+    // ghép lại
+    SetUpLessonList = [start, ...middle, end];
     mode = SetUpLessonList[currentLessIdx]["mode"];
 
     isLoading = false;
@@ -157,14 +245,9 @@ class LessonNoti extends ChangeNotifier {
 
   String get accLine => lessonNotiHelper.getAccLine(_acc);
 
-  void updateCard() {
-    SMNoti n = SMNoti();
-    int rate = right ? 3 : 2;
-    n.updateCardAfterReview(_cards[cardIdx], rate);
-  }
-
-  void nextCard() {
-    updateCard();
+  Future<void> nextCard() async {
+    updateRateCard(right);
+    print(RateCard);
     if (currentLessIdx < SetUpLessonList.length) {
       trueList = null;
       listWord = null;
@@ -177,20 +260,19 @@ class LessonNoti extends ChangeNotifier {
       statesBool = null;
       currentLessIdx++;
       mode = SetUpLessonList[currentLessIdx]["mode"];
+
       listWI = null;
       listIPA = null;
       listWordPhone = null;
       selectedIPAIDX = null;
       selectedWordIDX = null;
+      await fetchMedia();
       wordState = List.filled(4, ButtonState.normal);
       ipaState = List.filled(4, ButtonState.normal);
       notifyListeners();
       right = true;
       notifyListeners();
     }
-    print(
-      " - current at :${currentLessIdx} - ${SetUpLessonList.length} - is options null ${options == null} -current at mode :${mode}",
-    );
   }
 
   List<String> get getOptionsShuffle {
@@ -204,7 +286,21 @@ class LessonNoti extends ChangeNotifier {
     return re;
   }
 
-  String getImagePath() {    
+  String getImagePath() {
+    if (File(
+      "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}",
+    ).existsSync()) {
+      return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}";
+    }
+    return "";
+  }
+
+  String getSynonymPath() {
+    if (File(
+      "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}",
+    ).existsSync()) {
+      return "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].synonyms}";
+    }
     if (File(
       "/data/user/0/com.example.mygame/app_flutter/anki/$media/${_cards[cardIdx].img}",
     ).existsSync()) {
@@ -219,8 +315,8 @@ class LessonNoti extends ChangeNotifier {
       listWord![currentWordIdx] = trueList![currentWordIdx];
       notifyListeners();
       currentWordIdx++;
-      _acc++;
     } else {
+      ResultHandler(false);
       inARow = 0;
       states![index] = ButtonState.wrong;
       notifyListeners();
@@ -231,8 +327,7 @@ class LessonNoti extends ChangeNotifier {
     }
     if (currentWordIdx == list!.length) {
       answered = true;
-      haper();
-      inARow++;
+      ResultHandler(true);
       notifyListeners();
     }
   }
@@ -264,13 +359,12 @@ class LessonNoti extends ChangeNotifier {
   void checkAnswerMC() {
     if (options?[selectedIndex!] == _cards[cardIdx].word) {
       answered = true;
-      inARow++;
-      haper();
+      ResultHandler(true);
       notifyListeners();
     } else {
       answered = true;
       right = false;
-      _acc++;
+      ResultHandler(false);
       inARow = 0;
       notifyListeners();
     }
@@ -363,18 +457,22 @@ class LessonNoti extends ChangeNotifier {
   //function
 
   Future<String> fetchMedia() async {
-    int deck_id = _cards[cardIdx].deckId;
-    if (mediaMap.containsKey(deck_id)) {
-      media = mediaMap[deck_id] ?? "";
-      return mediaMap[deck_id]!;
-    } else {
-      String md = await _dbhelper.getMediaFile(deck_id) ?? "";
-      mediaMap[deck_id] = md;
-      media = mediaMap[deck_id] ?? "";
-      return md;
+    try {
+      int deck_id = _cards[cardIdx].deckId;
+      if (mediaMap.containsKey(deck_id)) {
+        media = mediaMap[deck_id] ?? "";
+        return mediaMap[deck_id]!;
+      } else {
+        String md = await _dbhelper.getMediaFile(deck_id) ?? "";
+        mediaMap[deck_id] = md;
+        media = mediaMap[deck_id] ?? "";
+        return md;
+      }
+    } catch (e) {
+      print(e);
+      return "";
     }
   }
-  
 
   List<WordIPA>? listWI;
   List<String>? listIPA;
@@ -386,9 +484,11 @@ class LessonNoti extends ChangeNotifier {
     List<Flashcard> listCard = _cards.take(4).toList();
     listCard.forEach((c) {
       final currentCard = c;
-      list.add(
-        WordIPA(word: currentCard.word ?? "", ipa: currentCard.ipa ?? ""),
-      );
+      String ipaCheck = c.ipa!;
+      if (!ipaCheck.contains('/')) {
+        ipaCheck = "/$ipaCheck/";
+      }
+      list.add(WordIPA(word: currentCard.word ?? "", ipa: ipaCheck));
     });
     list.shuffle();
     return list;
@@ -459,8 +559,7 @@ class LessonNoti extends ChangeNotifier {
         selectedIPAIDX = null;
 
         answered = !wordState.contains(ButtonState.normal);
-        if(answered)
-        {
+        if (answered) {
           haper();
         }
         notifyListeners();
@@ -476,6 +575,186 @@ class LessonNoti extends ChangeNotifier {
           selectedIPAIDX = null;
           notifyListeners();
         });
+      }
+    }
+  }
+
+  int learn = 0;
+  int practice = 0;
+  int speak = 0;
+  int review = 0;
+  int estimate = 0;
+  //count learn mode //start screen provider
+  void countLearn() {
+    learn = 0;
+    practice = 0;
+    speak = 0;
+
+    for (int i = 0; i < SetUpLessonList.length; i++) {
+      switch (SetUpLessonList[i]["mode"]) {
+        case StudyMode.soundAndSight:
+          practice++;
+          break;
+        case StudyMode.wordsnap:
+          learn++;
+          break;
+        case StudyMode.echoSpell:
+          practice++;
+          break;
+        case StudyMode.echoMatch:
+          practice++;
+          break;
+        case StudyMode.echofuse:
+          practice++;
+          break;
+        case StudyMode.mindField:
+          learn++;
+          break;
+        case StudyMode.neuropick:
+          practice++;
+          break;
+        case StudyMode.phonemix:
+          practice++;
+          break;
+        case StudyMode.wordpulse:
+          practice++;
+          break;
+        case StudyMode.meanfuse:
+          learn++;
+          break;
+        case StudyMode.synonympick:
+          practice++;
+          break;
+        case StudyMode.synonymfeild:
+          practice++;
+          break;
+        case StudyMode.speechword:
+          speak++;
+          break;
+      }
+    }
+    estimate = ((learn + practice + speak) * 0.2).round();
+  }
+
+  //
+  Future<void> initSTT() async {
+    bool available = await stt.initialize(
+      onStatus: (status) => print('STT status: $status'),
+      onError: (errorNotification) => print('STT error: $errorNotification'),
+    );
+
+    if (!available) {
+      print('STT not available or permission denied');
+    }
+  }
+
+  String re = "";
+  final SpeechToText stt = SpeechToText();
+  void startListening() async {
+    re = "";
+    await stt.listen(
+      onResult: (result) {
+        print("user said ${result.recognizedWords}");
+        re = result.recognizedWords;
+      },
+      localeId: "en_US",
+    );
+    await Future.delayed(Duration(seconds: 5));
+    await stt.stop();
+    CheckAnswerSpeech(re);
+  }
+
+  void CheckAnswerSpeech(String re) {
+    re = re.toLowerCase().trim();
+    var wordtrim = answer.toLowerCase().trim();
+    answered = true;
+    if (normalize(re) == normalize(wordtrim)) {
+      right = true;
+      ResultHandler(true);
+    } else {
+      ResultHandler(false);
+      right = false;
+    }
+    notifyListeners();
+  }
+
+  void stopListen() async {
+    await stt.stop();
+  }
+
+  void callDone() {
+    answered = true;
+    print("answer up");
+    notifyListeners();
+  }
+
+  String get correctspeak {
+    String str = "right is: ${answer}";
+    if (re != "") {
+      str += "  you said ${re}";
+    }
+    return str;
+  }
+
+  List<Flashcard> get card3 {
+    switch (how) {
+      case LearnMode.shuffle:
+        return _cards.take(14).toList();
+      case LearnMode.all:
+        return _cards.take(14).toList();
+      case LearnMode.daily:
+        return _cards.take(3).toList();
+      case LearnMode.sm:
+        return _cards.take(5).toList();
+    }
+  }
+
+  //sm2
+  void updateCard() {
+    SMNoti n = SMNoti();
+    RateCard.forEach((c) {
+      int rate = (c["rate"] ?? 3).clamp(0, 5);
+      n.updateCardAfterReview(_cards[c["idx"] ?? 0], rate);
+    });
+  }
+
+  List<Map<String, int>> RateCard = [
+    {"idx": 0, "rate": 3},
+    {"idx": 1, "rate": 3},
+    {"idx": 2, "rate": 3},
+  ];
+  void createRateCard() {
+    int count;
+
+    switch (how) {
+      case LearnMode.shuffle:
+      case LearnMode.all:
+        count = 15;
+        break;
+      case LearnMode.daily:
+        count = 3;
+        break;
+      case LearnMode.sm:
+        count = 5;
+        break;
+    }
+
+    RateCard = List.generate(count, (i) => {"idx": i, "rate": 3});
+  }
+
+  void updateRateCard(bool rating) {
+    if (SetUpLessonList[currentLessIdx]["mode"] != StudyMode.phonemix &&
+        SetUpLessonList[currentLessIdx]["mode"] != StudyMode.StartScreen &&
+        SetUpLessonList[currentLessIdx]["mode"] != StudyMode.EndScreen &&
+        SetUpLessonList[currentLessIdx]["mode"] != StudyMode.reviewcard) {
+      try {
+        var updateCard = RateCard.firstWhere(
+          (c) => c["idx"] == SetUpLessonList[currentLessIdx]["cIdx"],
+        );
+        int currentRate = updateCard["rate"] ?? 0;
+        updateCard["rate"] = currentRate + (rating ? 1 : -1);
+      } catch (e) {
+        print(e);
       }
     }
   }

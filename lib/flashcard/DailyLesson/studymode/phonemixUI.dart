@@ -179,7 +179,7 @@ class ChoiceBtn extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
-        width: 150,
+        width: 165,
         height: 70,
         child: ElevatedButton(
           onPressed: () {
@@ -199,7 +199,7 @@ class ChoiceBtn extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Roboto',
               color: textColor,
-              fontSize: 22,
+              fontSize: 17,
             ),
           ),
         ),

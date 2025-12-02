@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/allmode.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/learnLevel.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
@@ -15,7 +16,6 @@ import 'package:mygame/flashcard/screen/studymode/phonemix/phonemix.dart';
 import 'package:mygame/flashcard/screen/studymode/sound&sight/sound&sight.dart';
 import 'package:mygame/flashcard/screen/studymode/wordpulse/wordpulse.dart';
 import 'package:mygame/flashcard/screen/studymode/wordsnap/wordsnap.dart';
-import 'package:path/path.dart';
 
 class LearnModeScreen extends StatefulWidget {
   const LearnModeScreen({super.key});
@@ -83,14 +83,12 @@ class _LearnModeScreenState extends State<LearnModeScreen> {
   }
 }
 
-
 class LearnByMode extends StatefulWidget {
   const LearnByMode({super.key});
 
   @override
   State<LearnByMode> createState() => _LearnByModeState();
 }
-
 class _LearnByModeState extends State<LearnByMode> {
   @override
   Widget build(BuildContext context) {
@@ -104,51 +102,70 @@ class _LearnByModeState extends State<LearnByMode> {
             co: AppColor.meanFuse,
             line: "Mean Fuse", // meaning - fuse
             screenBuilder: () => Meanfuse(deck_id: 0),
+            aPath: "assets/illumode/fitness-1-44.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordSnap,
             line: "Word Snap", // meaning - other letters
-            screenBuilder: () => WordSnap(deck_id: 0,),
+            screenBuilder: () => WordSnap(deck_id: 0),
+            aPath: "assets/illumode/surfing-91.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.mindField,
             line: "Mind Field", // meaning - shuffle word
-            screenBuilder: () => MindFeild(deckID: 0,),
+            screenBuilder: () => MindFeild(deckID: 0),
+            aPath: "assets/illumode/baseball-22.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoSpell,
             line: "Echo Spell", // ipa+sound - fuse
             screenBuilder: () => Echospell(deck_id: 0),
+            aPath: "assets/illumode/coach-82.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoMatch,
             line: "Echo Match", // ipa+sound - shuffle word
-            screenBuilder: () => EchoMatch(deck_id: 0,),
+            screenBuilder: () => EchoMatch(deck_id: 0),
+            aPath: "assets/illumode/diving-71.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoFuse,
             line: "Echo Fuse", // ipa+sound - other letters
-            screenBuilder: () => EchoFuse(deck_id: 0,),
+            screenBuilder: () => EchoFuse(deck_id: 0),
+            aPath: "assets/illumode/soccer-64.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.neuroPick,
             line: "Neuro Pick", // picture - fuse
-            screenBuilder: () => NeuroPick(deckID: 0,),
+            screenBuilder: () => NeuroPick(deckID: 0),
+            aPath: "assets/illumode/parachute-11.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordPulse,
             line: "Word Pulse", // picture - shuffle word
-            screenBuilder: () => WordPulse(deck_id: 0,),
+            screenBuilder: () => WordPulse(deck_id: 0),
+            aPath: "assets/illumode/video-call-1-72.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.soundSight,
             line: "Sound and Sight", // picture - arrange letters
-            screenBuilder: () => SoundNSight(deck_id: 0,),
+            screenBuilder: () => SoundNSight(deck_id: 0),
+            aPath: "assets/illumode/fitness-99.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.phoneMix,
             line: "Phonemix", // 4 ipa
-            screenBuilder: () => PhoneMix(deckID: 0,),
+            screenBuilder: () => PhoneMix(deckID: 0),
+            aPath: "assets/illumode/rocket-launch-59.png",
           ),
         ],
       ),
@@ -165,19 +182,13 @@ class LevelLearnScreenNav extends StatefulWidget {
 
 class _LevelLearnScreenNavState extends State<LevelLearnScreenNav> {
   List<Map<String, dynamic>> listLevel = [
-    {"level": 1, "co": Color(0xFF7A4A21)}, // Bronze - đồng cổ sang
-    {
-      "level": 2,
-      "co": Color.fromARGB(255, 109, 109, 187),
-    }, // Silver - bạc thép đậm
-    {"level": 3, "co": Color(0xFFAA7A13)}, // Gold - vàng hoàng gia đậm
-    {
-      "level": 4,
-      "co": Color.fromARGB(255, 112, 148, 255),
-    }, // Platinum - xám bạch kim lạnh
-    {"level": 5, "co": Color(0xFF0F6F82)}, // Diamond - xanh kim cương sâu
-    {"level": 6, "co": Color(0xFFA01717)}, // Master - đỏ quyền lực
-    {"level": 7, "co": Color(0xFF351A6E)}, // Challenger - tím đỉnh cao
+    {"level": 1, "co": Color(0xFF7A4A21) ,"path":"assets/illumode/global-warming-68.png"} ,
+    {"level": 2, "co": Color.fromARGB(255, 109, 109, 187),"path":"assets/illumode/global-warming-2-100.png"},
+    {"level": 3, "co": Color(0xFFAA7A13),"path":"assets/illumode/global-warming-4.png"},
+    {"level": 4, "co": Color.fromARGB(255, 112, 148, 255),"path":"assets/illumode/global-warming-2-30.png"},
+    {"level": 5, "co": Color(0xFF0F6F82),"path":"assets/illumode/global-warming-1-5.png"},
+    {"level": 6, "co": Color(0xFFA01717),"path":"assets/illumode/global-warming-2-50.png"},
+    {"level": 7, "co": Color(0xFF351A6E),"path":"assets/illumode/global-warming-76.png"},
   ];
 
   @override
@@ -189,10 +200,16 @@ class _LevelLearnScreenNavState extends State<LevelLearnScreenNav> {
           SizedBox(width: 20),
           ...List.generate(
             listLevel.length,
-            (i) => LearnModeCard(
-              co: listLevel[i]["co"],
-              line: "level ${listLevel[i]["level"].toString()}",
-              screenBuilder: () => Learnlevel(level: listLevel[i]["level"]),
+            (i) => Row(
+              children: [
+                LearnModeCard(
+                  co: listLevel[i]["co"],
+                  line: "level ${listLevel[i]["level"].toString()}",
+                  screenBuilder: () => Learnlevel(level: listLevel[i]["level"]),
+                  aPath: listLevel[i]["path"],
+                ),
+                SizedBox(width: 20),
+              ],
             ),
           ),
         ],
@@ -213,19 +230,31 @@ class DailyLearnScreenNav extends StatelessWidget {
         children: [
           SizedBox(width: 20),
           LearnModeCard(
-            co: AppColor.greenPrimary,
+            co: AppColor.greenAccent,
             line: "DAILY LEARN",
-            screenBuilder: () => LessonScreen(),
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.daily),
+            aPath: "assets/illumode/school-75.png",
           ),
+          SizedBox(width: 20),
+          LearnModeCard(
+            co: AppColor.yellowAccent,
+            line: "Super Memmo 2",
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.sm),
+            aPath: "assets/illumode/team-brainstorming-5-1.png",
+          ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.pinkPrimary,
             line: "ALL MODE",
-            screenBuilder: () => AllMode(),
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.all),
+            aPath: "assets/illumode/super-dad-28.png",
           ),
+          SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.bluePrimary,
             line: "SHUFFLE MODE",
-            screenBuilder: () => Shufflemode(),
+            screenBuilder: () => LessonScreen(fetchMode: LearnMode.shuffle),
+            aPath: "assets/illumode/twitter-66.png",
           ),
         ],
       ),
@@ -239,10 +268,12 @@ class LearnModeCard extends StatelessWidget {
     required this.co,
     required this.line,
     required this.screenBuilder,
+    required this.aPath,
   });
   Color co;
   String line;
   Widget Function() screenBuilder;
+  String aPath;
 
   @override
   Widget build(BuildContext context) {
@@ -254,23 +285,31 @@ class LearnModeCard extends StatelessWidget {
         ),
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-
         width: 175,
         decoration: BoxDecoration(
           color: co,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Align(
-          alignment: AlignmentGeometry.bottomCenter,
-          child: Text(
-            line,
-            style: TextStyle(
-              color: AppColor.lightText,
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
+        child: Stack(
+          children: [
+            if (aPath != "")
+              Align(
+                alignment: AlignmentGeometry.center,
+                child: Container(width: 160, child: Image.asset(aPath)),
+              ),
+            Align(
+              alignment: AlignmentGeometry.bottomCenter,
+              child: Text(
+                line,
+                style: TextStyle(
+                  color: AppColor.lightText,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
