@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
 import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/allmode.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/learnLevel.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/lessonScreen.dart';
-import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/shufflemode.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/learnSpec/learnMode.dart';
+
 import 'package:mygame/flashcard/screen/studymode/echofuse/echofuse.dart';
 import 'package:mygame/flashcard/screen/studymode/echomatch/echomath.dart';
 import 'package:mygame/flashcard/screen/studymode/echospell/echospell.dart';
@@ -101,70 +101,70 @@ class _LearnByModeState extends State<LearnByMode> {
           LearnModeCard(
             co: AppColor.meanFuse,
             line: "Mean Fuse", // meaning - fuse
-            screenBuilder: () => Meanfuse(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.meanfuse),
             aPath: "assets/illumode/fitness-1-44.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordSnap,
             line: "Word Snap", // meaning - other letters
-            screenBuilder: () => WordSnap(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.wordsnap),
             aPath: "assets/illumode/surfing-91.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.mindField,
             line: "Mind Field", // meaning - shuffle word
-            screenBuilder: () => MindFeild(deckID: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.mindField),
             aPath: "assets/illumode/baseball-22.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoSpell,
             line: "Echo Spell", // ipa+sound - fuse
-            screenBuilder: () => Echospell(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.echoSpell),
             aPath: "assets/illumode/coach-82.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoMatch,
             line: "Echo Match", // ipa+sound - shuffle word
-            screenBuilder: () => EchoMatch(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.echoMatch),
             aPath: "assets/illumode/diving-71.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.echoFuse,
             line: "Echo Fuse", // ipa+sound - other letters
-            screenBuilder: () => EchoFuse(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.echofuse),
             aPath: "assets/illumode/soccer-64.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.neuroPick,
             line: "Neuro Pick", // picture - fuse
-            screenBuilder: () => NeuroPick(deckID: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.neuropick),
             aPath: "assets/illumode/parachute-11.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.wordPulse,
             line: "Word Pulse", // picture - shuffle word
-            screenBuilder: () => WordPulse(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.wordpulse),
             aPath: "assets/illumode/video-call-1-72.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.soundSight,
             line: "Sound and Sight", // picture - arrange letters
-            screenBuilder: () => SoundNSight(deck_id: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.soundAndSight),
             aPath: "assets/illumode/fitness-99.png",
           ),
           SizedBox(width: 20),
           LearnModeCard(
             co: AppColor.phoneMix,
             line: "Phonemix", // 4 ipa
-            screenBuilder: () => PhoneMix(deckID: 0),
+            screenBuilder: () => LessLearnMode(st:StudyMode.phonemix),
             aPath: "assets/illumode/rocket-launch-59.png",
           ),
         ],

@@ -12,12 +12,10 @@ class AchievementUI extends StatefulWidget {
 }
 
 class _AchievementState extends State<AchievementUI> {
-  
-
   @override
   Widget build(BuildContext context) {
-    final provider=context.watch<Achievementnoti>();
-    final flashcards=provider.getCard();
+    final provider = context.watch<Achievementnoti>();
+    final flashcards = provider.getCard();
     return Scaffold(
       backgroundColor: AppColor.darkSurface,
       appBar: AppBar(
@@ -91,47 +89,170 @@ class _AchievementState extends State<AchievementUI> {
               border: Border.all(color: AppColor.darkCard, width: 4),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: ListTile(
-              leading: Image.asset(path, width: 30, height: 30),
-              title: Text(
-                card.word!,
-                style: TextStyle(
-                  color: Learned ? levelColor : AppColor.darkSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 32,
-                  shadows: [
-                    Shadow(color: levelColor.withOpacity(0.8), blurRadius: 10),
-                    Shadow(color: levelColor.withOpacity(0.6), blurRadius: 20),
-                    Shadow(color: levelColor.withOpacity(0.4), blurRadius: 30),
-                  ],
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CardInforScreen(card: card),
+                  ),
+                );
+              },
+              child: ListTile(
+                leading: Image.asset(path, width: 30, height: 30),
+                title: Text(
+                  card.word!,
+                  style: TextStyle(
+                    color: Learned ? levelColor : AppColor.darkSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    shadows: [
+                      Shadow(
+                        color: levelColor.withOpacity(0.8),
+                        blurRadius: 10,
+                      ),
+                      Shadow(
+                        color: levelColor.withOpacity(0.6),
+                        blurRadius: 20,
+                      ),
+                      Shadow(
+                        color: levelColor.withOpacity(0.4),
+                        blurRadius: 30,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              subtitle: Text(
-                'Due Day: ${due.day}/${due.month}/${due.year}',
-                style: TextStyle(
-                  color: AppColor.lightText.withOpacity(0.7),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
+                subtitle: Text(
+                  'Due Day: ${due.day}/${due.month}/${due.year}',
+                  style: TextStyle(
+                    color: AppColor.lightText.withOpacity(0.7),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
                 ),
-              ),
-              trailing: Text(
-                "Level: ${level}",
-                style: TextStyle(
-                  color: levelColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 32,
-                  shadows: [
-                    Shadow(
-                      color: levelColor.withOpacity(0.80),
-                      blurRadius: 52,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
+                trailing: Text(
+                  "Level: ${level}",
+                  style: TextStyle(
+                    color: levelColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    shadows: [
+                      Shadow(
+                        color: levelColor.withOpacity(0.80),
+                        blurRadius: 52,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class CardInforScreen extends StatefulWidget {
+  CardInforScreen({super.key, required this.card});
+  Flashcard card;
+  @override
+  State<CardInforScreen> createState() => _CardInforScreenState();
+}
+
+class _CardInforScreenState extends State<CardInforScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColor.darkSurface,
+
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back_ios, color: AppColor.darkBorder),
+        ),
+      ),
+      backgroundColor: AppColor.darkSurface,
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                widget.card.word ?? '',
+                style: const TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.lightText,
+                ),
+                overflow: TextOverflow.fade,
+              ),
+              if (widget.card.ipa != null)
+                Text(
+                  "/${widget.card.ipa!}/",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontStyle: FontStyle.italic,
+                    overflow: TextOverflow.ellipsis,
+                    color: AppColor.lightText,
+                    fontFamily: "roboto",
+                  ),
+                ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "MEANING:",
+                style: TextStyle(
+                  fontSize: 32,
+                  overflow: TextOverflow.ellipsis,
+                  color: AppColor.lightText,
+                ),
+              ),
+              Container(
+                width: 600,
+                child: Text(
+                  widget.card.meaning ?? "",
+                  style: TextStyle(
+                    fontSize: 27,
+                    // overflow: TextOverflow.ellipsis,
+                    color: AppColor.lightText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Example:",
+                style: TextStyle(
+                  fontSize: 32,
+                  overflow: TextOverflow.ellipsis,
+                  color: AppColor.lightText,
+                ),
+              ),
+              Container(
+                width: 600,
+                child: Text(
+                  widget.card.example ?? "",
+                  style: TextStyle(
+                    fontSize: 27,
+                    color: AppColor.lightText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

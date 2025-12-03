@@ -25,12 +25,14 @@ class CheckBtnVertical extends StatelessWidget {
           color: isChecked ? AppColor.greenPrimary : AppColor.darkCard,
         ),
         child: Center(
-          child: Text(
-            "Check",
-            style: TextStyle(
-              color: AppColor.darkBase,
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
+          child: SingleChildScrollView(
+            child: Text(
+              "Check",
+              style: TextStyle(
+                color: AppColor.darkBase,
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         ),

@@ -23,20 +23,15 @@ class _ProfileState extends State<Profile> {
       backgroundColor: AppColor.darkBase,
       body: Stack(
         children: [
-          
           Row(
             children: [
               Container(
                 height: double.infinity,
                 width: 300,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
                   border: Border(
-                    right:BorderSide(
-                      color: AppColor.darkBorder,
-                      width: 2,
-                    )
-                  )
+                    right: BorderSide(color: AppColor.darkBorder, width: 2),
+                  ),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -136,10 +131,10 @@ class _ProfileState extends State<Profile> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20)
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 10,
                     children: [
                       SizedBox(height: 20),
@@ -150,16 +145,8 @@ class _ProfileState extends State<Profile> {
                         line: "learn enought to earn a streak!",
                         indicate: "${learnTime.inMinutes}/5 MIN",
                         co: AppColor.bluePrimary,
+                        streak: streak,
                         realValue: provider.formatedTime,
-                      ),
-                      ProgressBlock(
-                        ico: Icons.local_fire_department_outlined,
-                        name: "Streak Goal",
-                        value: provider.streakValue,
-                        line: "Show Me Who Really Learn!",
-                        indicate: " ${streak}/7 Day",
-                        co: AppColor.redPrimary,
-                        realValue: "",
                       ),
                     ],
                   ),
@@ -200,6 +187,7 @@ class ProgressBlock extends StatelessWidget {
     required this.value,
     required this.co,
     required this.realValue,
+    required this.streak,
   });
   IconData ico;
   String name;
@@ -208,52 +196,79 @@ class ProgressBlock extends StatelessWidget {
   double value;
   Color co;
   String realValue;
+  int streak;
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 300,
       padding: EdgeInsets.symmetric(vertical: 20),
       margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColor.darkBorder, width: 2),
+        // borderRadius: BorderRadius.circular(12),
+        // border: Border.all(color: AppColor.darkBorder, width: 2),
       ),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(ico, size: 58, color: co),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              Icon(ico, size: 58, color: co),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      color: co,
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                      height: 0.5,
+                    ),
+                  ),
+                  Text(
+                    line,
+                    style: TextStyle(color: AppColor.lightText, fontSize: 27),
+                  ),
+                  SizedBox(
+                    height: 20, // chiều cao progress bar
+                    width: 280,
+                    child: LinearProgressIndicator(
+                      value: value,
+                      color: co,
+                      backgroundColor: AppColor.darkBorder,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(indicate, style: TextStyle(color: co, fontSize: 30)),
+                  Text(realValue, style: TextStyle(color: co, fontSize: 30)),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Icon(
+                Icons.local_fire_department,
+                size: 58,
+                color: AppColor.redPrimary,
+              ),
               Text(
-                name,
+                "Current Streak : ${streak}",
                 style: TextStyle(
-                  color: co,
+                  color: AppColor.redPrimary,
                   fontSize: 50,
                   fontWeight: FontWeight.bold,
                   height: 0.5,
                 ),
               ),
-              Text(
-                line,
-                style: TextStyle(color: AppColor.lightText, fontSize: 27),
-              ),
-              SizedBox(
-                height: 20, // chiều cao progress bar
-                width: 280,
-                child: LinearProgressIndicator(
-                  value: value,
-                  color: co,
-                  backgroundColor: AppColor.darkBorder,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(indicate, style: TextStyle(color: co, fontSize: 30)),
-              Text(realValue, style: TextStyle(color: co, fontSize: 30)),
             ],
           ),
         ],

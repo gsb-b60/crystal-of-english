@@ -79,7 +79,7 @@ class _QuestScreenState extends State<QuestScreen> {
                               ),
                             ),
                             Text(
-                              "November Ranking - Law Execution",
+                              "December Ranking - Law Execution",
                               style: TextStyle(
                                 color: AppColor.lightText,
                                 fontWeight: FontWeight.bold,

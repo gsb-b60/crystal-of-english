@@ -3,6 +3,7 @@ import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/screen/endscreen.dart';
 import 'package:mygame/flashcard/DailyLesson/screen/startscreen.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
@@ -18,25 +19,22 @@ import 'package:mygame/flashcard/DailyLesson/studymode/synonymfeildUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
 import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
-
 import 'package:provider/provider.dart';
 
-import '../../screen/endscreen.dart';
-
-class AllMode extends StatefulWidget {
-  const AllMode({super.key});
-
+class LessLearnMode extends StatefulWidget {
+  LessLearnMode({super.key, required this.st});
+  StudyMode st;
   @override
-  State<AllMode> createState() => _AllModeState();
+  State<LessLearnMode> createState() => _LessLearnModeState();
 }
 
-class _AllModeState extends State<AllMode> {
+class _LessLearnModeState extends State<LessLearnMode> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => LessonNoti()..getFlashcardListAllMode(),
+          create: (context) => LessonNoti()..getByMode(widget.st),
         ),
         ChangeNotifierProvider(create: (context) => TimerNoti()..start()),
         ChangeNotifierProvider(create: (context) => Questnoti()),

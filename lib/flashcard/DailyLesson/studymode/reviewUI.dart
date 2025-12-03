@@ -23,7 +23,7 @@ class _ReviewUIState extends State<ReviewUI> {
   Widget build(BuildContext context) {
     final provider = context.watch<LessonNoti>();
     final reader= context.read<LessonNoti>();
-    List<Flashcard> list=provider.card3;
+    List<Flashcard> list=provider.card;
     return Scaffold(
       backgroundColor: AppColor.darkBase,
       body: Stack(

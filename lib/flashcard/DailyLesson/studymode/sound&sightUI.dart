@@ -101,7 +101,6 @@ class _MyWidgetState extends State<SoundNSightUI> {
                               size: 30,
                             ),
                           ),
-                          SizedBox(width: 30),
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
@@ -121,26 +120,26 @@ class _MyWidgetState extends State<SoundNSightUI> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
                       SizedBox(
                         height: 170,
                         width: 400,
                         child: Center(
-                          child: Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            alignment: WrapAlignment.center,
-
-                            children: List.generate(list.length, (index) {
-                              final value = list[index];
-                              return ChoiceBtnStates(
-                                value: value,
-                                state: listState[index],
-                                onChoose: () {
-                                  reader.CheckAnswer(value, index);
-                                },
-                              );
-                            }),
+                          child: SingleChildScrollView(
+                            child: Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              alignment: WrapAlignment.center,
+                              children: List.generate(list.length, (index) {
+                                final value = list[index];
+                                return ChoiceBtnStates(
+                                  value: value,
+                                  state: listState[index],
+                                  onChoose: () {
+                                    reader.CheckAnswer(value, index);
+                                  },
+                                );
+                              }),
+                            ),
                           ),
                         ),
                       ),

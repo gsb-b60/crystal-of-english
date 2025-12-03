@@ -71,7 +71,7 @@ class MeanfuseUI extends StatelessWidget {
       body: Stack(
         children: [
           Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Row(
                 children: [
@@ -86,15 +86,15 @@ class MeanfuseUI extends StatelessWidget {
                   ),
                 ],
               ),
-               Container(
+              Container(
                 height: 150,
-                width: 650,
+                width: 750,
                 child: Center(
                   child: Text(
                     provider.mean,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -117,21 +117,25 @@ class MeanfuseUI extends StatelessWidget {
                   );
                 }),
               ),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.center,
-
-                children: List.generate(list.length, (index) {
-                  final value = list[index];
-                  return ChoiceBtn(
-                    value: value,
-                    state: listState[index],
-                    onChoose: () {
-                      reader.CheckAnswer(value, index);
-                    },
-                  );
-                }),
+              Container(
+                height: 70,
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: List.generate(list.length, (index) {
+                      final value = list[index];
+                      return ChoiceBtn(
+                        value: value,
+                        state: listState[index],
+                        onChoose: () {
+                          reader.CheckAnswer(value, index);
+                        },
+                      );
+                    }),
+                  ),
+                ),
               ),
             ],
           ),

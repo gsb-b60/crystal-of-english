@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
 import 'package:mygame/components/Menu/Theme/color.dart';
+import 'package:mygame/flashcard/DailyLesson/libWidget/checkBtnVertical.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/choiceBtnVertical.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/progessIndicator.dart';
 import 'package:mygame/flashcard/DailyLesson/libWidget/reviewScreen.dart';
@@ -100,7 +101,7 @@ class _WordPulseUIState extends State<WordPulseUI> {
                             },
                           ),
                         ),
-                        CheckBtn(
+                        CheckBtnVertical(
                           isChecked: provider.checkable,
                           onCheck: () {
                             reader.checkAnswerMC();

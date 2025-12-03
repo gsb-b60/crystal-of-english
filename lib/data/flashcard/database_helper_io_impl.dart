@@ -278,13 +278,37 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<Flashcard>> getCardByLevel(int level) async {
+  Future<List<Flashcard>> getCardByLevels(int level) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'cards',
       where: 'complexity=?',
       whereArgs: [level],
     );
+    return List.generate(maps.length, (i) {
+      return Flashcard.fromMap(maps[i]);
+    });
+  }
+
+  Future<List<Flashcard>> getCardByLevel(int limit, int level) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
+    SELECT *
+    FROM cards
+    WHERE sound IS NOT NULL
+      AND word IS NOT NULL
+      AND word NOT LIKE '% %'
+      AND ipa IS NOT NULL
+      AND img IS NOT NULL
+      AND meaning IS NOT NULL
+      AND due <= ?
+      AND complexity = ?
+    LIMIT ?
+    ''',
+      [DateTime.now().millisecondsSinceEpoch, limit, level],
+    );
+
     return List.generate(maps.length, (i) {
       return Flashcard.fromMap(maps[i]);
     });

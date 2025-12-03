@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mygame/data/flashcard/database_helper_io_impl.dart';
 import 'package:mygame/flashcard/business/Flashcard.dart';
@@ -25,7 +27,11 @@ class SpeechWordNoti extends ChangeNotifier {
 
   Future<void> SetNext() async {
     answered = false;
+
     currentCardIdx++;
+    if (currentCardIdx == _cards.length) {
+      //Navigator.pop();
+    }
     notifyListeners();
   }
 
@@ -67,18 +73,38 @@ class SpeechWordNoti extends ChangeNotifier {
     }
   }
 
-  void startListening() async {
-    String re = "";
+  String re = "";
+  bool hasFinal = false; // NEW
+  Timer? timeoutTimer; // NEW
+  Future<void> startListening() async {
+    re = "";
+    hasFinal = false;
+
     await stt.listen(
       onResult: (result) {
-        print("user said ${result.recognizedWords}");
-        re = result.recognizedWords;
+        if (result.finalResult) {
+          print("user said ${result.recognizedWords}");
+          re = result.recognizedWords;
+          hasFinal = true;
+
+          timeoutTimer?.cancel();
+          stt.stop(); 
+          CheckAnswer(re);
+        }
       },
       localeId: "en_US",
     );
-    await Future.delayed(Duration(seconds: 5));
-    await stt.stop();
-    CheckAnswer(re);
+
+    while (!stt.isListening) {
+      await Future.delayed(Duration(milliseconds: 30));
+    }
+
+    timeoutTimer = Timer(Duration(seconds: 5), () {
+      if (!hasFinal) {
+        stt.stop();
+        CheckAnswer(re);
+      }
+    });
   }
 
   void CheckAnswer(String re) {
@@ -88,7 +114,7 @@ class SpeechWordNoti extends ChangeNotifier {
     if (normalize(re) == normalize(wordtrim)) {
       right = true;
     } else {
-      right=false;
+      right = false;
     }
     notifyListeners();
   }
@@ -96,4 +122,18 @@ class SpeechWordNoti extends ChangeNotifier {
   void stopListen() async {
     await stt.stop();
   }
+
+  // void startListening() async {
+  //   String re = "";
+  //   await stt.listen(
+  //     onResult: (result) {
+  //       print("user said ${result.recognizedWords}");
+  //       re = result.recognizedWords;
+  //     },
+  //     localeId: "en_US",
+  //   );
+  //   await Future.delayed(Duration(seconds: 5));
+  //   await stt.stop();
+  //   CheckAnswer(re);
+  // }
 }
