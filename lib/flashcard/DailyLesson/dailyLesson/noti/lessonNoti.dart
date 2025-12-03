@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:flame_audio/flame_audio.dart';
@@ -632,18 +633,38 @@ class LessonNoti extends ChangeNotifier {
 
   String re = "";
   final SpeechToText stt = SpeechToText();
-  void startListening() async {
+
+  bool hasFinal = false; 
+  Timer? timeoutTimer; 
+  Future<void> startListening() async {
     re = "";
+    hasFinal = false;
+
     await stt.listen(
       onResult: (result) {
-        print("user said ${result.recognizedWords}");
-        re = result.recognizedWords;
+        if (result.finalResult) {
+          print("user said ${result.recognizedWords}");
+          re = result.recognizedWords;
+          hasFinal = true;
+
+          timeoutTimer?.cancel();
+          stt.stop(); 
+          CheckAnswerSpeech(re);
+        }
       },
       localeId: "en_US",
     );
-    await Future.delayed(Duration(seconds: 5));
-    await stt.stop();
-    CheckAnswerSpeech(re);
+
+    while (!stt.isListening) {
+      await Future.delayed(Duration(milliseconds: 30));
+    }
+
+    timeoutTimer = Timer(Duration(seconds: 5), () {
+      if (!hasFinal) {
+        stt.stop();
+        CheckAnswerSpeech(re);
+      }
+    });
   }
 
   void CheckAnswerSpeech(String re) {
