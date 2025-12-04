@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:mygame/data/flashcard/database_helper.dart';
 
@@ -16,6 +17,8 @@ class PlayerProfile {
   int? _xp;
   int? _gold;
   String? _inventoryJson;
+  int? _level;
+  Map<String, dynamic> _extra = {};
 
   final int _autosaveSlot = 1;
 
@@ -37,6 +40,18 @@ class PlayerProfile {
         _xp = (row['xp'] as num?)?.toInt();
         _gold = (row['gold'] as num?)?.toInt();
         _inventoryJson = row['inventory'] as String?;
+        final extraRaw = row['extra'] as String?;
+        if (extraRaw != null && extraRaw.isNotEmpty) {
+          try {
+            _extra = (jsonDecode(extraRaw) as Map).cast<String, dynamic>();
+          } catch (e) {
+            debugPrint('PlayerProfile.init extra decode failed: $e');
+            _extra = {};
+          }
+        }
+        _level = (_extra['level'] as num?)?.toInt() ??
+            _proficiencyLevel ??
+            1;
       }
     } catch (e) {
 
@@ -52,9 +67,13 @@ class PlayerProfile {
   int? get hearts => _hearts;
   int? get xp => _xp;
   int? get gold => _gold;
+  int? get level => _level;
 
   Future<void> setProficiencyLevel(int level, {bool autosave = true}) async {
     _proficiencyLevel = level;
+    _level = level;
+    _xp = 0;
+    _extra['level'] = level;
     if (autosave) await _autosave();
   }
 
@@ -76,7 +95,7 @@ class PlayerProfile {
       xp: _xp,
       gold: _gold,
       inventoryJson: _inventoryJson,
-      extra: null,
+      extra: _extra,
     );
   }
 
@@ -92,6 +111,18 @@ class PlayerProfile {
     _xp = (row['xp'] as num?)?.toInt();
     _gold = (row['gold'] as num?)?.toInt();
     _inventoryJson = row['inventory'] as String?;
+    final extraRaw = row['extra'] as String?;
+    if (extraRaw != null && extraRaw.isNotEmpty) {
+      try {
+        _extra = (jsonDecode(extraRaw) as Map).cast<String, dynamic>();
+      } catch (e) {
+        debugPrint('PlayerProfile.loadFromSlot extra decode failed: $e');
+        _extra = {};
+      }
+    }
+    _level = (_extra['level'] as num?)?.toInt() ??
+        _proficiencyLevel ??
+        1;
   }
 
 
@@ -104,6 +135,7 @@ class PlayerProfile {
     int? gold,
     String? inventoryJson,
     int slot = 1,
+    int? level,
   }) async {
     if (mapFile != null) _mapFile = mapFile;
     if (posX != null) _posX = posX;
@@ -112,6 +144,8 @@ class PlayerProfile {
     if (xp != null) _xp = xp;
     if (gold != null) _gold = gold;
     if (inventoryJson != null) _inventoryJson = inventoryJson;
+    if (level != null) _level = level;
+    if (_level != null) _extra['level'] = _level;
 
     await DatabaseHelper.instance.savePlayerProfileSlot(
       slot,
@@ -124,7 +158,7 @@ class PlayerProfile {
       xp: _xp,
       gold: _gold,
       inventoryJson: _inventoryJson,
-      extra: null,
+      extra: _extra,
     );
   }
 
@@ -139,6 +173,13 @@ class PlayerProfile {
 
 
   int effectiveLevel() {
-    return _preferredDeckLevel ?? _proficiencyLevel ?? 1;
+    return _level ?? _preferredDeckLevel ?? _proficiencyLevel ?? 1;
+  }
+
+  Future<void> setXpLevel(int level, int xp, {bool autosave = true}) async {
+    _level = level;
+    _xp = xp;
+    _extra['level'] = level;
+    if (autosave) await _autosave();
   }
 }

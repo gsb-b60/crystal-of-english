@@ -1,4 +1,4 @@
-
+﻿
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -139,6 +139,18 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     }
   }
 
+  int _xpForQuestion(QuizQuestion q) {
+    final diff = q.difficulty.clamp(1, 5);
+    final base = 4 + diff * 2; // Easy stays low; harder questions pay more.
+    final multiplier = switch (enemyType) {
+      EnemyType.normal => 1.0,
+      EnemyType.strong => 1.25,
+      EnemyType.miniboss => 1.6,
+      EnemyType.boss => 2.0,
+    };
+    return max(3, (base * multiplier).round());
+  }
+
   final Random _rng = Random();
 
   int _goldRewardFor(EnemyType t) {
@@ -171,6 +183,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
   late Health enemyHealth;
 
   late Map<String, SpriteAnimation> _enemyAnims;
+  int _xpEarned = 0;
 
   late PositionComponent enemy;
 
@@ -201,7 +214,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     final logicalBg = Vector2(320, 180);
     final screenSize = game.size;
     final scale = min(screenSize.x / logicalBg.x, screenSize.y / logicalBg.y);
-    // Scale nền theo tỉ lệ màn thật để khỏi méo hình.
+    // Scale ná»n theo tá»‰ lá»‡ mÃ n tháº­t Ä‘á»ƒ khá»i mÃ©o hÃ¬nh.
 
     final bg = SpriteComponent(
       sprite: bgSprite,
@@ -269,7 +282,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
   final baselineY = panelTop - (8 * battleScale);
-    // Mốc baseline giữ nhân vật và quiz panel không đè nhau.
+    // Má»‘c baseline giá»¯ nhÃ¢n váº­t vÃ  quiz panel khÃ´ng Ä‘Ã¨ nhau.
     final double halfGap = baseGap * battleScale;
     final Vector2 actorSize = actorBaseSize * battleScale;
     final heroDisplaySize = actorSize;
@@ -326,7 +339,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     Map<String, SpriteAnimation> enemyAnimations = {};
     try {
-      // Load bộ animation riêng cho từng loại quái.
+      // Load bá»™ animation riÃªng cho tá»«ng loáº¡i quÃ¡i.
 
       final ui.Image eIdle = await game.images.load(
         '${enemyFolder}idle.png',
@@ -437,10 +450,10 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     }
 
 
-    _quizRepo = QuizRepository(); // Chuẩn bị nguồn câu hỏi.
+    _quizRepo = QuizRepository(); // Chuáº©n bá»‹ nguá»“n cÃ¢u há»i.
     _pool = await _quizRepo.loadTopic(_topic);
     final hurtSheet = SpriteSheet(image: hurtImg, srcSize: _kHeroHurtFrameSize);
-    // Bắt đầu lượt đầu tiên ngay sau khi load đủ asset.
+    // Báº¯t Ä‘áº§u lÆ°á»£t Ä‘áº§u tiÃªn ngay sau khi load Ä‘á»§ asset.
     await _nextTurn(attackSheet, deadSheet, hurtSheet);
   }
 
@@ -453,12 +466,12 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     _takingTurn = true;
 
     if (_pool.isEmpty) {
-      // Không còn câu hỏi => trận thắng ngay.
+      // KhÃ´ng cÃ²n cÃ¢u há»i => tráº­n tháº¯ng ngay.
       onEnd(BattleResult.win());
       return;
     }
 
-    final q = _pool.removeAt(0); // Lấy câu hỏi tiếp theo.
+    final q = _pool.removeAt(0); // Láº¥y cÃ¢u há»i tiáº¿p theo.
 
 
 
@@ -466,7 +479,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     try {
       for (final c in hud.children.where((c) => c is QuizPanel).toList()) {
-        // Dọn panel cũ để tránh chồng chéo widget.
+        // Dá»n panel cÅ© Ä‘á»ƒ trÃ¡nh chá»“ng chÃ©o widget.
         c.removeFromParent();
       }
     } catch (_) {}
@@ -481,18 +494,17 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       print('[BattleScene] presenting quiz question: ${q.id}');
     } catch (_) {}
 
-    _panel = QuizPanel(
+        _panel = QuizPanel(
       question: q,
       onAnswer: (isCorrect) async {
         if (_answering) return;
         _answering = true;
 
         if (isCorrect) {
-          // Trả lời đúng thì tới lượt hero ra tay.
+          _xpEarned += _xpForQuestion(q);
           await _playHeroAttackOnce(attackSheet);
-          enemyHealth.damage(1); // Mỗi câu đúng trừ một tim quái.
+          enemyHealth.damage(1);
           await _hitFx(enemy.position);
-
 
           await _playEnemyHurtOnce();
 
@@ -504,10 +516,8 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           _panel = null;
 
           if (enemyHealth.isDead) {
-
-            // Quái cạn máu thì trả thưởng và kết thúc trận.
             await _playEnemyDeathOnce();
-            final xp = _xpRewardFor(enemyType);
+            final xp = max(_xpEarned, _xpRewardFor(enemyType));
             final gold = _goldRewardFor(enemyType);
             onEnd(BattleResult.win(xp: xp, gold: gold));
             return;
@@ -516,13 +526,12 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           _takingTurn = false;
           await _nextTurn(attackSheet, deadSheet, hurtSheet);
         } else {
-          heroHealth.damage(1); // Sai thì người chơi mất máu.
+          heroHealth.damage(1);
           await _hitFx(heroRoot.position);
 
           await _playHeroHurtOnce(hurtSheet);
 
-
-          await _playEnemyAttackOnce(); // Quái phản đòn để nhắc nhớ lỗi.
+          await _playEnemyAttackOnce();
 
           if (heroHealth.isDead) {
             await _playHeroDeadOnce(deadSheet);
@@ -618,7 +627,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
 
     if (type != 'death' && comp.isMounted) {
-      // Sau khi diễn xong thì trả animation về idle.
+      // Sau khi diá»…n xong thÃ¬ tráº£ animation vá» idle.
       comp.animation = _enemyAnims['idle']!;
     }
   }
@@ -633,7 +642,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
 
   Future<void> _hitFx(Vector2 at) async {
-    // Hiệu ứng chớp nhẹ cho cảm giác trúng đòn.
+    // Hiá»‡u á»©ng chá»›p nháº¹ cho cáº£m giÃ¡c trÃºng Ä‘Ã²n.
     final fx = CircleComponent(
       radius: 8 * battleScale,
       anchor: Anchor.center,
@@ -683,3 +692,4 @@ class TextButtonHud extends PositionComponent with TapCallbacks {
   @override
   void onTapCancel(TapCancelEvent event) => _down = false;
 }
+

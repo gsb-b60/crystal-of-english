@@ -261,8 +261,22 @@ class MyGame extends FlameGame
       margin: const EdgeInsets.only(left: 8, top: 40),
       onLevelUp: (lv) async {
         await showAreaTitle('Level Up! Lv $lv');
+        try {
+          await PlayerProfile.instance.setXpLevel(lv, expHud.xp);
+        } catch (e) {
+          debugPrint('save level on level-up failed: $e');
+        }
       },
     );
+    final baseLevel = PlayerProfile.instance.level ??
+        PlayerProfile.instance.proficiencyLevel ??
+        1;
+    final savedXp = PlayerProfile.instance.xp ?? 0;
+    expHud.setLevel(baseLevel, currentXp: savedXp);
+    try {
+      await PlayerProfile.instance.setXpLevel(expHud.level, expHud.xp,
+          autosave: false);
+    } catch (_) {}
     await hudRoot.add(expHud);
 
     goldHud = GoldHud(margin: const EdgeInsets.only(left: 8, top: 56));
@@ -330,15 +344,16 @@ class MyGame extends FlameGame
 
   /// Persist the current gameplay state into the requested save slot.
   Future<void> saveSlot(int slot) async {
-    await PlayerProfile.instance.saveSnapshot(
-      mapFile: currentMapFile,
-      posX: player.position.x,
-      posY: player.position.y,
-      hearts: heartsHud.currentHearts,
-      xp: expHud.xp,
-      gold: goldHud.gold,
-      slot: slot,
-    );
+      await PlayerProfile.instance.saveSnapshot(
+        mapFile: currentMapFile,
+        posX: player.position.x,
+        posY: player.position.y,
+        hearts: heartsHud.currentHearts,
+        xp: expHud.xp,
+        level: expHud.level,
+        gold: goldHud.gold,
+        slot: slot,
+      );
   }
 
   void _lockControls(bool lock) {
@@ -641,6 +656,7 @@ class MyGame extends FlameGame
         posY: player.position.y,
         hearts: heartsHud.currentHearts,
         xp: expHud.xp,
+        level: expHud.level,
         gold: goldHud.gold,
         slot: 1,
       );
@@ -696,6 +712,15 @@ class MyGame extends FlameGame
       if (result.goldGained > 0) {
         goldHud.addGold(result.goldGained);
       }
+      try {
+        PlayerProfile.instance
+            .setXpLevel(expHud.level, expHud.xp, autosave: true)
+            .catchError((e) {
+          debugPrint('save xp after battle failed: $e');
+        });
+      } catch (e) {
+        debugPrint('save xp after battle failed: $e');
+      }
     }
 
     if (joystick != null) {
@@ -731,6 +756,7 @@ class MyGame extends FlameGame
         posY: player.position.y,
         hearts: heartsHud.currentHearts,
         xp: expHud.xp,
+        level: expHud.level,
         gold: goldHud.gold,
         slot: 1,
       );
@@ -870,6 +896,7 @@ class MyGame extends FlameGame
         posY: player.position.y,
         hearts: heartsHud.currentHearts,
         xp: expHud.xp,
+        level: expHud.level,
         gold: goldHud.gold,
         slot: 1,
       );
