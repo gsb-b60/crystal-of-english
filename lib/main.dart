@@ -91,8 +91,7 @@ void main() async {
                     backgroundColor: Colors.white,
                     extendBodyBehindAppBar: true,
                     appBar: AppBar(
-                      backgroundColor:
-                          Colors.transparent,
+                      backgroundColor: Colors.transparent,
                       elevation: 0,
                       title: const Text('Flashcards'),
                       leading: IconButton(
@@ -128,7 +127,7 @@ void main() async {
               return ShopOverlay(
                 onClose: () async {
                   g.overlays.remove(ShopOverlay.id);
-                  await g.showAreaTitle('Cảm ơn bạn đã mua hàng');
+                  await g.showAreaTitle('Thank you for your purchase');
                 },
                 getGold: () => g.goldHud.gold,
                 spendGold: (amount) {
@@ -302,17 +301,10 @@ class MyGame extends FlameGame
   }
 
   Future<void> _initMapObjects(String mapFile) async {
-
     final effectiveLevel = PlayerProfile.instance.effectiveLevel();
     int _slotCounter = 0;
 
     EnemyType _enemyForSlot(int level, int slot) {
-
-
-
-
-
-
       switch (level) {
         case 1:
           return EnemyType.normal;
@@ -328,6 +320,7 @@ class MyGame extends FlameGame
           return EnemyType.normal;
       }
     }
+
     if (mapFile == 'map.tmx') {
       final loader = TiledObjectLoader(map, world);
       await loader.loadLayer("house");
@@ -340,14 +333,17 @@ class MyGame extends FlameGame
         interactPrompt: 'You can\'t fight with that body, train with me!',
         interactChoices: [
           DialogueChoice(
-            'Bắt đầu luyện thẻ',
+            'Start Card Training',
             onSelected: () {
               overlays.add('CardLevelScreen');
             },
           ),
-          DialogueChoice('Để sau', onSelected: dialogManager.close),
+          DialogueChoice('Later', onSelected: dialogManager.close),
         ],
-        idleLines: const ['You know nothing, Jon Snow', 'Why would a girl see blood and collapse?'],
+        idleLines: const [
+          'You know nothing, Jon Snow',
+          'Why would a girl see blood and collapse?',
+        ],
         enableIdleChatter: true,
         spriteAsset: 'chihiro.png',
         srcPosition: Vector2(0, 0),
@@ -363,20 +359,20 @@ class MyGame extends FlameGame
       final npc1 = Npc(
         position: Vector2(660, 112),
         manager: dialogManager,
-        interactLines: const ['Xin chào!', 'Bạn cần gì?'],
+        interactLines: const ['Hello!', 'How can I help you?'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Bạn muốn làm gì?',
+        interactPrompt: 'What do you want?',
         interactChoices: [
           DialogueChoice(
-            'Vào thư viện',
+            'Enter Library',
             onSelected: () async {
               dialogManager.close();
               await loadMap('houseinterior.tmx', spawn: Vector2(182, 172));
             },
           ),
-          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
+          DialogueChoice('Goodbye', onSelected: dialogManager.close),
         ],
-        idleLines: const ['Hmm...', 'Nghe nói phía bắc có kho báu.'],
+        idleLines: const ['Hmm...', 'They say there is treasure to the north.'],
         enableIdleChatter: true,
         spriteAsset: 'Eleonore.png',
         srcPosition: Vector2(0, 0),
@@ -392,20 +388,20 @@ class MyGame extends FlameGame
       final npc2 = Npc(
         position: Vector2(876, 560),
         manager: dialogManager,
-        interactLines: const ['Xin chào!', 'Bạn cần gì?'],
+        interactLines: const ['Hello!', 'How can I help you?'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Xin chào! Bạn cần gì?',
+        interactPrompt: 'Hello! What do you need?',
         interactChoices: [
           DialogueChoice(
-            'Vào đảo Undead',
+            'Enter Undead Island',
             onSelected: () async {
               dialogManager.close();
               await loadMap('dungeon.tmx', spawn: Vector2(1260, 650));
             },
           ),
-          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
+          DialogueChoice('Goodbye', onSelected: dialogManager.close),
         ],
-        idleLines: const ['Hmm...', 'Nghe nói phía bắc có kho báu.'],
+        idleLines: const ['Hmm...', 'They say there is treasure to the north.'],
         enableIdleChatter: true,
         spriteAsset: 'Joanna.png',
         srcPosition: Vector2(0, 0),
@@ -421,20 +417,20 @@ class MyGame extends FlameGame
       final shopNpc = Npc(
         position: Vector2(312, 342),
         manager: dialogManager,
-        interactLines: const ['Xin chào!', 'Bạn muốn mua gì không?'],
+        interactLines: const ['Hello!', 'Would you like to buy something?'],
         interactOrderMode: InteractOrderMode.alwaysFromStart,
-        interactPrompt: 'Chọn hành động:',
+        interactPrompt: 'Choose an action:',
         interactChoices: [
           DialogueChoice(
-            'Mua vật phẩm',
+            'Buy Items',
             onSelected: () async {
               dialogManager.close();
               overlays.add(ShopOverlay.id);
             },
           ),
-          DialogueChoice('Tạm biệt', onSelected: dialogManager.close),
+          DialogueChoice('Goodbye', onSelected: dialogManager.close),
         ],
-        idleLines: const ['Giá rẻ như bèo!', 'Đồ mới về đây!'],
+        idleLines: const ['Dirt cheap!', 'New items in stock!'],
         enableIdleChatter: true,
         spriteAsset: 'Eleonore.png',
         srcPosition: Vector2(0, 0),
@@ -447,114 +443,113 @@ class MyGame extends FlameGame
       );
       await world.add(shopNpc);
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     EnemyWander(
+      //       patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+      //       spritePath: 'Joanna.png',
+      //       speed: 35,
+      //       triggerRadius: 40,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     EnemyWander(
+      //       patrolRect: ui.Rect.fromLTWH(800, 600, 160, 120),
+      //       spritePath: 'Joanna.png',
+      //       speed: 35,
+      //       triggerRadius: 40,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     EnemyWander(
+      //       patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+      //       spritePath: 'Joanna.png',
+      //       speed: 35,
+      //       triggerRadius: 40,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
+      //   await world.add(
+      //     EnemyWander(
+      //       patrolRect: ui.Rect.fromLTWH(900, 700, 160, 120),
+      //       spritePath: 'Joanna.png',
+      //       speed: 35,
+      //       triggerRadius: 40,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        EnemyWander(
-          patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
-          spritePath: 'Joanna.png',
-          speed: 35,
-          triggerRadius: 40,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
-    } else if (mapFile == 'dungeon.tmx') {
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(970, 465, 80, 60),
-          speed: 30,
-          triggerRadius: 48,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     EnemyWander(
+      //       patrolRect: ui.Rect.fromLTWH(700, 500, 160, 120),
+      //       spritePath: 'Joanna.png',
+      //       speed: 35,
+      //       triggerRadius: 40,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
+      // } else if (mapFile == 'dungeon.tmx') {
+      //   await world.add(
+      //     Enemy(
+      //       patrolRect: ui.Rect.fromLTWH(970, 465, 80, 60),
+      //       speed: 30,
+      //       triggerRadius: 48,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(1035, 300, 80, 60),
-          speed: 28,
-          triggerRadius: 48,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     Enemy(
+      //       patrolRect: ui.Rect.fromLTWH(1035, 300, 80, 60),
+      //       speed: 28,
+      //       triggerRadius: 48,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(230, 530, 80, 60),
-          speed: 32,
-          triggerRadius: 48,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     Enemy(
+      //       patrolRect: ui.Rect.fromLTWH(230, 530, 80, 60),
+      //       speed: 32,
+      //       triggerRadius: 48,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(265, 300, 80, 60),
-          speed: 20,
-          triggerRadius: 60,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(500, 375, 80, 60),
-          speed: 30,
-          triggerRadius: 48,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     Enemy(
+      //       patrolRect: ui.Rect.fromLTWH(265, 300, 80, 60),
+      //       speed: 20,
+      //       triggerRadius: 60,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
+      //   await world.add(
+      //     Enemy(
+      //       patrolRect: ui.Rect.fromLTWH(500, 375, 80, 60),
+      //       speed: 30,
+      //       triggerRadius: 48,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
 
-      await world.add(
-        Enemy(
-          patrolRect: ui.Rect.fromLTWH(745, 485, 80, 60),
-          speed: 28,
-          triggerRadius: 48,
-          enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
-        ),
-      );
+      //   await world.add(
+      //     Enemy(
+      //       patrolRect: ui.Rect.fromLTWH(745, 485, 80, 60),
+      //       speed: 28,
+      //       triggerRadius: 48,
+      //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+      //     ),
+      //   );
     }
   }
 
   Future<void> enterBattle({required EnemyType enemyType}) async {
     if (_inBattle) return;
     _inBattle = true;
-
 
     try {
       await PlayerProfile.instance.saveSnapshot(
@@ -587,7 +582,6 @@ class MyGame extends FlameGame
 
     heartsHud.removeFromParent();
 
-
     await AudioManager.instance.pauseBgm();
 
     _battleScene = BattleScene(
@@ -616,9 +610,9 @@ class MyGame extends FlameGame
       if (result.xpGained > 0) {
         expHud.addXp(result.xpGained);
       }
-      if (result.goldGained > 0) {
-        goldHud.addGold(result.goldGained);
-      }
+      // if (result.goldGained > 0) {
+      //   goldHud.addGold(result.goldGained);
+      // }
     }
 
     if (joystick != null) {
@@ -633,9 +627,7 @@ class MyGame extends FlameGame
       player.position = Vector2(1255, 655);
     }
 
-
     AudioManager.instance.resumeBgm();
-
 
     if (!overlays.isActive(SettingsOverlay.id)) {
       overlays.add(SettingsOverlay.id);
@@ -648,7 +640,6 @@ class MyGame extends FlameGame
     Vector2? spawnTile,
     double tileSize = 16,
   }) async {
-
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
@@ -668,7 +659,6 @@ class MyGame extends FlameGame
     final newWorld = World();
     await add(newWorld);
     world = newWorld;
-
 
     if (mapFile == 'dungeon.tmx') {
       map = await ft.TiledComponent.load(
@@ -731,8 +721,8 @@ class MyGame extends FlameGame
       mapFile == 'houseinterior.tmx'
           ? 'Library'
           : mapFile == 'dungeon.tmx'
-              ? 'Welcome to Undead Island'
-              : 'Overworld',
+          ? 'Welcome to Undead Island'
+          : 'Overworld',
     );
 
     if (mapFile == 'houseinterior.tmx') {
@@ -789,7 +779,6 @@ class MyGame extends FlameGame
         ),
       );
     }
-
 
     currentMapFile = mapFile;
     try {

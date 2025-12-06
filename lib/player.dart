@@ -5,39 +5,17 @@ import 'package:flame/collisions.dart';
 import 'main.dart';
 import 'components/collisionmap.dart';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Player extends SpriteComponent
     with HasGameRef<MyGame>, CollisionCallbacks {
   JoystickComponent? joystick;
-
 
   static const double speed = 150;
   static const double stepTime = 0.12;
   static const double dtCap = 1 / 60;
   static const double collisionCooldownMs = .15;
 
-
   final Vector2 frameSize = Vector2(80, 80);
-  static const int framesPerRow = 8;
-
+  static const int framesPerRow = 6;
 
   late Image spriteSheet;
   double frameTime = 0;
@@ -48,48 +26,41 @@ class Player extends SpriteComponent
   bool facingLeft = false;
   bool _lastFacingLeft = false;
 
-
   bool collided = false;
-  JoystickDirection collisionDirection =
-      JoystickDirection.idle;
+  JoystickDirection collisionDirection = JoystickDirection.idle;
   double _collisionCooldown = 0;
-
 
   late final List<List<Sprite>> _frames;
 
   Player({required Vector2 position})
-    : super(position: position + Vector2(0, 16),
-            size: Vector2.all(80), anchor: Anchor.center);
+    : super(
+        position: position + Vector2(0, 16),
+        size: Vector2.all(80),
+        anchor: Anchor.center,
+      );
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    spriteSheet = await gameRef.images.load('player.png');
-
+    spriteSheet = await gameRef.images.load('walk.png');
 
     Sprite buildSprite(int row, int col) => Sprite(
       spriteSheet,
-      srcPosition: Vector2(
-        col * frameSize.x,
-        row * frameSize.y,
-      ),
+      srcPosition: Vector2(col * frameSize.x, row * frameSize.y),
       srcSize: frameSize,
     );
-
 
     _frames = List.generate(
       3,
       (r) => List.generate(framesPerRow, (c) => buildSprite(r, c)),
     );
 
-
     currentRow = 1;
     currentFrame = 0;
     sprite = _frames[currentRow][currentFrame];
     _lastRow = currentRow;
     _lastFrame = currentFrame;
-
 
     final hb = RectangleHitbox(size: Vector2(6, 6), position: Vector2(37, 37))
       ..collisionType = CollisionType.active;
@@ -116,7 +87,6 @@ class Player extends SpriteComponent
     Vector2 velocity = Vector2.zero();
     final dir = joystick!.direction;
 
-
     final moveLeft = dir == JoystickDirection.left;
     final moveRight = dir == JoystickDirection.right;
     final moveUp = dir == JoystickDirection.up;
@@ -139,7 +109,6 @@ class Player extends SpriteComponent
         (_collisionCooldown > 0 &&
             collisionDirection == JoystickDirection.down);
 
-
     if (dir != JoystickDirection.idle) {
       if (moveLeft && !lockLeft) {
         velocity.x = -speed;
@@ -158,7 +127,6 @@ class Player extends SpriteComponent
       }
     }
 
-
     if (!velocity.isZero()) {
       // Có input hợp lệ thì vừa di chuyển vừa chạy animation.
       position += velocity * d;
@@ -167,15 +135,12 @@ class Player extends SpriteComponent
         position.y = 40;
       }
 
-
       frameTime += d;
       if (frameTime > stepTime) {
         frameTime = 0;
-        currentFrame =
-            (currentFrame + 1) % framesPerRow;
+        currentFrame = (currentFrame + 1) % framesPerRow;
       }
     }
-
 
     if (currentRow != _lastRow || currentFrame != _lastFrame) {
       // Tránh set sprite lại khi frame chưa đổi.
@@ -184,13 +149,11 @@ class Player extends SpriteComponent
       _lastFrame = currentFrame;
     }
 
-
     if (facingLeft != _lastFacingLeft) {
       // Lật sprite để ánh mắt nhìn đúng hướng.
       scale.x = facingLeft ? -1 : 1;
       _lastFacingLeft = facingLeft;
     }
-
 
     // Chặn nhân vật khỏi việc bước ra ngoài map.
     position.x = position.x.clamp(0, gameRef.mapBounds.width - size.x);
@@ -201,7 +164,6 @@ class Player extends SpriteComponent
   void onCollisionStart(Set<Vector2> points, PositionComponent other) {
     super.onCollisionStart(points, other);
     if (other is HitboxComponent) {
-
       final dir = joystick?.direction ?? JoystickDirection.idle;
       if (dir != JoystickDirection.idle) {
         collisionDirection = dir;

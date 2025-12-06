@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -20,23 +19,20 @@ const _kHeroAttackPng = 'characters/maincharacter/Attack.png';
 const _kHeroDeadPng = 'characters/maincharacter/Dead.png';
 const _kHeroHurtPng = 'characters/maincharacter/Hurt.png';
 
+final Vector2 _kHeroIdleFrameSize = Vector2(64, 60);
+final Vector2 _kHeroAttackFrameSize = Vector2(64, 60);
+final Vector2 _kHeroDeadFrameSize = Vector2(64, 60);
+final Vector2 _kHeroHurtFrameSize = Vector2(64, 60);
 
-final Vector2 _kHeroIdleFrameSize = Vector2(64, 64);
-final Vector2 _kHeroAttackFrameSize = Vector2(96, 80);
-final Vector2 _kHeroDeadFrameSize = Vector2(80, 64);
-final Vector2 _kHeroHurtFrameSize = Vector2(64, 64);
-
-
-const int _kIdleFrames = 4;
+const int _kIdleFrames = 5;
 const int _kAttackFrames = 8;
-const int _kDeadFrames = 8;
-const int _kHurtFrames = 4;
-
+const int _kDeadFrames = 7;
+const int _kHurtFrames = 5;
 
 const double _kIdleStep = 0.18;
 const double _kAttackStep = 0.07;
 const double _kDeadStep = 0.08;
-const double _kHurtStep = 0.07;
+const double _kHurtStep = 0.1;
 
 const int _kPostAnswerDelayMs = 800;
 
@@ -45,11 +41,7 @@ class BattleResult {
   final int xpGained;
   final int goldGained;
 
-  BattleResult(
-    this.outcome, {
-    this.xpGained = 0,
-    this.goldGained = 0,
-  });
+  BattleResult(this.outcome, {this.xpGained = 0, this.goldGained = 0});
 
   static BattleResult win({int xp = 0, int gold = 0}) =>
       BattleResult('win', xpGained: xp, goldGained: gold);
@@ -125,7 +117,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
   BattleScene({required this.onEnd, required this.enemyType});
 
-
   int _xpRewardFor(EnemyType t) {
     switch (t) {
       case EnemyType.normal:
@@ -153,7 +144,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         return 30 + _rng.nextInt(31);
     }
   }
-
 
   late final PositionComponent heroRoot;
   late final SpriteAnimationComponent heroAnim;
@@ -233,7 +223,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           ..position = Vector2(8, 4);
     await hud.add(heroHealth);
 
-
     final enemyMaxHearts = switch (enemyType) {
       EnemyType.normal => 2,
       EnemyType.strong => 3,
@@ -268,7 +257,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     final panelTop = screenSize.y * (1.0 - QuizPanel.panelHeightRatio);
     final centerX = screenSize.x / 2;
-  final baselineY = panelTop - (8 * battleScale);
+    final baselineY = panelTop - (8 * battleScale);
     // Mốc baseline giữ nhân vật và quiz panel không đè nhau.
     final double halfGap = baseGap * battleScale;
     final Vector2 actorSize = actorBaseSize * battleScale;
@@ -297,10 +286,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     heroRoot = PositionComponent(
       size: heroDisplaySize,
       anchor: Anchor.bottomCenter,
-      position: Vector2(
-        centerX - 70 * battleScale,
-        baselineY + 74,
-      ),
+      position: Vector2(centerX - halfGap + 125, baselineY + 110),
       priority: 10,
     );
 
@@ -310,11 +296,10 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       anchor: Anchor.bottomCenter,
       position: Vector2.zero(),
       priority: 10,
-    );
+    )..scale = Vector2(1.6, 1.6);
 
     await heroRoot.add(heroAnim);
     await hud.add(heroRoot);
-
 
     final String enemyFolder = switch (enemyType) {
       EnemyType.normal => 'characters/enemy/at_battle/orc/',
@@ -323,34 +308,24 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       EnemyType.boss => 'characters/enemy/at_battle/vampire/',
     };
 
-
     Map<String, SpriteAnimation> enemyAnimations = {};
     try {
       // Load bộ animation riêng cho từng loại quái.
 
-      final ui.Image eIdle = await game.images.load(
-        '${enemyFolder}idle.png',
-      );
+      final ui.Image eIdle = await game.images.load('${enemyFolder}idle.png');
       final ui.Image eAttack = await game.images.load(
         '${enemyFolder}attack.png',
       );
-      final ui.Image eHurt = await game.images.load(
-        '${enemyFolder}hurt.png',
-      );
-      final ui.Image eDeath = await game.images.load(
-        '${enemyFolder}death.png',
-      );
-
+      final ui.Image eHurt = await game.images.load('${enemyFolder}hurt.png');
+      final ui.Image eDeath = await game.images.load('${enemyFolder}death.png');
 
       const frameWidth = 64.0;
       const frameHeight = 64.0;
-
 
       final idleFrameCount = (eIdle.width / frameWidth).floor();
       final attackFrameCount = (eAttack.width / frameWidth).floor();
       final hurtFrameCount = (eHurt.width / frameWidth).floor();
       final deathFrameCount = (eDeath.width / frameWidth).floor();
-
 
       final idleSheet = SpriteSheet(
         image: eIdle,
@@ -368,7 +343,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         image: eDeath,
         srcSize: Vector2(frameWidth, frameHeight),
       );
-
 
       enemyAnimations['idle'] = idleSheet.createAnimation(
         row: 0,
@@ -399,7 +373,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         loop: false,
       );
 
-
       _enemyIdleAnim = enemyAnimations['idle']!;
       _enemyAnims = enemyAnimations;
 
@@ -407,22 +380,18 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         animation: _enemyIdleAnim,
         size: actorSize,
         anchor: Anchor.bottomCenter,
-        position: Vector2(centerX + halfGap, baselineY + 24),
+        position: Vector2(centerX + halfGap - 100, baselineY + 24),
         priority: 10,
       )..scale = Vector2(1.4, 1.4);
       enemy = enemyAnim;
 
       await hud.add(enemyAnim);
-
-
-
     } catch (e) {
-
       enemy = SpriteComponent(
         sprite: await Sprite.load('Joanna.png'),
         size: actorSize,
         anchor: Anchor.bottomCenter,
-        position: Vector2(centerX + halfGap, baselineY),
+        position: Vector2(centerX + halfGap - 100, baselineY),
         priority: 10,
       )..scale = Vector2(1, 1);
       await hud.add(enemy);
@@ -435,7 +404,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
         'death': _idleAnim,
       };
     }
-
 
     _quizRepo = QuizRepository(); // Chuẩn bị nguồn câu hỏi.
     _pool = await _quizRepo.loadTopic(_topic);
@@ -460,10 +428,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     final q = _pool.removeAt(0); // Lấy câu hỏi tiếp theo.
 
-
-
-
-
     try {
       for (final c in hud.children.where((c) => c is QuizPanel).toList()) {
         // Dọn panel cũ để tránh chồng chéo widget.
@@ -474,10 +438,7 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     _panel?.removeFromParent();
     _answering = false;
 
-
-
     try {
-
       print('[BattleScene] presenting quiz question: ${q.id}');
     } catch (_) {}
 
@@ -493,7 +454,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           enemyHealth.damage(1); // Mỗi câu đúng trừ một tim quái.
           await _hitFx(enemy.position);
 
-
           await _playEnemyHurtOnce();
 
           await Future.delayed(
@@ -504,7 +464,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           _panel = null;
 
           if (enemyHealth.isDead) {
-
             // Quái cạn máu thì trả thưởng và kết thúc trận.
             await _playEnemyDeathOnce();
             final xp = _xpRewardFor(enemyType);
@@ -520,7 +479,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           await _hitFx(heroRoot.position);
 
           await _playHeroHurtOnce(hurtSheet);
-
 
           await _playEnemyAttackOnce(); // Quái phản đòn để nhắc nhớ lỗi.
 
@@ -550,7 +508,6 @@ class BattleScene extends Component with HasGameReference<MyGame> {
 
     await hud.add(_panel!);
   }
-
 
   Future<void> _playHeroAttackOnce(SpriteSheet sheet) async {
     final anim = sheet.createAnimation(
@@ -603,19 +560,15 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     final anim = _enemyAnims[type];
     if (anim == null) return;
 
-
     comp.animation = anim;
-
 
     double totalDuration = 0;
     for (final frame in anim.frames) {
       totalDuration += frame.stepTime;
     }
 
-
     final durMs = (totalDuration * 1000).round();
     await Future.delayed(Duration(milliseconds: durMs));
-
 
     if (type != 'death' && comp.isMounted) {
       // Sau khi diễn xong thì trả animation về idle.
@@ -623,14 +576,9 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     }
   }
 
-
-
-
-
   Future<void> _playEnemyAttackOnce() async => _playEnemyAnim('attack');
   Future<void> _playEnemyHurtOnce() async => _playEnemyAnim('hurt');
   Future<void> _playEnemyDeathOnce() async => _playEnemyAnim('death');
-
 
   Future<void> _hitFx(Vector2 at) async {
     // Hiệu ứng chớp nhẹ cho cảm giác trúng đòn.

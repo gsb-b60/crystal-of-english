@@ -153,7 +153,7 @@ class _ShopOverlayState extends State<ShopOverlay> {
       width: 350,
       height: height,
       child: Image.asset(
-        'assets/images/shop/Eleonore_Shop.png',
+        'assets/images/Eleonore_Shop.png',
         fit: BoxFit.contain,
       ),
     );
@@ -184,7 +184,7 @@ class _ShopOverlayState extends State<ShopOverlay> {
             children: [
               Positioned.fill(
                 child: Image.asset(
-                  'assets/images/shop/Book_shop_Nogrid.png',
+                  'assets/images/Book_Shop.png',
                   fit: BoxFit.fill,
                 ),
               ),

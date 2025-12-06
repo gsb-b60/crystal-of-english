@@ -31,7 +31,6 @@ class InteractBadge extends PositionComponent
     super.update(dt);
     _follow();
 
-
     final p = gameRef.player;
     final dist = p.position.distanceTo(target.position);
     _enabled = dist <= radius;
@@ -42,19 +41,11 @@ class InteractBadge extends PositionComponent
     position = target.position + Vector2(0, gapToCenter);
   }
 
-
   @override
   void onTapDown(TapDownEvent event) {
     if (_enabled) onPressed();
   }
 
-
   @override
-  void render(Canvas canvas) {
-
-
-
-
-
-  }
+  void render(Canvas canvas) {}
 }

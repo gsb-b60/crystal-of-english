@@ -113,9 +113,15 @@ class MenuNav extends StatelessWidget {
             }
             game.resumeEngine();
           },
-          child: const Text(
-            'New Game',
-            style: TextStyle(color: Colors.white, fontSize: 24),
+          child: SizedBox(
+            height: 48,
+            child: Image.asset(
+              'assets/menu/NewGame.png',
+              fit: BoxFit.contain,
+              errorBuilder: (c, e, s) => const Center(
+                child: Text('New Game', style: TextStyle(color: Colors.white, fontSize: 24)),
+              ),
+            ),
           ),
         ),
 
@@ -129,9 +135,15 @@ class MenuNav extends StatelessWidget {
               MaterialPageRoute(builder: (context) => SaveLoadScreen(game: game)),
             );
           },
-          child: const Text(
-            'Save / Load',
-            style: TextStyle(color: Colors.white, fontSize: 24),
+          child: SizedBox(
+            height: 48,
+            child: Image.asset(
+              'assets/menu/Continue.png',
+              fit: BoxFit.contain,
+              errorBuilder: (c, e, s) => const Center(
+                child: Text('Save / Load', style: TextStyle(color: Colors.white, fontSize: 24)),
+              ),
+            ),
           ),
         ),
 
@@ -145,9 +157,15 @@ class MenuNav extends StatelessWidget {
               MaterialPageRoute(builder: (context) => UserScreen()),
             );
           },
-          child: const Text(
-            'Options',
-            style: TextStyle(color: Colors.white, fontSize: 24),
+          child: SizedBox(
+            height: 48,
+            child: Image.asset(
+              'assets/menu/Settings.png',
+              fit: BoxFit.contain,
+              errorBuilder: (c, e, s) => const Center(
+                child: Text('Options', style: TextStyle(color: Colors.white, fontSize: 24)),
+              ),
+            ),
           ),
         ),
 
@@ -158,9 +176,15 @@ class MenuNav extends StatelessWidget {
           onTap: () {
             SystemNavigator.pop();
           },
-          child: const Text(
-            'Exit',
-            style: TextStyle(color: Colors.white, fontSize: 24),
+          child: SizedBox(
+            height: 48,
+            child: Image.asset(
+              'assets/menu/Exit.png',
+              fit: BoxFit.contain,
+              errorBuilder: (c, e, s) => const Center(
+                child: Text('Exit', style: TextStyle(color: Colors.white, fontSize: 24)),
+              ),
+            ),
           ),
         ),
       ],
