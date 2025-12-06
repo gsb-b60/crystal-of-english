@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/components/Menu/flashcard/data/database_helper.dart';
+import 'package:mygame/data/flashcard/database_helper.dart';
 import 'package:mygame/state/player_profile.dart';
 import 'package:mygame/main.dart';
+import 'package:mygame/ui/settings_overlay.dart';
 import 'package:flame/components.dart';
 
 class SaveLoadScreen extends StatefulWidget {
@@ -51,18 +52,30 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
   }
 
   Future<void> _saveSlot(int slot) async {
-
-    await PlayerProfile.instance.saveToSlot(slot);
-    await _refresh();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    try {
+      if (widget.game != null) {
+        await widget.game!.saveSlot(slot);
+      } else {
+        await PlayerProfile.instance.saveToSlot(slot);
+      }
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Saved to slot $slot')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+    }
   }
 
   Future<void> _loadSlot(int slot) async {
     await PlayerProfile.instance.loadFromSlot(slot);
     final data = await DatabaseHelper.instance.loadPlayerProfileSlot(slot);
 
-  if (widget.game != null && data != null) {
+    if (widget.game != null && data != null) {
       final mapFile = data['map_file'] as String?;
       final px = (data['pos_x'] as num?)?.toDouble();
       final py = (data['pos_y'] as num?)?.toDouble();
@@ -74,8 +87,21 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         }
       }
     }
+    // If we have a game instance, remove the main menu overlay and resume
+    // the engine so the player is returned directly to the gameplay view.
+    if (widget.game != null) {
+      widget.game!.overlays.remove('MainMenu');
+      if (!widget.game!.overlays.isActive(SettingsOverlay.id)) {
+        widget.game!.overlays.add(SettingsOverlay.id);
+      }
+      // Fully resume gameplay (restores joystick and resumes BGM at normal volume)
+      await widget.game!.resumeGame();
+    }
+
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Loaded slot $slot')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Loaded slot $slot')));
     Navigator.of(context).pop();
   }
 
@@ -90,7 +116,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Save / Load'),
-        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _refresh)],
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _refresh),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -105,7 +133,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                 return Card(
                   child: ListTile(
                     title: Text('Slot $slotId'),
-                    subtitle: Text('Saved: ${_formatTimestamp(savedAt)}\nProficiency: ${prof ?? '-'}  Preferred deck: ${pref ?? '-'}'),
+                    subtitle: Text(
+                      'Saved: ${_formatTimestamp(savedAt)}\nProficiency: ${prof ?? '-'}  Preferred deck: ${pref ?? '-'}',
+                    ),
                     isThreeLine: true,
                     trailing: Wrap(
                       spacing: 8,

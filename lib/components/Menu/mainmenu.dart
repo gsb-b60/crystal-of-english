@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mygame/flashcard/screen/decklist/deckwelcome.dart';
 import 'package:mygame/components/Menu/usersetting/setting.dart';
 import 'package:mygame/main.dart';
 
-import 'package:flutter/foundation.dart';
-import 'package:mygame/audio/audio_manager.dart';
+// removed unused imports
 import 'package:mygame/components/Menu/save_load/save_load_screen.dart';
 import 'package:mygame/ui/settings_overlay.dart';
 
@@ -92,7 +92,11 @@ class MenuNav extends StatelessWidget {
             errorBuilder: (c, e, s) => const Center(
               child: Text(
                 'Crystal of English',
-                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -100,28 +104,20 @@ class MenuNav extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-
         GestureDetector(
           onTap: () async {
-            if (kIsWeb) {
-              await AudioManager.instance.playBgm('audio/bgm_overworld.mp3', volume: 0.4);
-            }
-
+            // Ensure overlays/game state
             game.overlays.remove('MainMenu');
             if (!game.overlays.isActive(SettingsOverlay.id)) {
               game.overlays.add(SettingsOverlay.id);
             }
-            game.resumeEngine();
+
+            // Resume gameplay fully (restores joystick) and keep music uninterrupted
+            await game.resumeGame();
           },
-          child: SizedBox(
-            height: 48,
-            child: Image.asset(
-              'assets/menu/NewGame.png',
-              fit: BoxFit.contain,
-              errorBuilder: (c, e, s) => const Center(
-                child: Text('New Game', style: TextStyle(color: Colors.white, fontSize: 24)),
-              ),
-            ),
+          child: const Text(
+            'New Game',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
 
@@ -132,18 +128,14 @@ class MenuNav extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => SaveLoadScreen(game: game)),
+              MaterialPageRoute(
+                builder: (context) => SaveLoadScreen(game: game),
+              ),
             );
           },
-          child: SizedBox(
-            height: 48,
-            child: Image.asset(
-              'assets/menu/Continue.png',
-              fit: BoxFit.contain,
-              errorBuilder: (c, e, s) => const Center(
-                child: Text('Save / Load', style: TextStyle(color: Colors.white, fontSize: 24)),
-              ),
-            ),
+          child: const Text(
+            'Save / Load',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
 
@@ -157,15 +149,9 @@ class MenuNav extends StatelessWidget {
               MaterialPageRoute(builder: (context) => UserScreen()),
             );
           },
-          child: SizedBox(
-            height: 48,
-            child: Image.asset(
-              'assets/menu/Settings.png',
-              fit: BoxFit.contain,
-              errorBuilder: (c, e, s) => const Center(
-                child: Text('Options', style: TextStyle(color: Colors.white, fontSize: 24)),
-              ),
-            ),
+          child: const Text(
+            'Options',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
 
@@ -176,15 +162,22 @@ class MenuNav extends StatelessWidget {
           onTap: () {
             SystemNavigator.pop();
           },
-          child: SizedBox(
-            height: 48,
-            child: Image.asset(
-              'assets/menu/Exit.png',
-              fit: BoxFit.contain,
-              errorBuilder: (c, e, s) => const Center(
-                child: Text('Exit', style: TextStyle(color: Colors.white, fontSize: 24)),
-              ),
-            ),
+          child: const Text(
+            'Exit',
+            style: TextStyle(color: Colors.white, fontSize: 24),
+          ),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DeckListScreen()),
+            );
+          },
+          child: const Text(
+            'Flash Card',
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
         ),
       ],

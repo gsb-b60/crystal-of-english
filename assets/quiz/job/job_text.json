@@ -1,0 +1,255 @@
+{
+  "topic": "job_text",
+  "questions": [
+    {
+      "id": "a1",
+      "type": "text",
+      "prompt": "Choose the correct past tense of \"go.\"",
+      "options": ["go", "goes", "went", "goed"],
+      "correctIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "a2",
+      "type": "text",
+      "prompt": "Which sentence uses \"their\" correctly?",
+      "options": [
+        "Their going to the park.",
+        "The students forgot their homework.",
+        "There books are on the table.",
+        "Theyre house is blue."
+      ],
+      "correctIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "a3",
+      "type": "text",
+      "prompt": "What does \"bilingual\" describe?",
+      "options": [
+        "Speaking two languages",
+        "Writing poetry",
+        "Playing two instruments",
+        "Cooking quickly"
+      ],
+      "correctIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "a4",
+      "type": "text",
+      "prompt": "Which word is an adjective?",
+      "options": ["quickly", "teacher", "beautiful", "running"],
+      "correctIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "a5",
+      "type": "text",
+      "prompt": "She has worked here ____ five years.",
+      "options": ["since", "for", "by", "from"],
+      "correctIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "a6",
+      "type": "text",
+      "prompt": "Choose the correct adjective order: a ____ table.",
+      "options": [
+        "wooden large round",
+        "large round wooden",
+        "round wooden large",
+        "round large wooden"
+      ],
+      "correctIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "a7",
+      "type": "text",
+      "prompt": "Which sentence uses the present perfect tense?",
+      "options": [
+        "I finish my work.",
+        "I finished my work.",
+        "I have finished my work.",
+        "I was finishing my work."
+      ],
+      "correctIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "a8",
+      "type": "text",
+      "prompt": "If it ____ tomorrow, we will stay home.",
+      "options": ["rained", "rains", "is raining", "rain"],
+      "correctIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "a9",
+      "type": "text",
+      "prompt": "Select the synonym of \"scarce.\"",
+      "options": ["rare", "abundant", "common", "ordinary"],
+      "correctIndex": 0,
+      "difficulty": 3
+    },
+    {
+      "id": "a10",
+      "type": "text",
+      "prompt": "Which sentence has correct subject-verb agreement?",
+      "options": [
+        "The team are winning.",
+        "The list of items are long.",
+        "Neither student knows the answer.",
+        "Both of the book is new."
+      ],
+      "correctIndex": 2,
+      "difficulty": 3
+    },
+    {
+      "id": "a11",
+      "type": "text",
+      "prompt": "Choose the correct relative pronoun: The book ____ you lent me was great.",
+      "options": ["that", "who", "whose", "whom"],
+      "correctIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "a12",
+      "type": "text",
+      "prompt": "Pick the correctly punctuated sentence.",
+      "options": [
+        "After the meeting, we went home.",
+        "After the meeting we went home",
+        "After the meeting we, went home.",
+        "After, the meeting we went home."
+      ],
+      "correctIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "a13",
+      "type": "text",
+      "prompt": "Which phrasal verb means \"cancel\"?",
+      "options": ["call off", "call up", "call on", "call for"],
+      "correctIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "a14",
+      "type": "text",
+      "prompt": "Choose the best transition to show contrast.",
+      "options": ["however", "therefore", "additionally", "namely"],
+      "correctIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "a15",
+      "type": "text",
+      "prompt": "Which sentence is in the passive voice?",
+      "options": [
+        "The chef prepared the meal.",
+        "The meal was prepared by the chef.",
+        "The chef is preparing the meal.",
+        "The chef prepares meals."
+      ],
+      "correctIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "a16",
+      "type": "text",
+      "prompt": "Choose the correct third conditional form.",
+      "options": [
+        "If I know, I would help.",
+        "If I had known, I would have helped.",
+        "If I knew, I would have help.",
+        "If I had knew, I helped."
+      ],
+      "correctIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "a17",
+      "type": "text",
+      "prompt": "Which word is closest in meaning to \"meticulous\"?",
+      "options": ["careful", "careless", "quick", "average"],
+      "correctIndex": 0,
+      "difficulty": 3
+    },
+    {
+      "id": "a18",
+      "type": "text",
+      "prompt": "Choose the correct collocation: ____ attention.",
+      "options": ["pay", "make", "do", "take"],
+      "correctIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "a19",
+      "type": "text",
+      "prompt": "What does the idiom \"hit the sack\" mean?",
+      "options": ["go to bed", "start working hard", "quit a job", "win a prize"],
+      "correctIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "a20",
+      "type": "text",
+      "prompt": "Choose the prefix that makes the opposite of \"legal.\"",
+      "options": ["il-", "im-", "un-", "ir-"],
+      "correctIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "a21",
+      "type": "text",
+      "prompt": "Which option shows correct semicolon use?",
+      "options": [
+        "It was late; we decided to leave.",
+        "It was late; and we decided to leave.",
+        "It was; late we decided to leave.",
+        "It was late; therefore. we decided to leave."
+      ],
+      "correctIndex": 0,
+      "difficulty": 4
+    },
+    {
+      "id": "a22",
+      "type": "text",
+      "prompt": "Choose the correct reported speech: \"I will help you,\" she said.",
+      "options": [
+        "She said she will help me.",
+        "She said she would help me.",
+        "She said she helps me.",
+        "She said she is helping me."
+      ],
+      "correctIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "a23",
+      "type": "text",
+      "prompt": "Which word best fits an academic tone: The study relies on ____ evidence.",
+      "options": ["anecdotal", "flimsy", "empirical", "random"],
+      "correctIndex": 2,
+      "difficulty": 4
+    },
+    {
+      "id": "a24",
+      "type": "text",
+      "prompt": "He suggested ____ earlier to avoid traffic.",
+      "options": ["to start", "start", "starting", "started"],
+      "correctIndex": 2,
+      "difficulty": 3
+    },
+    {
+      "id": "a25",
+      "type": "text",
+      "prompt": "Which animal is known to use tools in the wild?",
+      "options": ["chimpanzee", "sheep", "penguin", "shark"],
+      "correctIndex": 0,
+      "difficulty": 5
+    }
+  ]
+}

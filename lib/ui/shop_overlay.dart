@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,7 +27,6 @@ class _ShopOverlayState extends State<ShopOverlay> {
   late List<GameItem> npcItems;
   bool _loading = true;
 
-
   static const Offset kEleonoreOffset = Offset(80, 0);
   static const Offset kBookOffset = Offset(-100, 0);
 
@@ -40,27 +39,17 @@ class _ShopOverlayState extends State<ShopOverlay> {
 
   Future<void> _loadItemsFromAssets() async {
     try {
-      final manifestJson = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifest =
-          json.decode(manifestJson) as Map<String, dynamic>;
-      const prefix = 'assets/images/items/';
+      final assetPaths = await _readItemAssets();
 
-      final List<String> assetPaths = manifest.keys
-          .where((k) => k.startsWith(prefix) &&
-              (k.endsWith('.png') ||
-                  k.endsWith('.jpg') ||
-                  k.endsWith('.jpeg') ||
-                  k.endsWith('.webp')))
-          .toList()
-        ..sort();
-
-      final items = assetPaths.map((path) {
-        final filename = path.split('/').last;
-        final dot = filename.lastIndexOf('.');
-        final base = dot >= 0 ? filename.substring(0, dot) : filename;
-        final price = base.toLowerCase() == 'image1' ? 5 : 0;
-        return GameItem(base, path, price: price);
-      }).toList(growable: false);
+      final items = assetPaths
+          .map((path) {
+            final filename = path.split('/').last;
+            final dot = filename.lastIndexOf('.');
+            final base = dot >= 0 ? filename.substring(0, dot) : filename;
+            final price = base.toLowerCase() == 'image1' ? 5 : 0;
+            return GameItem(base, path, price: price);
+          })
+          .toList(growable: false);
 
       setState(() {
         npcItems = items;
@@ -75,13 +64,82 @@ class _ShopOverlayState extends State<ShopOverlay> {
     }
   }
 
+  Future<List<String>> _readItemAssets() async {
+    // Primary: use AssetManifest when available (mobile/desktop release/debug)
+    try {
+      final manifestJson = await rootBundle.loadString('AssetManifest.json');
+      final Map<String, dynamic> manifest =
+          json.decode(manifestJson) as Map<String, dynamic>;
+      const prefix = 'assets/images/items/';
+      final List<String> assetPaths =
+          manifest.keys
+              .where(
+                (k) =>
+                    k.startsWith(prefix) &&
+                    (k.endsWith('.png') ||
+                        k.endsWith('.jpg') ||
+                        k.endsWith('.jpeg') ||
+                        k.endsWith('.webp')),
+              )
+              .toList()
+            ..sort();
+      if (assetPaths.isNotEmpty) return assetPaths;
+    } catch (e) {
+      debugPrint('AssetManifest fallback for items: $e');
+    }
+
+    // Fallback: static list (helps when AssetManifest is unavailable, e.g. tests)
+    const names = [
+      'image1.png',
+      'image2.png',
+      'image3.png',
+      'image4.png',
+      'image5.png',
+      'image6.png',
+      'image7.png',
+      'image8.png',
+      'image9.png',
+      'image10.png',
+      'image11.png',
+      'image12.png',
+      'image13.png',
+      'image14.png',
+      'image15.png',
+      'image16.png',
+      'image17.png',
+      'image18.png',
+      'image19.png',
+      'image20.png',
+      'image21.png',
+      'image22.png',
+      'image23.png',
+      'image24.png',
+      'image25.png',
+      'image26.png',
+      'image27.png',
+      'image28.png',
+      'image29.png',
+      'image30.png',
+      'image31.png',
+      'image32.png',
+      'image33.png',
+      'image34.png',
+      'image35.png',
+      'image36.png',
+      'image37.png',
+      'image38.png',
+      'image39.png',
+      'image40.png',
+      'image41.png',
+    ];
+    return names.map((n) => 'assets/images/items/$n').toList();
+  }
+
   Future<void> _buy(GameItem item) async {
     if (Inventory.instance.items.length >= Inventory.instance.capacity) {
       await showDialog<void>(
         context: context,
-        builder: (ctx) => const AlertDialog(
-          content: Text('Hành trang đã đầy'),
-        ),
+        builder: (ctx) => const AlertDialog(content: Text('Hành trang đã đầy')),
       );
       return;
     }
@@ -106,8 +164,11 @@ class _ShopOverlayState extends State<ShopOverlay> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title:
-            Text(item.price > 0 ? 'Mua ${item.name} với ${item.price} vàng?' : 'Mua ${item.name}?'),
+        title: Text(
+          item.price > 0
+              ? 'Mua ${item.name} với ${item.price} vàng?'
+              : 'Mua ${item.name}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -203,13 +264,7 @@ class _ShopOverlayState extends State<ShopOverlay> {
                   ),
                 ),
               ),
-              ..._buildPageGrid(
-                leftPage,
-                rowsPerPage,
-                colsPerPage,
-                items,
-                0,
-              ),
+              ..._buildPageGrid(leftPage, rowsPerPage, colsPerPage, items, 0),
               ..._buildPageGrid(
                 rightPage,
                 rowsPerPage,
@@ -285,8 +340,7 @@ class _ShopOverlayState extends State<ShopOverlay> {
                             if (item != null)
                               Positioned.fill(
                                 child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     SizedBox(
                                       height: renderSize * 0.6,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mygame/components/Menu/usersetting/libwidget.dart';
-import 'package:mygame/main.dart';
-import 'package:mygame/user/user.dart';
+import 'package:mygame/data/user/user.dart';
+import 'package:mygame/data/user/userData.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});

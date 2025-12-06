@@ -1,0 +1,91 @@
+import 'package:flutter/material.dart';
+import 'package:mygame/flashcard/DailyLesson/config/storage.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/lessonNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/questNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/dailyLesson/noti/timerNoti.dart';
+import 'package:mygame/flashcard/DailyLesson/screen/startscreen.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/echofuseUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/echomathUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/echospellUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/meanfuseUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/mindfieldui.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/neuropickUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/phonemixUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/reviewUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/sound&sightUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/speechwordUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/synonymfeildUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/synonympickUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/wordpulseUI.dart';
+import 'package:mygame/flashcard/DailyLesson/studymode/wordsnapUI.dart';
+
+import 'package:provider/provider.dart';
+
+import '../../screen/endscreen.dart';
+
+class Learnlevel extends StatefulWidget {
+  Learnlevel({super.key,required this.level});
+  int level;
+
+  @override
+  State<Learnlevel> createState() => _LearnlevelState();
+}
+
+class _LearnlevelState extends State<Learnlevel> {
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => LessonNoti()..getByLevel(widget.level),
+        ),
+        ChangeNotifierProvider(create: (context) => TimerNoti()..start()),
+        ChangeNotifierProvider(create: (context) => Questnoti()),
+      ],
+
+      child: Consumer3<LessonNoti, TimerNoti, Questnoti>(
+        builder: (context, provider, timer, quest, _) {
+          if (provider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+          switch (provider.mode) {
+            case StudyMode.soundAndSight:
+              return SoundNSightUI();
+            case StudyMode.wordsnap:
+              return WordSnapUI();
+            case StudyMode.echoSpell:
+              return EchospellUI();
+            case StudyMode.echoMatch:
+              return EchoMatchUI();
+            case StudyMode.echofuse:
+              return EchoFuseUI();
+            case StudyMode.mindField:
+              return MindFeildUI();
+            case StudyMode.neuropick:
+              return NeuroPickUI();
+            case StudyMode.phonemix:
+              return PhoneMixUI();
+            case StudyMode.wordpulse:
+              return WordPulseUI();
+            case StudyMode.EndScreen:
+              return EndScreen();
+            case StudyMode.meanfuse:
+              return MeanfuseUI();
+            case StudyMode.StartScreen:
+              return StartScreen();
+            case StudyMode.synonympick:
+              return SynonympickUI();
+            case StudyMode.synonymfeild:
+              return SynonymfeildUI();
+            case StudyMode.speechword:
+              return SpeechWordUI();
+            case StudyMode.reviewcard:
+              return ReviewUI();
+            default:
+              return Text("Select a Study Mode");
+          }
+        },
+      ),
+    );
+  }
+}

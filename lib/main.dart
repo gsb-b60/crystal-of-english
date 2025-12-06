@@ -1,4 +1,6 @@
-﻿import 'dart:ui' as ui;
+﻿import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
@@ -10,10 +12,12 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
-import 'package:mygame/components/Menu/flashcard/business/Deck.dart';
+import 'package:mygame/flashcard/business/Flashcard.dart';
+import 'package:mygame/flashcard/business/Deck.dart';
+import 'package:mygame/flashcard/quizzconverter/fctoquizz.dart';
 import 'package:mygame/vocab/screen/cardlevel/cardlevelscreen.dart';
 import 'package:mygame/components/Menu/pausemenu.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'ui/health.dart';
 import 'ui/experience.dart';
@@ -31,7 +35,7 @@ import 'components/coin.dart';
 import 'ui/return_button.dart';
 import 'ui/area_title.dart';
 import 'package:mygame/components/Menu/mainmenu.dart';
-import 'components/Menu/flashcard/screen/decklist/deckwelcome.dart';
+import 'flashcard/screen/decklist/deckwelcome.dart';
 
 import 'audio/audio_manager.dart';
 import 'package:mygame/state/player_profile.dart';
@@ -40,6 +44,7 @@ import 'ui/shop_overlay.dart';
 import 'state/inventory.dart';
 
 void main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
   FlameAudio.audioCache.prefix = 'assets/';
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -54,6 +59,8 @@ void main() async {
 
   final deckModel = Deckmodel();
   await deckModel.fetchDecks();
+  
+
   runApp(
     MultiProvider(
       providers: [
@@ -113,6 +120,7 @@ void main() async {
             SettingsOverlay.id: (context, game) {
               return SettingsOverlay(
                 audio: AudioManager.instance,
+                game: game as MyGame,
                 onUseItem: (item) {
                   final g = game as MyGame;
                   if (item.name.toLowerCase() == 'image1') {
@@ -171,6 +179,8 @@ class MyGame extends FlameGame
   final DialogManager dialogManager = DialogManager();
   final ValueNotifier<List<RightAction>> rightActions =
       ValueNotifier<List<RightAction>>(<RightAction>[]);
+  bool _isPaused = false;
+  bool get isPaused => _isPaused;
 
   @override
   Future<void> onLoad() async {
@@ -251,8 +261,22 @@ class MyGame extends FlameGame
       margin: const EdgeInsets.only(left: 8, top: 40),
       onLevelUp: (lv) async {
         await showAreaTitle('Level Up! Lv $lv');
+        try {
+          await PlayerProfile.instance.setXpLevel(lv, expHud.xp);
+        } catch (e) {
+          debugPrint('save level on level-up failed: $e');
+        }
       },
     );
+    final baseLevel = PlayerProfile.instance.level ??
+        PlayerProfile.instance.proficiencyLevel ??
+        1;
+    final savedXp = PlayerProfile.instance.xp ?? 0;
+    expHud.setLevel(baseLevel, currentXp: savedXp);
+    try {
+      await PlayerProfile.instance.setXpLevel(expHud.level, expHud.xp,
+          autosave: false);
+    } catch (_) {}
     await hudRoot.add(expHud);
 
     goldHud = GoldHud(margin: const EdgeInsets.only(left: 8, top: 56));
@@ -266,14 +290,45 @@ class MyGame extends FlameGame
     };
 
     if (!kIsWeb) {
+      // Play BGM at normal volume immediately (no fade to avoid pause interruption)
       await AudioManager.instance.playBgm(
         'audio/bgm_overworld.mp3',
-        volume: 0.4,
+        volume: AudioManager.instance.bgmVolume,
       );
     }
     if (!overlays.isActive('MainMenu') &&
         !overlays.isActive(SettingsOverlay.id)) {
       overlays.add(SettingsOverlay.id);
+    }
+  }
+
+  /// Fully pause the game: lock controls and halt the engine.
+  Future<void> pauseGame() async {
+    if (_isPaused) return;
+    _isPaused = true;
+    _lockControls(true);
+    pauseEngine();
+    await AudioManager.instance.pauseBgm();
+  }
+
+  /// Resume gameplay: unlock controls and resume the engine.
+  Future<void> resumeGame() async {
+    // Always unlock controls and ensure joystick, even if not in paused state
+    // This handles cases like returning from menu where isPaused might be stale
+    _isPaused = false;
+    _lockControls(false);
+    resumeEngine();
+    await AudioManager.instance.resumeBgm();
+    // Ensure joystick is reattached and player wired to it
+    await _ensureJoystickAttached();
+  }
+
+  /// Toggle pause/resume including audio and control locks
+  Future<void> togglePause() async {
+    if (_isPaused) {
+      await resumeGame();
+    } else {
+      await pauseGame();
     }
   }
 
@@ -287,17 +342,60 @@ class MyGame extends FlameGame
     await hudRoot.add(AreaTitle(text));
   }
 
+  /// Persist the current gameplay state into the requested save slot.
+  Future<void> saveSlot(int slot) async {
+      await PlayerProfile.instance.saveSnapshot(
+        mapFile: currentMapFile,
+        posX: player.position.x,
+        posY: player.position.y,
+        hearts: heartsHud.currentHearts,
+        xp: expHud.xp,
+        level: expHud.level,
+        gold: goldHud.gold,
+        slot: slot,
+      );
+  }
+
   void _lockControls(bool lock) {
     final js = joystick;
+    if (js == null) {
+      player.joystick = null;
+      return;
+    }
+
     if (lock) {
       player.joystick = null;
-      if (js != null && js.parent != null) js.removeFromParent();
     } else {
-      if (js != null && js.parent == null) {
-        hudRoot.add(js);
-      }
-      if (js != null) player.joystick = js;
+      // When unlocking, always ensure joystick is properly attached
+      _attachJoystick();
     }
+  }
+
+  /// Synchronously attach joystick to HUD and player if not already attached
+  void _attachJoystick() {
+    final js = joystick;
+    if (js == null) return;
+
+    // Add to HUD if not already there
+    if (js.parent == null) {
+      hudRoot.add(js);
+    }
+
+    // Wire to player
+    player.joystick = js;
+  }
+
+  Future<void> _ensureJoystickAttached() async {
+    final js = joystick;
+    if (js == null) return;
+
+    // Add to HUD if not already there
+    if (js.parent == null) {
+      await hudRoot.add(js);
+    }
+
+    // Wire to player
+    player.joystick = js;
   }
 
   Future<void> _initMapObjects(String mapFile) async {
@@ -558,6 +656,7 @@ class MyGame extends FlameGame
         posY: player.position.y,
         hearts: heartsHud.currentHearts,
         xp: expHud.xp,
+        level: expHud.level,
         gold: goldHud.gold,
         slot: 1,
       );
@@ -610,16 +709,26 @@ class MyGame extends FlameGame
       if (result.xpGained > 0) {
         expHud.addXp(result.xpGained);
       }
-      // if (result.goldGained > 0) {
-      //   goldHud.addGold(result.goldGained);
-      // }
+      if (result.goldGained > 0) {
+        goldHud.addGold(result.goldGained);
+      }
+      try {
+        PlayerProfile.instance
+            .setXpLevel(expHud.level, expHud.xp, autosave: true)
+            .catchError((e) {
+          debugPrint('save xp after battle failed: $e');
+        });
+      } catch (e) {
+        debugPrint('save xp after battle failed: $e');
+      }
     }
 
     if (joystick != null) {
       if (_savedJoystickPos != null) {
         joystick!.position = _savedJoystickPos!;
       }
-      player.joystick = joystick;
+      // Use the centralized attach method to ensure joystick is in HUD
+      _attachJoystick();
     }
 
     if (result.outcome == 'lose') {
@@ -647,6 +756,7 @@ class MyGame extends FlameGame
         posY: player.position.y,
         hearts: heartsHud.currentHearts,
         xp: expHud.xp,
+        level: expHud.level,
         gold: goldHud.gold,
         slot: 1,
       );
@@ -712,10 +822,8 @@ class MyGame extends FlameGame
     gameCamera.setBounds(Rectangle.fromLTWH(0, 0, mapW, mapH));
     gameCamera.viewfinder.position = player.position;
 
-    if (joystick != null && joystick!.parent == null) {
-      await hudRoot.add(joystick!);
-    }
-    player.joystick = joystick;
+    // Use centralized method to ensure joystick is properly attached
+    await _ensureJoystickAttached();
 
     await showAreaTitle(
       mapFile == 'houseinterior.tmx'
@@ -788,6 +896,7 @@ class MyGame extends FlameGame
         posY: player.position.y,
         hearts: heartsHud.currentHearts,
         xp: expHud.xp,
+        level: expHud.level,
         gold: goldHud.gold,
         slot: 1,
       );

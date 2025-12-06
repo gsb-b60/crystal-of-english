@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mygame/components/Menu/flashcard/business/Flashcard.dart';
-import 'package:mygame/components/Menu/flashcard/screen/blankfill/blankwordscreen.dart';
+import 'package:mygame/flashcard/business/Flashcard.dart';
+import 'package:mygame/flashcard/screen/blankfill/blankwordscreen.dart';
 import 'package:mygame/main.dart';
 import 'package:mygame/vocab/placementtest/screen/screenmain.dart';
 import 'package:mygame/vocab/screen/cardlevel/quest/quest.dart';
