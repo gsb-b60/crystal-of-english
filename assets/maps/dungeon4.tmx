@@ -1843,7 +1843,7 @@
   <image source="../tiles/Cave_entrance3_ground_shadow.png" width="64" height="64"/>
  </tileset>
  <tileset firstgid="31431" name="dungeon4" tilewidth="16" tileheight="16" tilecount="10981" columns="139">
-  <image source="dungeon4.jpg" width="2235" height="1276"/>
+  <image source="../maps/dungeon4.jpg" width="2235" height="1276"/>
  </tileset>
  <tileset firstgid="42412" name="Furniture" tilewidth="16" tileheight="16" tilecount="2700" columns="50">
   <image source="../tiles/Pixel Crawler - Free Pack/Environment/Props/Static/Furniture.png" width="800" height="864"/>
