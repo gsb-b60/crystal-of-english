@@ -148,10 +148,10 @@
   <image source="dungeon3.jpg" width="3386" height="1935"/>
  </tileset>
  <tileset firstgid="79778" name="dungeon4" tilewidth="16" tileheight="16" tilecount="25320" columns="211">
-  <image source="dungeon4.jpg" width="3387" height="1934"/>
+  <image source="../maps/dungeon4.jpg" width="3387" height="1934"/>
  </tileset>
  <tileset firstgid="105098" name="dungeon5" tilewidth="16" tileheight="16" tilecount="25320" columns="211">
-  <image source="dungeon5.jpg" width="3386" height="1935"/>
+  <image source="../maps/dungeon5.jpg" width="3386" height="1935"/>
  </tileset>
  <tileset firstgid="130418" name="result_dungeon3" tilewidth="16" tileheight="16" tilecount="6300" columns="105">
   <image source="C:/Users/hiepn/Downloads/result_dungeon3.jpg" width="1693" height="968"/>

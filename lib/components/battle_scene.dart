@@ -10,6 +10,7 @@ import 'package:flame/sprite.dart' show SpriteSheet;
 import '../components/quiz_panel.dart';
 import '../quiz/quiz_models.dart';
 import '../main.dart' show MyGame;
+import '../state/player_profile.dart';
 import '../ui/health.dart';
 import 'enemy_wander.dart' show EnemyType;
 import 'package:flame/effects.dart';
@@ -130,16 +131,110 @@ class BattleScene extends Component with HasGameReference<MyGame> {
     }
   }
 
+  int _targetQuestionDifficulty() {
+    final score = PlayerProfile.instance.difficultyScore();
+    return score.clamp(1.0, 5.0).round();
+  }
+
   int _xpForQuestion(QuizQuestion q) {
     final diff = q.difficulty.clamp(1, 5);
     final base = 4 + diff * 2; // Easy stays low; harder questions pay more.
+    final relative = (diff - _targetQuestionDifficulty()).clamp(-3, 3);
+    final skillFactor = 1.0 + (relative * 0.08);
     final multiplier = switch (enemyType) {
       EnemyType.normal => 1.0,
       EnemyType.strong => 1.25,
       EnemyType.miniboss => 1.6,
       EnemyType.boss => 2.0,
     };
-    return max(3, (base * multiplier).round());
+    return max(3, (base * multiplier * skillFactor).round());
+  }
+
+  Map<int, double> _difficultyWeights(int target) {
+    switch (target) {
+      case 1:
+        return {1: 0.6, 2: 0.3, 3: 0.1, 4: 0.0, 5: 0.0};
+      case 2:
+        return {1: 0.2, 2: 0.45, 3: 0.25, 4: 0.1, 5: 0.0};
+      case 4:
+        return {1: 0.05, 2: 0.15, 3: 0.25, 4: 0.35, 5: 0.2};
+      case 5:
+        return {1: 0.0, 2: 0.1, 3: 0.2, 4: 0.3, 5: 0.4};
+      default:
+        return {1: 0.1, 2: 0.25, 3: 0.35, 4: 0.2, 5: 0.1};
+    }
+  }
+
+  List<QuizQuestion> _shapeQuestionPool(List<QuizQuestion> raw) {
+    if (raw.isEmpty) return raw;
+
+    final buckets = <int, List<QuizQuestion>>{
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+    };
+
+    for (final q in raw) {
+      final band = q.difficulty.clamp(1, 5);
+      buckets[band]!.add(q);
+    }
+
+    final availableBands =
+        buckets.values.where((b) => b.isNotEmpty).length;
+    if (availableBands <= 1) {
+      raw.shuffle(_rng);
+      return raw;
+    }
+
+    for (final b in buckets.values) {
+      b.shuffle(_rng);
+    }
+
+    final target = _targetQuestionDifficulty();
+    final weights = _difficultyWeights(target);
+    final totalQuestions = raw.length;
+    final shaped = <QuizQuestion>[];
+
+    int pickDiff() {
+      final sum = weights.values.fold<double>(0, (s, v) => s + v);
+      final roll = _rng.nextDouble() * (sum <= 0 ? 1 : sum);
+      double acc = 0;
+      for (final entry in weights.entries) {
+        acc += entry.value;
+        if (roll <= acc) return entry.key;
+      }
+      return target;
+    }
+
+    while (shaped.length < totalQuestions) {
+      int chosen = pickDiff();
+      if (buckets[chosen]!.isEmpty) {
+        bool found = false;
+        for (int offset = 1; offset <= 4 && !found; offset++) {
+          final low = chosen - offset;
+          final high = chosen + offset;
+          if (low >= 1 && buckets[low]!.isNotEmpty) {
+            chosen = low;
+            found = true;
+          } else if (high <= 5 && buckets[high]!.isNotEmpty) {
+            chosen = high;
+            found = true;
+          }
+        }
+        if (!found) break;
+      }
+      shaped.add(buckets[chosen]!.removeLast());
+    }
+
+    for (final b in buckets.values) {
+      while (b.isNotEmpty && shaped.length < totalQuestions) {
+        shaped.add(b.removeLast());
+      }
+    }
+
+    return shaped;
   }
 
   final Random _rng = Random();
@@ -236,12 +331,17 @@ class BattleScene extends Component with HasGameReference<MyGame> {
           ..position = Vector2(8, 4);
     await hud.add(heroHealth);
 
-    final enemyMaxHearts = switch (enemyType) {
+    final baseHearts = switch (enemyType) {
       EnemyType.normal => 2,
       EnemyType.strong => 3,
       EnemyType.miniboss => 5,
       EnemyType.boss => 10,
     };
+    final hpScale = 1.0 +
+        (PlayerProfile.instance.difficultyScore() - 1)
+            .clamp(0.0, 8.0) *
+            0.08;
+    final enemyMaxHearts = max(1, (baseHearts * hpScale).round());
 
     enemyHealth = (enemyType == EnemyType.boss)
         ? BossHealth(
@@ -418,8 +518,8 @@ class BattleScene extends Component with HasGameReference<MyGame> {
       };
     }
 
-    _quizRepo = QuizRepository(); // Chuẩn bị nguồn câu hỏi.
-    _pool = await _quizRepo.loadTopic(_topic);
+    _quizRepo = QuizRepository(); // Prepare question pool.
+    _pool = _shapeQuestionPool(await _quizRepo.loadTopic(_topic));
     final hurtSheet = SpriteSheet(image: hurtImg, srcSize: _kHeroHurtFrameSize);
     // Báº¯t Ä‘áº§u lÆ°á»£t Ä‘áº§u tiÃªn ngay sau khi load Ä‘á»§ asset.
     await _nextTurn(attackSheet, deadSheet, hurtSheet);

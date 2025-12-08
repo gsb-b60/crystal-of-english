@@ -1843,7 +1843,7 @@
   <image source="../tiles/Cave_entrance3_ground_shadow.png" width="64" height="64"/>
  </tileset>
  <tileset firstgid="31431" name="dungeon5" tilewidth="16" tileheight="16" tilecount="10981" columns="139">
-  <image source="dungeon5.jpg" width="2235" height="1277"/>
+  <image source="../maps/dungeon5.jpg" width="2235" height="1277"/>
  </tileset>
  <tileset firstgid="42412" name="Gates_light_shadow3" tilewidth="16" tileheight="16" tilecount="16" columns="4">
   <image source="../tiles/PNG/Objects_separately/64/Gates_light_shadow3.png" width="64" height="64"/>

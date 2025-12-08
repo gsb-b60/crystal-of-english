@@ -1,5 +1,6 @@
 ﻿import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flame/experimental.dart';
@@ -158,6 +159,17 @@ void main() async {
 
 class MyGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
+  final _rng = Random();
+  final List<String> _dungeonMapsPool = const [
+    'dungeon.tmx',
+    'dungeon2.tmx',
+    'dungeon3.tmx',
+    'dungeon4.tmx',
+    'dungeon5.tmx',
+  ];
+  List<String> _dungeonRoute = [];
+  int _dungeonFloor = 0;
+
   BattleScene? _battleScene;
   bool _inBattle = false;
   Vector2? _savedJoystickPos;
@@ -181,6 +193,7 @@ class MyGame extends FlameGame
       ValueNotifier<List<RightAction>>(<RightAction>[]);
   bool _isPaused = false;
   bool get isPaused => _isPaused;
+  bool get _isInDungeon => _dungeonRoute.isNotEmpty;
 
   @override
   Future<void> onLoad() async {
@@ -398,25 +411,66 @@ class MyGame extends FlameGame
     player.joystick = js;
   }
 
+  bool _isDungeonMap(String mapFile) =>
+      mapFile.startsWith('dungeon') && mapFile.endsWith('.tmx');
+
+  void _startDungeonRun() {
+    _dungeonRoute = List.generate(
+      20,
+      (_) => _dungeonMapsPool[_rng.nextInt(_dungeonMapsPool.length)],
+    );
+    _dungeonFloor = 0;
+  }
+
+  void _resetDungeonRun() {
+    _dungeonRoute = [];
+    _dungeonFloor = 0;
+  }
+
+  Vector2 _dungeonSpawnPoint(double mapW, double mapH) {
+    // Spawn near the lower-middle of the map to avoid walls.
+    final x = mapW * 0.5;
+    final y = mapH * 0.75;
+    return Vector2(x, y);
+  }
+
   Future<void> _initMapObjects(String mapFile) async {
-    final effectiveLevel = PlayerProfile.instance.effectiveLevel();
+    final difficultyScore = PlayerProfile.instance.difficultyScore();
     int _slotCounter = 0;
 
-    EnemyType _enemyForSlot(int level, int slot) {
-      switch (level) {
-        case 1:
-          return EnemyType.normal;
-        case 2:
-          return (slot % 2 == 0) ? EnemyType.normal : EnemyType.strong;
-        case 3:
-          return (slot % 3 == 0) ? EnemyType.miniboss : EnemyType.strong;
-        case 4:
-          return (slot % 2 == 0) ? EnemyType.miniboss : EnemyType.strong;
-        case 5:
-          return (slot % 3 == 0) ? EnemyType.boss : EnemyType.miniboss;
-        default:
-          return EnemyType.normal;
+    EnemyType _enemyForSlot(int slot) {
+      final tiers = <List<double>>[
+        [0.82, 0.18, 0.0, 0.0], // ~Level 1
+        [0.55, 0.35, 0.10, 0.0], // ~Level 2
+        [0.30, 0.42, 0.28, 0.0], // ~Level 3
+        [0.18, 0.34, 0.34, 0.14], // ~Level 4
+        [0.10, 0.26, 0.38, 0.26], // ~Level 5
+        [0.08, 0.18, 0.34, 0.40], // 6+
+      ];
+
+      final scaled = (difficultyScore - 1)
+          .clamp(0.0, (tiers.length - 1).toDouble());
+      final base = scaled.floor();
+      final next = min(tiers.length - 1, base + 1);
+      final frac = scaled - base;
+
+      final weights = List<double>.generate(4, (i) {
+        final a = tiers[base][i];
+        final b = tiers[next][i];
+        return a + (b - a) * frac;
+      });
+
+      final total = weights.fold<double>(0, (s, v) => s + v);
+      double roll = (_rng.nextDouble() + slot * 0.173) % 1.0;
+      double acc = 0;
+      for (int i = 0; i < weights.length; i++) {
+        final w = total <= 0 ? 0 : (weights[i] / total);
+        acc += w;
+        if (roll <= acc + 1e-6) {
+          return EnemyType.values[i];
+        }
       }
+      return EnemyType.strong;
     }
 
     if (mapFile == 'map.tmx') {
@@ -494,7 +548,11 @@ class MyGame extends FlameGame
             'Enter Undead Island',
             onSelected: () async {
               dialogManager.close();
-              await loadMap('dungeon.tmx', spawn: Vector2(1260, 650));
+              _startDungeonRun();
+              await loadMap(
+                _dungeonRoute[_dungeonFloor],
+                spawn: Vector2(1260, 650),
+              );
             },
           ),
           DialogueChoice('Goodbye', onSelected: dialogManager.close),
@@ -642,6 +700,31 @@ class MyGame extends FlameGame
       //       enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
       //     ),
       //   );
+    } else if (_isDungeonMap(mapFile)) {
+      // Spawn random wandering enemies across the dungeon floor.
+      const double tileSize = 16;
+      final mapW = map.tileMap.map.width * tileSize;
+      final mapH = map.tileMap.map.height * tileSize;
+
+      final enemyCount = 4 + _rng.nextInt(3); // 4-6 per floor
+      for (var i = 0; i < enemyCount; i++) {
+        final rawLeft = 64 + _rng.nextDouble() * max(64, mapW - 192);
+        final rawTop = 64 + _rng.nextDouble() * max(64, mapH - 192);
+        final left = min(max(32.0, rawLeft), mapW - 120);
+        final top = min(max(32.0, rawTop), mapH - 120);
+        final width = 100 + _rng.nextDouble() * 100;
+        final height = 100 + _rng.nextDouble() * 100;
+
+        await world.add(
+          EnemyWander(
+            patrolRect: ui.Rect.fromLTWH(left, top, width, height),
+            spritePath: 'Joanna.png',
+            speed: 26 + _rng.nextDouble() * 12,
+            triggerRadius: 42 + _rng.nextDouble() * 10,
+            enemyType: _enemyForSlot(_slotCounter++),
+          ),
+        );
+      }
     }
   }
 
@@ -749,6 +832,13 @@ class MyGame extends FlameGame
     Vector2? spawnTile,
     double tileSize = 16,
   }) async {
+    String targetMap = mapFile;
+    final isDungeon = _isDungeonMap(targetMap);
+    if (isDungeon && !_isInDungeon) {
+      _startDungeonRun();
+      targetMap = _dungeonRoute[_dungeonFloor];
+    }
+
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
@@ -770,9 +860,9 @@ class MyGame extends FlameGame
     await add(newWorld);
     world = newWorld;
 
-    if (mapFile == 'dungeon.tmx') {
+    if (isDungeon) {
       map = await ft.TiledComponent.load(
-        mapFile,
+        targetMap,
         Vector2.all(tileSize),
         prefix: 'assets/maps/',
         priority: 0,
@@ -781,7 +871,7 @@ class MyGame extends FlameGame
       await world.add(map);
     } else {
       map = await ft.TiledComponent.load(
-        mapFile,
+        targetMap,
         Vector2.all(tileSize),
         prefix: 'assets/maps/',
         priority: 0,
@@ -789,7 +879,7 @@ class MyGame extends FlameGame
       await world.add(map);
     }
 
-    await _initMapObjects(mapFile);
+    await _initMapObjects(targetMap);
 
     final collision = Collision(map: map, parent: world);
     await collision.loadLayer("collision");
@@ -826,14 +916,16 @@ class MyGame extends FlameGame
     await _ensureJoystickAttached();
 
     await showAreaTitle(
-      mapFile == 'houseinterior.tmx'
+      targetMap == 'houseinterior.tmx'
           ? 'Library'
-          : mapFile == 'dungeon.tmx'
-          ? 'Welcome to Undead Island'
-          : 'Overworld',
+          : isDungeon
+              ? (_isInDungeon
+                  ? 'Undead Island - Floor ${_dungeonFloor + 1}/${_dungeonRoute.length}'
+                  : 'Welcome to Undead Island')
+              : 'Overworld',
     );
 
-    if (mapFile == 'houseinterior.tmx') {
+    if (targetMap == 'houseinterior.tmx') {
       await world.add(
         Coin(
           position: finalSpawn.clone(),
@@ -854,17 +946,45 @@ class MyGame extends FlameGame
           },
         ),
       );
-    } else if (mapFile == 'dungeon.tmx') {
+    } else if (isDungeon) {
+      final nextSpawn = _dungeonSpawnPoint(mapW, mapH);
+
+      // Coin to ascend
       await world.add(
         Coin(
-          position: finalSpawn.clone(),
-          interactRadius: 140,
+          position: Vector2(mapW - 120, mapH - 160),
+          interactRadius: 120,
+          persistent: true,
           onCollected: () async {
-            await loadMap('map.tmx', spawn: Vector2(955, 672));
+            if (_dungeonFloor < _dungeonRoute.length - 1) {
+              _dungeonFloor++;
+              await loadMap(_dungeonRoute[_dungeonFloor], spawn: nextSpawn);
+            } else {
+              _resetDungeonRun();
+              await loadMap('map.tmx', spawn: Vector2(955, 672));
+            }
           },
         ),
       );
-    } else if (mapFile == 'map.tmx') {
+
+      // Coin to descend or exit
+      await world.add(
+        Coin(
+          position: Vector2(120, 160),
+          interactRadius: 120,
+          persistent: true,
+          onCollected: () async {
+            if (_dungeonFloor > 0) {
+              _dungeonFloor--;
+              await loadMap(_dungeonRoute[_dungeonFloor], spawn: nextSpawn);
+            } else {
+              _resetDungeonRun();
+              await loadMap('map.tmx', spawn: Vector2(955, 672));
+            }
+          },
+        ),
+      );
+    } else if (targetMap == 'map.tmx') {
       await world.add(
         Coin(
           position: Vector2(362, 280),
@@ -875,7 +995,7 @@ class MyGame extends FlameGame
           },
         ),
       );
-    } else if (mapFile == 'shop.tmx') {
+    } else if (targetMap == 'shop.tmx') {
       await world.add(
         Coin(
           position: Vector2(120, 120),
@@ -888,7 +1008,7 @@ class MyGame extends FlameGame
       );
     }
 
-    currentMapFile = mapFile;
+    currentMapFile = targetMap;
     try {
       await PlayerProfile.instance.saveSnapshot(
         mapFile: currentMapFile,
