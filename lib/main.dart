@@ -435,24 +435,42 @@ class MyGame extends FlameGame
   }
 
   Future<void> _initMapObjects(String mapFile) async {
-    final effectiveLevel = PlayerProfile.instance.effectiveLevel();
+    final difficultyScore = PlayerProfile.instance.difficultyScore();
     int _slotCounter = 0;
 
-    EnemyType _enemyForSlot(int level, int slot) {
-      switch (level) {
-        case 1:
-          return EnemyType.normal;
-        case 2:
-          return (slot % 2 == 0) ? EnemyType.normal : EnemyType.strong;
-        case 3:
-          return (slot % 3 == 0) ? EnemyType.miniboss : EnemyType.strong;
-        case 4:
-          return (slot % 2 == 0) ? EnemyType.miniboss : EnemyType.strong;
-        case 5:
-          return (slot % 3 == 0) ? EnemyType.boss : EnemyType.miniboss;
-        default:
-          return EnemyType.normal;
+    EnemyType _enemyForSlot(int slot) {
+      final tiers = <List<double>>[
+        [0.82, 0.18, 0.0, 0.0], // ~Level 1
+        [0.55, 0.35, 0.10, 0.0], // ~Level 2
+        [0.30, 0.42, 0.28, 0.0], // ~Level 3
+        [0.18, 0.34, 0.34, 0.14], // ~Level 4
+        [0.10, 0.26, 0.38, 0.26], // ~Level 5
+        [0.08, 0.18, 0.34, 0.40], // 6+
+      ];
+
+      final scaled = (difficultyScore - 1)
+          .clamp(0.0, (tiers.length - 1).toDouble());
+      final base = scaled.floor();
+      final next = min(tiers.length - 1, base + 1);
+      final frac = scaled - base;
+
+      final weights = List<double>.generate(4, (i) {
+        final a = tiers[base][i];
+        final b = tiers[next][i];
+        return a + (b - a) * frac;
+      });
+
+      final total = weights.fold<double>(0, (s, v) => s + v);
+      double roll = (_rng.nextDouble() + slot * 0.173) % 1.0;
+      double acc = 0;
+      for (int i = 0; i < weights.length; i++) {
+        final w = total <= 0 ? 0 : (weights[i] / total);
+        acc += w;
+        if (roll <= acc + 1e-6) {
+          return EnemyType.values[i];
+        }
       }
+      return EnemyType.strong;
     }
 
     if (mapFile == 'map.tmx') {
@@ -703,7 +721,7 @@ class MyGame extends FlameGame
             spritePath: 'Joanna.png',
             speed: 26 + _rng.nextDouble() * 12,
             triggerRadius: 42 + _rng.nextDouble() * 10,
-            enemyType: _enemyForSlot(effectiveLevel, _slotCounter++),
+            enemyType: _enemyForSlot(_slotCounter++),
           ),
         );
       }

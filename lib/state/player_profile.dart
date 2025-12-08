@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:mygame/data/flashcard/database_helper.dart';
 
@@ -26,6 +27,34 @@ class PlayerProfile {
 
   PlayerProfile._();
 
+  int _baseLevelFloor() => _preferredDeckLevel ?? _proficiencyLevel ?? 1;
+  int _currentLevelRaw() => _level ?? _baseLevelFloor();
+
+  int xpToNextLevel(int level) {
+    if (level <= 1) return 50;
+    return 50 + (level - 1) * 30;
+  }
+
+  double xpProgressFraction() {
+    final lv = _currentLevelRaw();
+    final need = xpToNextLevel(lv);
+    final inLevelXp = (_xp ?? 0).clamp(0, need);
+    if (need <= 0) return 0;
+    final pct = inLevelXp / need;
+    return pct.clamp(0.0, 0.99);
+  }
+
+  double difficultyScore() {
+    final base = _baseLevelFloor();
+    final lv = math.max(base, _currentLevelRaw());
+    final progress = xpProgressFraction();
+    final score = base + (lv - base) + progress;
+    return score.clamp(1.0, 99.0);
+  }
+
+  int difficultyTier({int maxTier = 10}) {
+    return difficultyScore().ceil().clamp(1, maxTier);
+  }
 
   Future<void> init() async {
     try {
@@ -173,7 +202,7 @@ class PlayerProfile {
 
 
   int effectiveLevel() {
-    return _level ?? _preferredDeckLevel ?? _proficiencyLevel ?? 1;
+    return difficultyTier(maxTier: 9999);
   }
 
   Future<void> setXpLevel(int level, int xp, {bool autosave = true}) async {
